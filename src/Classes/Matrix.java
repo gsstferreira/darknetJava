@@ -3,6 +3,9 @@ package Classes;
 import Tools.Rand;
 import Tools.Util;
 
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
 public class Matrix {
 
     public int rows;
@@ -25,7 +28,11 @@ public class Matrix {
         int correct = 0;
 
         for(int i = 0; i < truth.rows; i++) {
-            Util.topK(guess.vals[i],n,k,indexes,0,0);
+
+            IntBuffer ib = IntBuffer.wrap(indexes);
+            FloatBuffer fb = FloatBuffer.wrap(guess.vals[i]);
+
+            Util.topK(fb,n,k,ib);
             for(int j = 0; j < k; j++) {
                 int _class = indexes[j];
 

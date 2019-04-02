@@ -4,11 +4,14 @@ import Enums.Activation;
 import Enums.CostType;
 import Enums.LayerType;
 
+import java.nio.*;
+
 public class Layer {
 
     public LayerType type;
     public Activation activation;
     public CostType costType;
+    
     public int batchNormalize;
     public int shortcut;
     public int batch;
@@ -52,7 +55,7 @@ public class Layer {
     public float exposure;
     public float shift;
     public float ratio;
-    public float learning_rate_scale;
+    public float learningRateScale;
     public float clip;
     public int noloss;
     public int softmax;
@@ -66,22 +69,22 @@ public class Layer {
     public int reorg;
     public int log;
     public int tanh;
-    public int[] mask;
+    public IntBuffer mask;
     public int total;
 
     public float alpha;
     public float beta;
     public float kappa;
 
-    public float coord_scale;
-    public float object_scale;
-    public float noobject_scale;
-    public float mask_scale;
-    public float class_scale;
+    public float coordScale;
+    public float objectScale;
+    public float noobjectScale;
+    public float maskScale;
+    public float classScale;
     public int bias_match;
     public int random;
-    public float ignore_thresh;
-    public float truth_thresh;
+    public float ignoreThresh;
+    public float truthThresh;
     public float thresh;
     public float focus;
     public int classfix;
@@ -99,85 +102,85 @@ public class Layer {
     public float scale;
 
     public String cweights;
-    public int[] indexes;
-    public int[] input_layers;
-    public int[] input_sizes;
-    public int[] map;
-    public int[] counts;
+    public IntBuffer indexes;
+    public IntBuffer inputLayers;
+    public IntBuffer inputSizes;
+    public IntBuffer map;
+    public IntBuffer counts;
     public float[][] sums;
-    public float[] rand;
-    public float[] cost;
-    public float[] state;
-    public float[] prev_state;
-    public float[] forgot_state;
-    public float[] forgot_delta;
-    public float[] state_delta;
-    public float[] combine_cpu;
-    public float[] combine_delta_cpu;
+    public FloatBuffer rand;
+    public FloatBuffer cost;
+    public FloatBuffer state;
+    public FloatBuffer prevState;
+    public FloatBuffer forgotState;
+    public FloatBuffer forgotDelta;
+    public FloatBuffer stateDelta;
+    public FloatBuffer combineCpu;
+    public FloatBuffer combineDeltaCpu;
 
-    public float[] concat;
-    public float[] concat_delta;
+    public FloatBuffer concat;
+    public FloatBuffer concatDelta;
 
-    public float[] binary_weights;
+    public FloatBuffer binaryWeights;
 
-    public float[] biases;
-    public float[] bias_updates;
+    public FloatBuffer biases;
+    public FloatBuffer biasUpdates;
 
-    public float[] scales;
-    public float[] scale_updates;
+    public FloatBuffer scales;
+    public FloatBuffer scaleUpdates;
 
-    public float[] weights;
-    public float[] weight_updates;
+    public FloatBuffer weights;
+    public FloatBuffer weightUpdates;
 
-    public float[] delta;
-    public float[] output;
-    public float[] loss;
-    public float[] squared;
-    public float[] norms;
+    public FloatBuffer delta;
+    public FloatBuffer output;
+    public FloatBuffer loss;
+    public FloatBuffer squared;
+    public FloatBuffer norms;
 
-    public float[] spatial_mean;
-    public float[] mean;
-    public float[] variance;
+    public FloatBuffer spatialMean;
+    public FloatBuffer mean;
+    public FloatBuffer variance;
 
-    public float[] mean_delta;
-    public float[] variance_delta;
+    public FloatBuffer meanDelta;
+    public FloatBuffer varianceDelta;
 
-    public float[] rolling_mean;
-    public float[] rolling_variance;
+    public FloatBuffer rollingMean;
+    public FloatBuffer rollingVariance;
 
-    public float[] x;
-    public float[] xNorm;
+    public FloatBuffer x;
+    public FloatBuffer xNorm;
 
-    public float[] m;
-    public float[] v;
+    public FloatBuffer m;
+    public FloatBuffer v;
 
-    public float[] biasM;
-    public float[] biasV;
-    public float[] scaleM;
-    public float[] scaleV;
+    public FloatBuffer biasM;
+    public FloatBuffer biasV;
+    public FloatBuffer scaleM;
+    public FloatBuffer scaleV;
 
 
-    public float[] z_cpu;
-    public float[] r_cpu;
-    public float[] h_cpu;
-    public float[] prev_state_cpu;
+    public FloatBuffer zCpu;
+    public FloatBuffer rCpu;
+    public FloatBuffer hCpu;
+    public FloatBuffer prevStateCpu;
 
-    public float[] tempCpu;
-    public float[] temp2Cpu;
-    public float[] temp3Cpu;
+    public FloatBuffer tempCpu;
+    public FloatBuffer temp2Cpu;
+    public FloatBuffer temp3Cpu;
 
-    public float[] dhCpu;
-    public float[] hhCpu;
-    public float[] prevCellCpu;
-    public float[] cellCpu;
-    public float[] fCpu;
-    public float[] iCpu;
-    public float[] gCpu;
-    public float[] oCpu;
-    public float[] cCpu;
-    public float[] dcCpu;
+    public FloatBuffer dhCpu;
+    public FloatBuffer hhCpu;
+    public FloatBuffer prevCellCpu;
+    public FloatBuffer cellCpu;
+    public FloatBuffer fCpu;
+    public FloatBuffer iCpu;
+    public FloatBuffer gCpu;
+    public FloatBuffer oCpu;
+    public FloatBuffer cCpu;
+    public FloatBuffer dcCpu;
 
-    public float[] binaryInput;
+    public FloatBuffer binaryInput;
 
     public Layer inputLayer;
     public Layer selfLayer;
@@ -221,5 +224,4 @@ public class Layer {
     public Tree softmaxTree;
 
     public int workspaceSize;
-
 }

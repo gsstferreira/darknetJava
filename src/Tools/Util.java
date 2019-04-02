@@ -2,6 +2,9 @@ package Tools;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -10,19 +13,19 @@ public abstract class Util {
 
     public static final Date DATE = new Date();
 
-    public static void topK(float[] a, int n, int k, int[] index, int oA, int oI) {
+    public static void topK(FloatBuffer a, int n, int k, IntBuffer index) {
 
         for(int i = 0; i < k; i++) {
-            index[oI + i] = -1;
+            index.put(i,-1);
         }
 
         for(int i = 0; i < n; i++) {
             int curr = i;
             for(int j = 0; j < k; j++) {
-                if(index[oI + j] < 0 || a[oA + curr] > a[oA + index[oI + j]]) {
+                if(index.get(j) < 0 || a.get(curr) > a.get(index.get(j))) {
                     int swap = curr;
-                    curr = index[oI + j];
-                    index[oI + j] = swap;
+                    curr = index.get(j);
+                    index.put(j,swap);
                 }
             }
         }
@@ -39,6 +42,7 @@ public abstract class Util {
             while((s = reader.readLine()) != null) {
                 sb.append(s);
             }
+            reader.close();
 
             return sb.toString().replace("\n","");
         }
@@ -48,31 +52,33 @@ public abstract class Util {
         }
     }
 
-    public static int[] readMap(String fileName) {
-
-        List<Integer> map = new ArrayList<>();
+    public static IntBuffer readMap(String fileName) {
 
         try {
+
+            List<Integer> list = new ArrayList<>();
+
             BufferedReader reader = new BufferedReader(new FileReader(fileName));
             String s;
 
             while((s = reader.readLine()) != null) {
                 int num = Integer.parseInt(s.strip());
-                map.add(num);
+                list.add(num);
+            }
+            reader.close();
+
+            IntBuffer ib = IntBuffer.allocate(list.size());
+
+            for(int i = 0; i < ib.capacity(); i++) {
+                ib.put(i,list.get(i));
             }
 
-            int[] _map = new int[map.size()];
-
-            for(int i = 0; i < map.size(); i++) {
-                _map[i] = map.get(i);
-            }
-            return _map;
+            return ib;
         }
         catch (Exception e) {
             System.out.println(String.format("Error trying to load file '%s'.",fileName));
             return null;
         }
-
     }
 
     public static boolean findArg(int argc, List<String> argv, String arg) {
@@ -157,24 +163,25 @@ public abstract class Util {
         return sb.toString();
     }
 
-    public static float sumArray(float[] a,int n, int oA) {
+    public static float sumArray(FloatBuffer a,int n) {
 
         float sum = 0;
 
         for(int i = 0; i < n; i++) {
-            sum += a[oA + i];
+            sum += a.get(i);
         }
         return sum;
     }
 
-    public static float meanArray(float[] a, int n, int oA) {
+    public static float meanArray(FloatBuffer a, int n) {
 
-        return sumArray(a,n,oA)/n;
+        return sumArray(a,n)/n;
     }
 
     public static void meanArrays(float[][] a, int n, int els, float[] avg) {
 
-        ArrayUtils.setArrayValue(avg,0);
+        FloatBuffer f = FloatBuffer.wrap(avg);
+        BufferUtils.setBufferValue(f,0);
 
         for(int j = 0; j < n; j++) {
             for(int i = 0; i < els; i++) {
@@ -186,135 +193,138 @@ public abstract class Util {
         }
     }
 
-    public static float varianceArray(float[] a, int n, int oA) {
+    public static float varianceArray(FloatBuffer a, int n) {
 
         int i;
         float sum = 0;
 
-        float mean = meanArray(a, n,oA);
+        float mean = meanArray(a, n);
 
         for(i = 0; i < n; ++i) {
-            sum += (a[i + oA] - mean) * (a[i + oA] - mean);
+            sum += (a.get(i) - mean) * (a.get(i) - mean);
         }
         return sum/n;
     }
 
-    public static float distArray(float[] a, float[] b, int n, int sub, int oA, int oB) {
+    public static float distArray(FloatBuffer a, FloatBuffer b, int n, int sub) {
 
         int i;
         float sum = 0;
         for(i = 0; i < n; i += sub) {
 
-            sum += Math.pow(a[i + oA] - b[i + oB], 2);
+            sum += Math.pow(a.get(i) - b.get(i),2);
         }
         return (float) Math.sqrt(sum);
     }
 
-    public static float mseArray(float[] a, int n, int oA) {
+    public static float mseArray(FloatBuffer a, int n) {
 
         int i;
         float sum = 0;
         for(i = 0; i < n; ++i) {
-            sum += a[i + oA] * a[i + oA];
+            sum += a.get(i) * a.get(i);
         }
         return (float) Math.sqrt(sum/n);
     }
 
-    public static void normalizeArray(float[] a, int n, int oA) {
+    public static void normalizeArray(FloatBuffer a, int n) {
 
         int i;
-        float mu = meanArray(a,n,oA);
-        float sigma = (float) Math.sqrt(varianceArray(a,n,oA));
+        float mu = meanArray(a,n);
+        float sigma = (float) Math.sqrt(varianceArray(a,n));
 
         for(i = 0; i < n; ++i){
-            a[i + oA] = (a[i + oA] - mu)/sigma;
+            a.put(i,(a.get(i) - mu)/sigma);
         }
     }
 
-    public static void translateArray(float[] a, int n, float s, int oA) {
+    public static void translateArray(FloatBuffer a, int n, float s) {
 
         for(int i = 0;  i < n; i++) {
-            a[i + oA] += s;
+            a.put(i,a.get(i) +s);
         }
     }
 
-    public static float magArray(float[] a, int n, int oA) {
+    public static float magArray(FloatBuffer a, int n) {
 
         float sum = 0;
         for(int i = 0; i < n; ++i){
-            sum += a[i + oA]*a[i + oA];
+
+            sum += a.get(i) * a.get(i);
         }
         return (float) Math.sqrt(sum);
     }
 
-    public static void scaleArray(float[] a, int n, float s, int oA) {
+    public static void scaleArray(FloatBuffer a, int n, float s) {
 
         int i;
         for(i = 0; i < n; ++i){
-            a[i + oA] *= s;
+            a.put(i,a.get(i)*s);
         }
     }
 
-    public static int sampleArray(float[] a, int n, int oA) {
+    public static int sampleArray(FloatBuffer a, int n) {
 
-        float sum = sumArray(a, n,oA);
-        scaleArray(a, n, 1.0f/sum,oA);
+        float sum = sumArray(a, n);
+        scaleArray(a, n, 1.0f/sum);
 
 
         float r = Rand.rand.nextFloat();
         int i;
         for(i = 0; i < n; ++i){
-            r = r - a[i + oA];
+            r = r - a.get(i);
             if (r <= 0) return i;
         }
         return n-1;
     }
 
-    public static int maxIndex(int[] a, int n, int oA) {
+    public static int maxIndex(IntBuffer a, int n) {
 
         if(n <= 0) return -1;
         int i, max_i = 0;
-        int max = a[oA];
+        int max = a.get(0);
+
         for(i = 1; i < n; ++i){
-            if(a[i + oA] > max){
-                max = a[i + oA];
+            if(a.get(i) > max){
+                max = a.get(i);
                 max_i = i;
             }
         }
         return max_i;
     }
 
-    public static int maxIndex(float[] a, int n, int oA) {
+    public static int maxIndex(FloatBuffer a, int n) {
 
         if(n <= 0) return -1;
+
         int i, max_i = 0;
-        float max = a[oA];
+        float max = a.get(0);
         for(i = 1; i < n; ++i){
-            if(a[i + oA] > max){
-                max = a[i + oA];
+            if(a.get(i) > max){
+                max = a.get(i);
                 max_i = i;
             }
         }
         return max_i;
     }
 
-    public static int intIndex(int[] a, int val, int n, int oA) {
+    public static int intIndex(IntBuffer a, int val, int n) {
 
         int i;
         for(i = 0; i < n; ++i){
-            if(a[i + oA] == val) return i;
+            if(a.get(i) == val) return i;
         }
         return -1;
     }
 
-    public static float[][] oneHotEncode(float[] a, int n, int k, int oA) {
+    public static float[][] oneHotEncode(FloatBuffer a, int n, int k) {
 
         float[][] t = new float[n][k];
         int index;
 
         for(int i = 0; i < n; i++) {
 
-            index = (int) a[i + oA];
+            index = (int) a.get(i);
             t[i][index] = 1;
         }
 
@@ -352,7 +362,7 @@ public abstract class Util {
         return line.split(",").length;
     }
 
-    public static float[] parseFields(String line, int n) {
+    public static FloatBuffer parseFields(String line, int n) {
 
         float[] field = new float[n];
         String[] separated = line.split(",");
@@ -365,10 +375,36 @@ public abstract class Util {
                 field[i] = Float.NaN;
             }
         }
-        return field;
+        return FloatBuffer.wrap(field);
     }
 
+    public static String toByteArray(int val) {
 
+        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+        byteBuffer.putInt(val);
+
+        return new String(byteBuffer.array());
+    }
+
+    public static String toByteArray(float val) {
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+        byteBuffer.putFloat(val);
+
+        return new String(byteBuffer.array());
+    }
+
+    public static float toFloat(byte[] bytes) {
+
+        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        return byteBuffer.getFloat(0);
+    }
+
+    public static float toInt(byte[] bytes) {
+
+        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        return byteBuffer.getInt(0);
+    }
 
 
 }

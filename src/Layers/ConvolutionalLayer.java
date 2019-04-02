@@ -5,4 +5,5 @@ import Classes.Network;
 
 public class ConvolutionalLayer extends Layer {
 
+
 }

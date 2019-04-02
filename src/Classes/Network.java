@@ -2,17 +2,19 @@ package Classes;
 
 import Enums.LearningRatePolicy;
 
+import java.nio.*;
+
 public class Network {
 
     public int n;
     public int batch;
 
-    public int[] seen;
-    public int[] t;
+    public IntBuffer seen;
+    public IntBuffer t;
     public float epoch;
     public int subdivisions;
     public Layer[] layers;
-    public float[] output;
+    public FloatBuffer output;
 
     public LearningRatePolicy policy;
 
@@ -25,8 +27,8 @@ public class Network {
     public int timeSteps;
     public int step;
     public int maxBatches;
-    public float[] scales;
-    public int[] steps;
+    public FloatBuffer scales;
+    public IntBuffer steps;
     public int numSteps;
     public int burnIn;
 
@@ -57,18 +59,18 @@ public class Network {
     public int gpuIndex;
     public Tree[] hierarchy;
 
-    public float[] input;
-    public float[] truth;
-    public float[] delta;
-    public float[] workspace;
+    public FloatBuffer input;
+    public FloatBuffer truth;
+    public FloatBuffer delta;
+    public FloatBuffer workspace;
     public int train;
     public int index;
-    public float[] cost;
+    public FloatBuffer cost;
     public float clip;
 
-    public float[] inputGpu;
-    public float[] truthGpu;
-    public float[] deltaGpu;
-    public float[] outputGpu;
+    public FloatBuffer inputGpu;
+    public FloatBuffer truthGpu;
+    public FloatBuffer deltaGpu;
+    public FloatBuffer outputGpu;
 
 }

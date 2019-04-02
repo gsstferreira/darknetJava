@@ -1,10 +1,12 @@
 package Tools;
 
 
+import java.nio.FloatBuffer;
+
 // Completo
 public abstract class Blas {
 
-    public static void reorgCpu(float[] x, int w, int h, int c, int batch, int stride, int forward, float[] out, int offX, int offO) {
+    public static void reorgCpu(FloatBuffer x, int w, int h, int c, int batch, int stride, int forward, FloatBuffer out) {
 
         int out_c = c/(stride*stride);
 
@@ -21,10 +23,10 @@ public abstract class Blas {
                         int out_index = w2 + w*stride*(h2 + h*stride*(c2 + out_c*b));
 
                         if(forward != 0) {
-                            out[offO + out_index] = x[offX + in_index];
+                            out.put(out_index,x.get(in_index));
                         }
                         else  {
-                            out[offO + in_index] = x[offX + out_index];
+                            out.put(in_index,x.get(out_index));
                         }
                     }
                 }
@@ -32,9 +34,9 @@ public abstract class Blas {
         }
     } //
 
-    public static void flatten(float[] x, int size, int layers, int batch, int forward, int offX) {
+    public static void flatten(FloatBuffer x, int size, int layers, int batch, int forward) {
 
-        float[] swap = new float[size*layers*batch];
+        FloatBuffer swap = FloatBuffer.allocate(size*layers*batch);
 
         for(int b = 0; b < batch; ++b){
             for(int c = 0; c < layers; ++c){
@@ -44,47 +46,47 @@ public abstract class Blas {
                     int i2 = b*layers*size + i*layers + c;
 
                     if (forward != 0) {
-                        swap[i2] = x[offX + i1];
+                        swap.put(i2,x.get(i1));
                     }
                     else  {
-                        swap[i1] = x[offX + i2];
+                        swap.put(i1,x.get(i2));
                     }
                 }
             }
         }
-        System.arraycopy(swap,0,x,offX,swap.length);
+        BufferUtils.bufferCopy(swap,x,swap.capacity());
     } //
 
-    public static void weightedSumCpu(float[] a, float[] b, float[] s, int n, float[] c, int offA, int offB, int offS, int offC) {
+    public static void weightedSumCpu(FloatBuffer a, FloatBuffer b, FloatBuffer s, int n, FloatBuffer c) {
 
         for(int i = 0; i < n; ++i){
 
-            c[offC + i] = s[offS + i] * a[offA + i];
+            c.put(i,s.get(i)*a.get(i));
 
             if(b != null) {
-                c[offC + i] += (1 - s[offS + i]) * b[offB + i];
+
+                float val = c.get(i) + (1 - s.get(i))*b.get(i);
+                c.put(i,val);
             }
         }
     } //
 
-    public static void weightedDeltaCpu(float[] a, float[] b, float[] s, float[] da, float[] db, float[] ds, int n,
-                                        float[] dc, int oA, int oB, int oS, int oDa, int oDb, int oDs, int oDc) {
+    public static void weightedDeltaCpu(FloatBuffer a, FloatBuffer b, FloatBuffer s, FloatBuffer da, FloatBuffer db, FloatBuffer ds, int n, FloatBuffer dc) {
 
         for(int i = 0; i < n; ++i){
 
             if(da != null) {
-                da[oDa + i] += dc[oDc + i] * s[oS + i];
+                da.put(i,da.get(i) + dc.get(i)*s.get(i));
             }
 
             if(db != null) {
-                db[oDb + i] += dc[oDc + i] * (1 - s[oS + i]);
+                db.put(i,db.get(i) + dc.get(i)*(1 - s.get(i)));
             }
-
-            ds[oDs + i] += dc[oDc + i] * (a[oA + i] - b[oB + i]);
+            ds.put(i,ds.get(i) + dc.get(i)*(a.get(i) - b.get(i)));
         }
     } //
 
-    public static void shortcutCpu(int batch, int w1, int h1, int c1, float[] add, int w2, int h2, int c2, float s1, float s2, float[] out, int oAdd, int oOut) {
+    public static void shortcutCpu(int batch, int w1, int h1, int c1, FloatBuffer add, int w2, int h2, int c2, float s1, float s2, FloatBuffer out) {
 
         int stride = w1/w2;
         int sample = w2/w1;
@@ -105,109 +107,138 @@ public abstract class Blas {
                     for(int i = 0; i < minw; ++i){
                         int out_index = i*sample + w2*(j*sample + h2*(k + c2*b));
                         int add_index = i*stride + w1*(j*stride + h1*(k + c1*b));
-                        out[oOut + out_index] = s1 * out[oOut + out_index] + s2 * add[oAdd+ + add_index];
+
+                        float val = s1 * out.get(out_index) + s2*add.get(add_index);
+                        out.put(out_index,val);
                     }
                 }
             }
         }
     } //
 
-    public static void meanCpu(float[] x, int batch, int filters, int spatial, float[] mean, int oX, int oM) {
+    public static void meanCpu(FloatBuffer x, int batch, int filters, int spatial, FloatBuffer mean) {
 
         float scale = 1.0f/(batch * spatial);
 
         for(int i = 0; i < filters; ++i){
-            mean[oM + i] = 0;
+
+            mean.put(i,0);
             for(int j = 0; j < batch; ++j){
                 for(int k = 0; k < spatial; ++k){
                     int index = j*filters*spatial + i*spatial + k;
-                    mean[oM + i] += x[oX + index];
+
+                    mean.put(i,mean.get(i) + x.get(index));
                 }
             }
-            mean[oM + i] *= scale;
+            mean.put(i,mean.get(i)* scale);
         }
     } //
 
-    public static void varianceCpu(float[] x, float[] mean, int batch, int filters, int spatial, float[] variance, int oX, int oM, int oV) {
+    public static void varianceCpu(FloatBuffer x, FloatBuffer mean, int batch, int filters, int spatial, FloatBuffer variance) {
 
         float scale = 1.0f/(batch * spatial - 1);
 
         for(int i = 0; i < filters; ++i){
-            variance[oV + i] = 0;
+
+            variance.put(i,0);
+
             for(int j = 0; j < batch; ++j){
                 for(int k = 0; k < spatial; ++k){
                     int index = j*filters*spatial + i*spatial + k;
-                    variance[oV + i] += (float) Math.pow((x[oX + index] - mean[oM + i]), 2);
+
+                    float val = variance.get(i) + (float) Math.pow((x.get(index) - mean.get(i)),2);
+
+                    variance.put(i,val);
                 }
             }
-            variance[oV + i] *= scale;
+            variance.put(i,variance.get(i)*scale);
         }
     } //
 
-    public static void l2normalizeCpu(float[] x, float[] dx, int batch, int filters, int spatial, int oX, int oDx) {
+    public static void l2normalizeCpu(FloatBuffer x, FloatBuffer dx, int batch, int filters, int spatial) {
 
         for(int b = 0; b < batch; ++b){
             for(int i = 0; i < spatial; ++i){
                 float sum = 0;
                 for(int f = 0; f < filters; ++f){
                     int index = b*filters*spatial + f*spatial + i;
-                    sum += (float) Math.pow(x[oX + index], 2);
+                    sum += (float) Math.pow(x.get(index), 2);
                 }
 
                 sum = (float) Math.sqrt(sum);
 
                 for(int f = 0; f < filters; ++f){
                     int index = b*filters*spatial + f*spatial + i;
-                    x[oX + index] /= sum;
-                    dx[oDx + index] = (1 - x[oX + index]) / sum;
+
+                    x.put(index,x.get(index)/sum);
+                    dx.put(index,(1 - x.get(index)/sum));
                 }
             }
         }
     } //
 
-    public static void normalizeCpu(float[] x, float[] mean, float[] variance, int batch, int filters, int spatial, int oX, int oM, int oV) {
+    public static void normalizeCpu(FloatBuffer x, FloatBuffer mean, FloatBuffer variance, int batch, int filters, int spatial) {
 
         for(int b = 0; b < batch; ++b){
             for(int f = 0; f < filters; ++f){
                 for(int i = 0; i < spatial; ++i){
                     int index = b*filters*spatial + f*spatial + i;
-                    x[oX + index] = (x[oX + index] - mean[oM + f])/(float)(Math.sqrt(variance[oV + f]) + 0.000001f);
+
+                    float val = (x.get(index) - mean.get(f))/(float)(Math.sqrt(variance.get(f) +0.000001));
+                    x.put(index,val);
                 }
             }
         }
     } //
 
-    public static void constCpu(int N, float ALPHA, float[] X, int INCX, int oX) {
+    public static void constCpu(int N, float ALPHA, FloatBuffer X, int INCX) {
 
-        for(int i = 0; i < N; ++i) X[oX + i*INCX] = ALPHA;
+        for(int i = 0; i < N; ++i) {
+            X.put(i*INCX,ALPHA);
+        }
     } //
 
-    public static void mulCpu(int N, float[] X, int INCX, float[] Y, int INCY, int oX, int oY) {
+    public static void mulCpu(int N, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
 
-        for(int i = 0; i < N; ++i) Y[oY + i*INCY] *= X[oX + i*INCX];
+        for(int i = 0; i < N; ++i) {
+
+            Y.put(i*INCY, Y.get(i*INCY) * X.get(i*INCX));
+        }
     } //
 
-    public static void powCpu(int N, float ALPHA, float[] X, int INCX, float[] Y, int INCY, int oX, int oY) {
+    public static void powCpu(int N, float ALPHA, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
 
-        for(int i = 0; i < N; ++i) Y[oY + i*INCY] = (float) Math.pow(X[oX + i*INCX], ALPHA);
+        for(int i = 0; i < N; ++i) {
+
+            Y.put(i*INCY,(float) Math.pow(X.get(i*INCX),ALPHA));
+        }
     } //
 
-    public static void axpyCpu(int N, float ALPHA, float[] X, int INCX, float[] Y, int INCY, int oX, int oY) {
+    public static void axpyCpu(int N, float ALPHA, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
 
-        for(int i = 0; i < N; ++i) Y[oY + i*INCY] += ALPHA*X[oX + i*INCX];
+        for(int i = 0; i < N; ++i) {
+
+            float val = Y.get(i*INCY) + ALPHA * X.get(i*INCX);
+            Y.put(i*INCY,val);
+        }
     } //
 
-    public static void scalCpu(int N, float ALPHA, float[] X, int INCX, int oX) {
+    public static void scalCpu(int N, float ALPHA, FloatBuffer X, int INCX) {
 
-        for(int i = 0; i < N; ++i) X[oX + i*INCX] *= ALPHA;
+        for(int i = 0; i < N; ++i) {
+
+            X.put(i*INCX, X.get(i*INCX) * ALPHA);
+        }
     } //
 
-    public static void fillCpu(int N, float ALPHA, float[] X, int INCX, int oX) {
+    public static void fillCpu(int N, float ALPHA, FloatBuffer X, int INCX) {
 
-        for(int i = 0; i < N; ++i) X[oX + i*INCX] = ALPHA;
+        for(int i = 0; i < N; ++i) {
+            X.put(i*INCX,ALPHA);
+        }
     } //
 
-    public static void deinterCpu(int NX, float[] X, int NY, float[] Y, int B, float[] OUT, int oX, int oY, int oOut) {
+    public static void deinterCpu(int NX, FloatBuffer X, int NY, FloatBuffer Y, int B, FloatBuffer OUT) {
 
         int index = 0;
 
@@ -215,7 +246,7 @@ public abstract class Blas {
             for(int i = 0; i < NX; ++i){
 
                 if(X != null) {
-                    X[oX + j*NX + i] += OUT[oOut + index];
+                    X.put(j*NX + i,X.get(j*NX + i) + OUT.get(index));
                 }
                 ++index;
             }
@@ -223,142 +254,147 @@ public abstract class Blas {
             for(int i = 0; i < NY; ++i){
 
                 if(Y != null) {
-                    Y[oY + j*NY + i] += OUT[oOut + index];
+                    Y.put(j*NY +i, Y.get(j*NY + i) + OUT.get(index));
                 }
                 ++index;
             }
         }
     } //
 
-    public static void interCpu(int NX, float[] X, int NY, float[] Y, int B, float[] OUT, int oX, int oY, int oOut) {
+    public static void interCpu(int NX, FloatBuffer X, int NY, FloatBuffer Y, int B, FloatBuffer OUT) {
 
         int index = 0;
 
         for(int j = 0; j < B; ++j) {
             for(int i = 0; i < NX; ++i){
-
-                OUT[oOut + index++] = X[oX + j*NX + i];
+                OUT.put(index++,X.get(j*NX + i));
             }
 
             for(int i = 0; i < NY; ++i){
-
-                OUT[oOut + index++] = Y[oY + j*NY + i];
+                OUT.put(index++,Y.get(j*NY + i));
             }
         }
     } //
 
-    public static void copyCpu(int N, float[] X, int INCX, float[] Y, int INCY, int oX, int oY) {
-
-        for(int i = 0; i < N; ++i) Y[oY + i*INCY] = X[oX + i*INCX];
-    } //
-
-    public static void multAddIntoCpu(int N, float[] X, float[] Y, float[] Z, int oX, int oY, int oZ) {
+    public static void copyCpu(int N, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
 
         for(int i = 0; i < N; ++i) {
-            Z[oZ + i] += X[oX + i] * Y[oY + i];
+            Y.put(i*INCY,X.get(i*INCX));
         }
     } //
 
-    public static void smoothL1Cpu(int n, float[] pred, float[] truth, float[] delta, float[] error, int oP, int oT, int oD, int oE) {
+    public static void multAddIntoCpu(int N, FloatBuffer X, FloatBuffer Y, FloatBuffer Z) {
+
+        for(int i = 0; i < N; ++i) {
+            float val = Z.get(i) + X.get(i) * Y.get(i);
+            Z.put(i,val);
+        }
+    } //
+
+    public static void smoothL1Cpu(int n, FloatBuffer pred, FloatBuffer truth, FloatBuffer delta, FloatBuffer error) {
 
         for(int i = 0; i < n; ++i){
-            float diff = truth[oT + i] - pred[oP + i];
+
+            float diff = truth.get(i) - pred.get(i);
             float abs_val = Math.abs(diff);
             if(abs_val < 1) {
-                error[oE + i] = diff * diff;
-                delta[oD + i] = diff;
+                error.put(i,diff*diff);
+                delta.put(i,diff);
             }
             else {
-                error[oE + i] = 2 * abs_val - 1;
-                delta[oD + i] = (diff < 0) ? 1 : -1;
+                error.put(i,2 * abs_val - 1);
+                delta.put(i,(diff < 0) ? 1 : -1);
             }
         }
     } //
 
-    public static void l1Cpu(int n, float[] pred, float[] truth, float[] delta, float[] error, int oP, int oT, int oD, int oE) {
+    public static void l1Cpu(int n, FloatBuffer pred, FloatBuffer truth, FloatBuffer delta, FloatBuffer error) {
 
         for(int i = 0; i < n; ++i){
-            float diff = truth[oT + i] - pred[oP + i];
-            error[oE + i] = Math.abs(diff);
-            delta[oD + i] = (diff > 0) ? 1 : -1;
+            float diff = truth.get(i) - pred.get(i);
+            error.put(i,Math.abs(diff));
+            delta.put(i,(diff > 0) ? 1 : -1);
         }
     } //
 
-    public static void softmaxXEntCpu(int n, float[] pred, float[] truth, float[] delta, float[] error, int oP, int oT, int oD, int oE) {
+    public static void softmaxXEntCpu(int n, FloatBuffer pred, FloatBuffer truth, FloatBuffer delta, FloatBuffer error) {
 
         for(int i = 0; i < n; ++i){
-            float t = truth[oT + i];
-            float p = pred[oP +i];
-            error[oE + i] = (t != 0) ? - (float)Math.log(p) : 0;
-            delta[oD + i] = t - p;
+            float t = truth.get(i);
+            float p = pred.get(i);
+
+            error.put(i,(t != 0) ? - (float)Math.log(p) : 0);
+            delta.put(i,t - p);
         }
     } //
 
-    public static void logisticXEntCpu(int n, float[] pred, float[] truth, float[] delta, float[] error, int oP, int oT, int oD, int oE) {
+    public static void logisticXEntCpu(int n, FloatBuffer pred, FloatBuffer truth, FloatBuffer delta, FloatBuffer error) {
 
         for(int i = 0; i < n; ++i){
-            float t = truth[oT + i];
-            float p = pred[oP + i];
-            error[oE + i] = -1*(float)(t*Math.log(p) + (1-t)*Math.log(1-p));
-            delta[oD + i] = t - p;
+            float t = truth.get(i);
+            float p = pred.get(i);
+
+            error.put(i,-1*(float)(t*Math.log(p) + (1-t)*Math.log(1-p)));
+            delta.put(i,t - p);
         }
     } //
 
-    public static void l2Cpu(int n, float[] pred, float[] truth, float[] delta, float[] error, int oP, int oT, int oD, int oE) {
+    public static void l2Cpu(int n, FloatBuffer pred, FloatBuffer truth, FloatBuffer delta, FloatBuffer error) {
 
         for(int i = 0; i < n; ++i){
-            float diff = truth[oT + i] - pred[oP + i];
-            error[oE + i] = diff * diff;
-            delta[oD + i] = diff;
+            float diff = truth.get(i) - pred.get(i);
+            error.put(i,diff * diff);
+            delta.put(i,diff);
         }
     } //
 
-    public static float dotCpu(int N, float[] X, int INCX, float[] Y, int INCY, int oX, int oY) {
+    public static float dotCpu(int N, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
 
         float dot = 0;
 
         for(int i = 0; i < N; ++i) {
-            dot += X[oX + i*INCX] * Y[oY + i*INCY];
+
+            dot += X.get(i*INCX) * Y.get(i*INCY);
         }
         return dot;
     } //
 
-    public static void softmax(float[] input, int n, float temp, int stride, float[] output, int oIn, int oOut) {
+    public static void softmax(FloatBuffer input, int n, float temp, int stride, FloatBuffer output) {
 
         float sum = 0;
         float largest = - Rand.MAX_FLOAT;
 
         for(int i = 0; i < n; ++i){
-            if(input[oIn + i*stride] > largest)  {
-                largest = input[oIn + i*stride];
+            if(input.get(i*stride) > largest)  {
+                largest = input.get(i*stride);
             }
         }
 
         for(int i = 0; i < n; ++i){
-            float e = (float) Math.exp(input[oIn + i * stride] / temp - largest / temp);
+            float e = (float) Math.exp(input.get(i*stride) / temp - largest / temp);
             sum += e;
-            output[oOut + i*stride] = e;
+            output.put(i*stride,e);
         }
 
         for(int i = 0; i < n; ++i){
-            output[oOut + i*stride] /= sum;
+            output.put(i*stride,output.get(i*stride)/sum);
         }
     } //
 
-    public static void softmaxCpu(float[] input, int n, int batch, int batch_offset, int groups, int group_offset, int stride, float temp, float[] output, int oIn, int oOut) {
+    public static void softmaxCpu(FloatBuffer input, int n, int batch, int batch_offset, int groups, int group_offset, int stride, float temp, FloatBuffer output) {
 
         for(int b = 0; b < batch; ++b){
             for(int g = 0; g < groups; ++g){
 
-                int off = b*batch_offset + g*group_offset;
+                FloatBuffer fb1 = BufferUtils.offsetBuffer(input,b*batch_offset + g*group_offset);
+                FloatBuffer fb2 = BufferUtils.offsetBuffer(output,b*batch_offset + g*group_offset);
 
-                softmax(input, n, temp, stride, output,off,off);
-
+                softmax(fb1, n, temp, stride, fb2);
             }
         }
     } //
 
-    public static void upsampleCpu(float[] in, int w, int h, int c, int batch, int stride, int forward, float scale, float[] out, int oIn, int oOut) {
+    public static void upsampleCpu(FloatBuffer in, int w, int h, int c, int batch, int stride, int forward, float scale, FloatBuffer out) {
 
         for(int b = 0; b < batch; ++b){
             for(int k = 0; k < c; ++k){
@@ -368,10 +404,10 @@ public abstract class Blas {
                         int out_index = b*w*h*c*stride*stride + k*w*h*stride*stride + j*w*stride + i;
 
                         if(forward != 0) {
-                            out[oOut + out_index] = scale*in[oIn + in_index];
+                            out.put(out_index,scale*in.get(in_index));
                         }
                         else {
-                            in[oIn + in_index] += scale*out[oOut + out_index];
+                            out.put(in_index,scale*in.get(out_index));
                         }
                     }
                 }

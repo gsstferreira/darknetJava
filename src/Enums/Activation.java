@@ -1,5 +1,7 @@
 package Enums;
 
+import java.nio.FloatBuffer;
+
 public enum Activation {
 
     LOGISTIC,
@@ -36,17 +38,20 @@ public enum Activation {
         return a.name().toLowerCase();
     }
 
-    public static void activateArray(float[] x, int n, Activation a, int oX) {
+    public static void activateArray(FloatBuffer x, int n, Activation a) {
 
         for(int i = 0; i < n; ++i){
-            x[oX + i] = activate(x[oX + i], a);
+
+            float val = activate(x.get(i),a);
+            x.put(i,val);
         }
     }
 
-    public static void gradient_array(float[] x, int n, Activation a, float[] delta, int oX, int oD) {
+    public static void gradientArray(FloatBuffer x, int n, Activation a, FloatBuffer delta) {
 
         for(int i = 0; i < n; ++i){
-            delta[oD + i] *= gradient(x[oX + i], a);
+            float val = delta.get(i) * gradient(x.get(i),a);
+            delta.put(i,val);
         }
     }
 
@@ -194,7 +199,7 @@ public enum Activation {
             val += x;
         }
 
-        return x;
+        return val;
     }
 
     private static float leakyActiavte(float x){
