@@ -165,7 +165,7 @@ public class Image {
             }
         }
     }
-    
+
     public Image borderImage(int border) {
 
         Image b = new Image(w + 2*border, h + 2*border, c,false);
@@ -550,4 +550,908 @@ public class Image {
         }
         return filters;
     }
+
+    public void transpose() {
+
+        assert(w == h);
+        for(int i = 0; i < c; ++i){
+            for(int n = 0; n < w-1; ++n){
+                for(int m = n + 1; m < w; ++m){
+
+                    int indexN = n + w*(m + h*i);
+                    int indexM = m + w*(n + h*i);
+
+                    float swap = data.get(indexM);
+
+                    data.put(indexM,data.get(indexN));
+                    data.put(indexN,swap);
+                }
+            }
+        }
+    }
+
+    public void rotateCw(int times) {
+
+        assert(w == h);
+        times = (times + 400) % 4;
+        int i, x, y, z;
+        int n = w;
+        for(i = 0; i < times; ++i){
+            for(z = 0; z < c; ++z){
+                for(x = 0; x < n/2; ++x){
+                    for(y = 0; y < (n-1)/2 + 1; ++y){
+
+                        float temp = data.get(y + w*(x + h*z));
+                        data.put(y + w*(x + h*z),n-1-x + w*(y + h*z));
+                        data.put(n-1-x + w*(y + h*z),n-1-y + w*(n-1-x + h*z));
+                        data.put(n-1-y + w*(n-1-x + h*z),x + w*(n-1-y + h*z));
+                        data.put(x + w*(n-1-y + h*z),temp);
+                    }
+                }
+            }
+        }
+    }
+
+    public void flip() {
+
+        for(int k = 0; k < c; ++k){
+            for(int i = 0; i < h; ++i){
+                for(int j = 0; j < w/2; ++j){
+
+                    int index = j + w*(i + h*(k));
+                    int flip = (w - j - 1) + w*(i + h*(k));
+                    float swap = data.get(flip);
+                    data.put(flip,index);
+                    data.put(index,swap);
+                }
+            }
+        }
+    }
+
+    public static Image ImageDistance(Image a, Image b) {
+
+        Image dist = new Image(a.w, a.h, 1,false);
+        for(int i = 0; i < a.c; ++i){
+            for(int j = 0; j < a.h*a.w; ++j){
+
+                float val = dist.data.get(j) + (float)Math.pow(a.data.get(i*a.h*a.w+j) - b.data.get(i*a.h*a.w+j),2);
+                dist.data.put(j,val);
+            }
+        }
+        for(int j = 0; j < a.h*a.w; ++j){
+
+            dist.data.put(j,(float)Math.sqrt(dist.data.get(j)));
+        }
+        return dist;
+    }
+
+    public static void ghostImage(Image source, Image dest, int dx, int dy) {
+
+        float max_dist = (float)Math.sqrt((-source.w/2. + .5)*(-source.w/2. + .5));
+        for(int k = 0; k < source.c; ++k){
+            for(int y = 0; y < source.h; ++y){
+                for(int x = 0; x < source.w; ++x){
+                    float dist = (float)Math.sqrt((x - source.w/2. + .5)*(x - source.w/2. + .5) + (y - source.h/2. + .5)*(y - source.h/2. + .5));
+                    float alpha = (1 - dist/max_dist);
+                    if(alpha < 0) alpha = 0;
+                    float v1 = source.getPixel(x,y,k);
+                    float v2 = dest.getPixel(dx+x,dy+y,k);
+                    float val = alpha*v1 + (1-alpha)*v2;
+                    dest.setPixel(dx+x, dy+y, k, val);
+                }
+            }
+        }
+    }
+
+    public void blocky(int s) {
+
+        for(int k = 0; k < c; ++k){
+            for(int j = 0; j < h; ++j){
+                for(int i = 0; i < w; ++i){
+                    data.put(i + w*(j + h*k),data.get(i/s*s + w*(j/s*s + h*k)));
+                }
+            }
+        }
+    }
+
+    public void censor(int dx, int dy, int w, int h) {
+
+        int s = 32;
+        if(dx < 0) dx = 0;
+        if(dy < 0) dy = 0;
+
+        for(int k = 0; k < c; ++k){
+            for(int j = dy; j < dy + h && j < h; ++j){
+                for(int i = dx; i < dx + w && i < w; ++i){
+
+                    data.put(i + w*(j + h*k),data.get(i/s*s + w*(j/s*s + h*k)));
+                }
+            }
+        }
+    }
+
+    public void constrain() {
+
+        for(int i = 0; i < w*h*c; ++i){
+            if(data.get(i) < 0) {
+                data.put(i,0);
+            }
+            else if(data.get(i) > 1) {
+                data.put(i,1);
+            }
+        }
+    }
+
+    public void normalize() {
+
+        float min = 9999999;
+        float max = -999999;
+
+        for(int i = 0; i < h*w*c; ++i){
+            float v = data.get(i);
+            if(v < min) {
+                min = v;
+            }
+            else if(v > max) {
+                max = v;
+            }
+        }
+        if(max - min < .000000001){
+            min = 0;
+            max = 1;
+        }
+        for(int i = 0; i < c*w*h; ++i){
+
+            data.put(i,(data.get(i) - min)/(max-min));
+        }
+    }
+
+    public void normalize2() {
+
+        float[] min = new float[c];
+        float[] max = new float[c];
+
+        for(int i = 0; i < c; ++i) {
+            min[i] = data.get(i*h*w);
+            max[i] = data.get(i*h*w);
+        }
+
+        for(int j = 0; j < c; ++j){
+            for(int i = 0; i < h*w; ++i){
+
+                float v = data.get(i+j*h*w);
+
+                if(v < min[j]) {
+                    min[j] = v;
+                }
+                if(v > max[j]) {
+                    max[j] = v;
+                }
+            }
+        }
+
+        for(int i = 0; i < c; ++i){
+            if(max[i] - min[i] < .000000001){
+                min[i] = 0;
+                max[i] = 1;
+            }
+        }
+
+        for(int j = 0; j < c; ++j){
+            for(int i = 0; i < w*h; ++i){
+                data.put(i+j*h*w,(data.get(i+j*h*w) - min[j])/(max[j]-min[j]));
+            }
+        }
+    }
+
+    public void rgbgr() {
+
+        int i;
+        for(i = 0; i < w*h; ++i){
+            float swap = data.get(i);
+            data.put(i,i+w*h*2);
+            data.put(i+w*h*2,swap);
+        }
+    }
+
+    public void placeImage(int w, int h, int dx, int dy, Image canvas) {
+        
+        int x, y, c;
+        for(c = 0; c < c; ++c){
+            for(y = 0; y < h; ++y){
+                for(x = 0; x < w; ++x){
+                    
+                    float rx = ((float)x / w) * w;
+                    float ry = ((float)y / h) * h;
+                    float val = bilinearInterpolate(rx, ry, c);
+                    canvas.setPixel(x + dx, y + dy, c, val);
+                }
+            }
+        }
+    }
+
+    public Image centerCrop(int w, int h) {
+
+        int m = (w < h) ? w : h;
+        Image c =  crop((w - m) / 2, (h - m)/2, m, m);
+        Image r = c.resizeImage(w, h);
+        return r;
+    }
+
+    public Image rotateCrop(float rad, float s, int w, int h, float dx, float dy, float aspect) {
+
+        float cx = w/2.0f;
+        float cy = h/2.0f;
+
+        Image rot = new Image(w, h, c,false);
+        for(int z = 0; z < c; ++z){
+            for(int y = 0; y < h; ++y){
+                for(int x = 0; x < w; ++x){
+
+                    double rx = Math.cos(rad)*((x - w/2.)/s*aspect + dx/s*aspect) - Math.sin(rad)*((y - h/2.)/s + dy/s) + cx;
+                    double ry = Math.sin(rad)*((x - w/2.)/s*aspect + dx/s*aspect) + Math.cos(rad)*((y - h/2.)/s + dy/s) + cy;
+
+                    float val = bilinearInterpolate((float)rx, (float)ry, z);
+                    rot.setPixel(x, y, z, val);
+                }
+            }
+        }
+        return rot;
+    }
+
+    public Image rotate(float rad) {
+
+        float cx = w/2.0f;
+        float cy = h/2.0f;
+        Image rot = new Image(w, h, c,false);
+        for(int z = 0; z < c; ++z){
+            for(int y = 0; y < h; ++y){
+                for(int x = 0; x < w; ++x){
+                    double rx = Math.cos(rad)*(x-cx) - Math.sin(rad)*(y-cy) + cx;
+                    double ry = Math.sin(rad)*(x-cx) + Math.cos(rad)*(y-cy) + cy;
+                    float val = bilinearInterpolate((float)rx, (float)ry, z);
+                    rot.setPixel(x, y, z, val);
+                }
+            }
+        }
+        return rot;
+    }
+
+    public void fill(float s) {
+
+        int i;
+        for(i = 0; i < h*w*c; ++i) {
+
+            data.put(i,s);
+        }
+    }
+
+    public void translate(float s) {
+
+        for(int i = 0; i < h*w*c; ++i) {
+
+            data.put(i,data.get(i) + s);
+        }
+    }
+
+    public void scale(float s) {
+
+        for(int i = 0; i < h*w*c; ++i) {
+
+            data.put(i,data.get(i) * s);
+        }
+    }
+
+    public Image crop(int dx, int dy, int width, int height) {
+
+        Image cropped = new Image(width, height, c,false);
+
+        for(int k = 0; k < c; ++k){
+            for(int j = 0; j < height; ++j){
+                for(int i = 0; i < width; ++i){
+                    int r = j + dy;
+                    int c = i + dx;
+                    float val = 0;
+                    r = Util.constrain(r, 0, h-1);
+                    c = Util.constrain(c, 0, w-1);
+                    val = getPixel(c, r, k);
+                    cropped.setPixel(i, j, k, val);
+                }
+            }
+        }
+        return cropped;
+    }
+    
+    public static int best3DShiftR(Image a, Image b, int min, int max) {
+
+        if(min == max) return min;
+        int mid = (int) Math.floor((min + max) / 2.);
+        Image c1 = b.crop(0, mid, b.w, b.h);
+        Image c2 = b.crop(0, mid+1, b.w, b.h);
+
+        float d1 = Util.distArray(c1.data, a.data, a.w*a.h*a.c, 10);
+        float d2 = Util.distArray(c2.data, a.data, a.w*a.h*a.c, 10);
+
+        if(d1 < d2) {
+            return best3DShiftR(a, b, min, mid);
+        }
+        else {
+            return best3DShiftR(a, b, mid+1, max);
+        }
+    }
+
+    public static int best3DShift(Image a, Image b, int min, int max) {
+
+        int i;
+        int best = 0;
+        float best_distance = Rand.MAX_FLOAT;
+        for(i = min; i <= max; i += 2){
+            Image c = b.crop(0, i, b.w, b.h);
+            float d = Util.distArray(c.data, a.data, a.w*a.h*a.c, 100);
+            if(d < best_distance){
+                best_distance = d;
+                best = i;
+            }
+        }
+        return best;
+    }
+
+    public void composite3D(String f1, String f2, String out, int delta) {
+
+        if(out == null || out.isEmpty())  {
+            out = "out";
+        }
+        Image a = Image.loadImage(f1, 0,0,0);
+        Image b = Image.loadImage(f2, 0,0,0);
+        int shift = best3DShiftR(a, b, -a.h/100, a.h/100);
+
+        Image c1 = b.crop(10, shift, b.w, b.h);
+        float d1 = Util.distArray(c1.data, a.data, a.w*a.h*a.c, 100);
+        Image c2 = b.crop(-10, shift, b.w, b.h);
+        float d2 = Util.distArray(c2.data, a.data, a.w*a.h*a.c, 100);
+
+//        if(d2 < d1 && false){
+//            Image swap = a;
+//            a = b;
+//            b = swap;
+//            shift = -shift;
+//        }
+//        else{
+//            printf("%d\n", shift);
+//        }
+
+        Image c = b.crop(delta, shift, a.w, a.h);
+        int i;
+        for(i = 0; i < c.w*c.h; ++i){
+
+            c.data.put(i,a.data.get(i));
+        }
+        c.saveToDisk(out,ImType.JPG,80);
+    }
+
+    public void letterboxImageInto(int width, int height, Image boxed) {
+
+        int new_w;
+        int new_h;
+
+        if ((1.0f*width/w) < (1.0f*height/h)) {
+            new_w = width;
+            new_h = (h * width)/w;
+        }
+        else {
+            new_h = height;
+            new_w = (w * height)/h;
+        }
+        Image resized = resizeImage(new_w, new_h);
+
+        resized.embedImage(boxed, (width-new_w)/2, (height-new_h)/2);
+    }
+
+    public Image letterbox(int width, int height) {
+
+        int new_w;
+        int new_h;
+
+        if ((1.0f*width/w) < (1.0f*height/h)) {
+            new_w = width;
+            new_h = (h * width)/w;
+        }
+        else {
+            new_h = height;
+            new_w = (w * height)/h;
+        }
+        Image resized = resizeImage(new_w, new_h);
+        Image boxed = new Image(width, height, c,false);
+        boxed.fill( 0.5f);
+
+        resized.embedImage(boxed, (width-new_w)/2, (height-new_h)/2);
+        return boxed;
+    }
+
+    public Image resizeMax(int max) {
+
+        int width = w;
+        int height = h;
+
+        if(width > height){
+            height = (height * max) / width;
+            width = max;
+        }
+        else {
+            width = (width * max) / height;
+            height = max;
+        }
+
+        if(width == w && height == h) {
+            return this;
+        }
+        else {
+            return resizeImage(width, height);
+        }
+    }
+
+    public Image resizeMin(int min) {
+
+        int width = w;
+        int height = h;
+
+        if(width < height){
+            height = (height * min) / width;
+            width = min;
+        }
+        else {
+            width = (width * min) / height;
+            height = min;
+        }
+
+        if(width == w && height == h) {
+            return this;
+        }
+        return resizeImage(width,height);
+    }
+
+    public Image randomCrop(int width, int height) {
+
+        int dx = Rand.randInt(0,w - width);
+        int dy = Rand.randInt(0,h - height);
+
+        return crop(dx,dy,width,height);
+    }
+    
+    public AugmentArgs randomAugmentArgs(float angle, float aspect, int low, int high, int width, int height) {
+        
+        AugmentArgs a = new AugmentArgs();
+        
+        aspect = Rand.randScale(aspect);
+        int r = Rand.randInt(low, high);
+        int min = (int) ((h < w*aspect) ? h : w*aspect);
+        float scale = (float)r / min;
+
+        float rad = Rand.randUniform(-angle, angle) * 2 * (float)Math.PI / 360.0f;
+
+        float dx = (w*scale/aspect - width) / 2.0f;
+        float dy = (h*scale - width) / 2.0f;
+
+        
+        dx = Rand.randUniform(-dx, dx);
+        dy = Rand.randUniform(-dy, dy);
+
+        a.rad = rad;
+        a.scale = scale;
+        a.w = width;
+        a.h = height;
+        a.dx = dx;
+        a.dy = dy;
+        a.aspect = aspect;
+        return a;
+    }
+
+    public Image randomAugment(float angle, float aspect, int low, int high, int w, int h) {
+
+        AugmentArgs a = randomAugmentArgs(angle, aspect, low, high, w, h);
+        return rotateCrop(a.rad, a.scale, a.w, a.h, a.dx, a.dy, a.aspect);
+    }
+
+    private static float threeWayMax(float a, float b, float c) {
+
+        return (a > b) ? ( (a > c) ? a : c) : ( (b > c) ? b : c) ;
+    }
+
+    private static float threeWayMin(float a, float b, float c) {
+
+        return (a < b) ? ( (a < c) ? a : c) : ( (b < c) ? b : c) ;
+    }
+
+    public void yuvToRgb() {
+
+        assert(c == 3);
+        float r, g, b;
+        float y, u, v;
+        for(int j = 0; j < h; ++j){
+            for(int i = 0; i < w; ++i){
+                y = getPixel(i , j, 0);
+                u = getPixel(i , j, 1);
+                v = getPixel(i , j, 2);
+
+                r = y + 1.13983f*v;
+                g = y + -.39465f*u + -.58060f*v;
+                b = y + 2.03211f*u;
+
+                setPixel(i, j, 0, r);
+                setPixel(i, j, 1, g);
+                setPixel(i, j, 2, b);
+            }
+        }
+    }
+
+    public void rgbToYuv() {
+
+        assert(c == 3);
+        int i, j;
+        float r, g, b;
+        float y, u, v;
+        for(j = 0; j < h; ++j){
+            for(i = 0; i < w; ++i){
+                r = getPixel(i , j, 0);
+                g = getPixel(i , j, 1);
+                b = getPixel(i , j, 2);
+
+                y = .299f*r + .587f*g + .114f*b;
+                u = -.14713f*r + -.28886f*g + .436f*b;
+                v = .615f*r + -.51499f*g + -.10001f*b;
+
+                setPixel(i, j, 0, y);
+                setPixel(i, j, 1, u);
+                setPixel(i, j, 2, v);
+            }
+        }
+    }
+
+    public void rgbToHsv() {
+
+        assert(c == 3);
+        int i, j;
+        float r, g, b;
+        float h, s, v;
+        for(j = 0; j < this.h; ++j){
+            for(i = 0; i < w; ++i){
+                r = getPixel(i , j, 0);
+                g = getPixel(i , j, 1);
+                b = getPixel(i , j, 2);
+                float max = threeWayMax(r,g,b);
+                float min = threeWayMin(r,g,b);
+                float delta = max - min;
+                v = max;
+                if(max == 0){
+                    s = 0;
+                    h = 0;
+                }
+                else{
+                    s = delta/max;
+                    if(r == max){
+                        h = (g - b) / delta;
+                    }
+                    else if (g == max) {
+                        h = 2 + (b - r) / delta;
+                    }
+                    else {
+                        h = 4 + (r - g) / delta;
+                    }
+
+                    if (h < 0) h += 6;
+                    h = h/6.0f;
+                }
+                setPixel(i, j, 0, h);
+                setPixel(i, j, 1, s);
+                setPixel(i, j, 2, v);
+            }
+        }
+    }
+
+    public void hsvToRgb() {
+
+        assert(c == 3);
+        int i, j;
+        float r, g, b;
+        float h, s, v;
+        float f, p, q, t;
+        for(j = 0; j < this.h; ++j){
+            for(i = 0; i < w; ++i){
+                h = 6 * getPixel(i , j, 0);
+                s = getPixel(i , j, 1);
+                v = getPixel(i , j, 2);
+
+                if (s == 0) {
+                    r = g = b = v;
+                }
+                else {
+                    int index = (int) Math.floor(h);
+                    f = h - index;
+                    p = v*(1-s);
+                    q = v*(1-s*f);
+                    t = v*(1-s*(1-f));
+
+                    if(index == 0){
+                        r = v; g = t; b = p;
+                    }
+                    else if(index == 1){
+                        r = q; g = v; b = p;
+                    }
+                    else if(index == 2){
+                        r = p; g = v; b = t;
+                    }
+                    else if(index == 3){
+                        r = p; g = q; b = v;
+                    }
+                    else if(index == 4){
+                        r = t; g = p; b = v;
+                    }
+                    else {
+                        r = v; g = p; b = q;
+                    }
+                }
+                setPixel(i, j, 0, r);
+                setPixel(i, j, 1, g);
+                setPixel(i, j, 2, b);
+            }
+        }
+    }
+    
+    public void grayscaleImage3C() {
+        
+        assert(c == 3);
+        int i, j, k;
+        float[] scale = {0.299f, 0.587f, 0.114f};
+        for(j = 0; j < h; ++j){
+            for(i = 0; i < w; ++i){
+                float val = 0;
+                for(k = 0; k < 3; ++k){
+                    val += scale[k]*getPixel(i, j, k);
+                }
+                
+                data.put(w*j + i,val);
+                data.put(h*w + w*j + i,val);
+                data.put(2*h*w + w*j + i,val);
+            }
+        }
+    }
+
+    public Image grayscaleImage() {
+
+        assert(c == 3);
+        int i, j, k;
+        Image gray = new Image(w, h, 1,false);
+        float[] scale = {0.299f, 0.587f, 0.114f};
+        for(k = 0; k < c; ++k){
+            for(j = 0; j < h; ++j){
+                for(i = 0; i < w; ++i){
+
+                    float val = data.get(i + w*j) + scale[k]*getPixel( i, j, k);
+                    data.put(i + w*j,val);
+                }
+            }
+        }
+        return gray;
+    }
+
+    public Image thresholdImage(float thresh) {
+
+        Image t = new Image(w, h, c, false);
+        for(int i = 0; i < w*h*c; ++i){
+
+            t.data.put(i,(data.get(i) > thresh) ? 1 : 0);
+        }
+        return t;
+    }
+
+    public static Image blendImage(Image fore, Image back, float alpha) {
+
+        assert(fore.w == back.w && fore.h == back.h && fore.c == back.c);
+        Image blend = new Image(fore.w, fore.h, fore.c,false);
+        int i, j, k;
+        for(k = 0; k < fore.c; ++k){
+            for(j = 0; j < fore.h; ++j){
+                for(i = 0; i < fore.w; ++i){
+                    float val = alpha * fore.getPixel(i, j, k) + (1 - alpha)* back.getPixel(i, j, k);
+                    blend.setPixel(i, j, k, val);
+                }
+            }
+        }
+        return blend;
+    }
+
+    public void scaleImageChannel(int c, float v) {
+
+        int i, j;
+        for(j = 0; j < h; ++j){
+            for(i = 0; i < w; ++i){
+                float pix = getPixel(i, j, c);
+                pix = pix*v;
+                setPixel(i, j, c, pix);
+            }
+        }
+    }
+
+    public void translateImageChannel(int c, float v) {
+
+        for(int j = 0; j < h; ++j){
+            for(int i = 0; i < w; ++i){
+                float pix = getPixel(i, j, c);
+                pix = pix+v;
+                setPixel(i, j, c, pix);
+            }
+        }
+    }
+
+    public Image binarize() {
+
+        Image bin = copyImage();
+        int i;
+        for(i = 0; i < w * h * c; ++i){
+            if(bin.data.get(i) > .5) {
+                bin.data.put(i,1);
+            }
+            else {
+                bin.data.put(i,0);
+            }
+        }
+        return bin;
+    }
+
+    public void saturate(float sat) {
+
+        rgbToHsv();
+        scaleImageChannel(1,sat);
+        hsvToRgb();
+        constrain();
+    }
+
+    public void hue(float hue) {
+
+        rgbToHsv();
+
+        for(int i = 0; i < w*h; ++i){
+
+            data.put(i,data.get(i) + hue);
+
+            if(data.get(i) > 1) {
+                data.put(i,data.get(i) - 1);
+            }
+            else if(data.get(i) < 0) {
+                data.put(i,data.get(i) + 1);
+            }
+        }
+        hsvToRgb();
+        constrain();
+    }
+
+    public void exposure(float sat) {
+
+        rgbToHsv();
+        scaleImageChannel(2,sat);
+        hsvToRgb();
+        constrain();
+    }
+
+    public void distort(float hue, float sat, float val) {
+
+        rgbToHsv();
+        scaleImageChannel(1,sat);
+        scaleImageChannel(2,val);
+
+        for(int i = 0; i < w*h; ++i){
+
+            data.put(i,data.get(i) + hue);
+
+            if(data.get(i) > 1) {
+                data.put(i,data.get(i) - 1);
+            }
+            else if(data.get(i) < 0) {
+                data.put(i,data.get(i) + 1);
+            }
+        }
+        hsvToRgb();
+        constrain();
+    }
+
+    public void randomDistort(float hue, float saturation, float exposure) {
+
+        float dhue = Rand.randUniform(-hue, hue);
+        float dsat = Rand.randScale(saturation);
+        float dexp = Rand.randScale(exposure);
+        distort(dhue, dsat, dexp);
+    }
+
+    public void saturateExposure(float sat, float exposure) {
+
+        rgbToHsv();
+        scaleImageChannel(1,sat);
+        scaleImageChannel(2,exposure);
+        hsvToRgb();
+        constrain();
+    }
+
+    public void drawDetections(Detection[] dets, int num, float thresh, String[] names, Image[][] alphabet, int classes) {
+
+        int i,j;
+
+        System.out.println("\n\n[");
+
+        for(i = 0; i < num; ++i){
+
+            String labelString = "";
+
+            int _class = -1;
+            for(j = 0; j < classes; ++j){
+                if (dets[i].prob[j] > thresh){
+                    if (_class < 0) {
+
+                        labelString = labelString.concat(names[j]);
+                        _class = j;
+                    }
+                    else {
+
+                        labelString = labelString.concat(", ");
+                        labelString = labelString.concat(names[j]);
+                    }
+                    System.out.println(String.format("(%s:%.0f)",names[j],dets[i].prob[j]*100));
+                }
+            }
+
+            if(_class >= 0){
+
+                int width = (int) (h * 0.006f);
+                
+                int offset = _class*123457 % classes;
+                float red = getColor(2,offset,classes);
+                float green = getColor(1,offset,classes);
+                float blue = getColor(0,offset,classes);
+                float[] rgb = new float[3];
+
+
+                rgb[0] = red;
+                rgb[1] = green;
+                rgb[2] = blue;
+
+                Box b = dets[i].bbox;
+
+                int left  = (int) (b.x-b.w/2.)*w;
+                int right = (int) (b.x+b.w/2.)*w;
+                int top   = (int) (b.y-b.h/2.)*h;
+                int bot   = (int) (b.y+b.h/2.)*h;
+
+                if(left < 0) {
+                    left = 0;
+                }
+                if(right > w - 1) {
+                    right = w - 1;
+                }
+                if(top < 0) {
+                    top = 0;
+                }
+                if(bot > h - 1) {
+                    bot = h - 1;
+                }
+
+                drawBoxWidth(left, top, right, bot, width, red, green, blue);
+
+                if (alphabet != null) {
+                    Image label = getLabel(alphabet, labelString, (int) (h*.03));
+                    drawLabel(top + width, left, label, FloatBuffer.wrap(rgb));
+                }
+                
+                if (dets[i].mask != null) {
+
+                    Image mask = new Image(14, 14, 1, FloatBuffer.wrap(dets[i].mask));
+
+                    Image resized_mask = mask.resizeImage((int) b.w*w, (int) b.h*h);
+                    Image tmask = resized_mask.thresholdImage(0.5f);
+
+                    tmask.embedImage(this,left,top);
+                }
+            }
+        }
+        System.out.println("]");
+    }
+
 }

@@ -8,7 +8,7 @@ public abstract class Rand {
     public static final float MAX_FLOAT = Float.MAX_VALUE;
     public static final double MAX_DOUBLE = Double.MAX_VALUE;
 
-    public static Random rand = new Random();
+    private static Random rand = new Random();
 
     private static boolean haveSpare = false;
     private static double rand1;
@@ -32,6 +32,20 @@ public abstract class Rand {
         else {
             return (rand.nextInt()%(max - min + 1)) + min;
         }
+    }
+
+    public static boolean randBoolean() {
+        return rand.nextBoolean();
+    }
+
+    public static float randFloat() {
+
+        return rand.nextFloat();
+    }
+
+    public static int randInt() {
+
+        return rand.nextInt();
     }
 
     public static float randNormal() {

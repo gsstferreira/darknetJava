@@ -27,4 +27,8 @@ public enum CostType {
                 return SSE;
         }
     }
+
+    public static String getCostTypeString(CostType type) {
+        return type.name();
+    }
 }

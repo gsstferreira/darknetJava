@@ -93,7 +93,7 @@ public class Matrix {
         Matrix h = new Matrix(n,cols);
 
         for(int i = 0; i < n; i++) {
-            int index = Rand.rand.nextInt()%rows;
+            int index = Rand.randInt()%rows;
             h.vals[i] = vals[index];
             vals[index] = vals[--rows];
         }

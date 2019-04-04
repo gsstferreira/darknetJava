@@ -4,6 +4,7 @@ import Enums.Activation;
 import Enums.CostType;
 import Enums.LayerType;
 
+import java.lang.reflect.Type;
 import java.nio.*;
 
 public class Layer {
@@ -65,7 +66,7 @@ public class Layer {
     public int rescore;
     public int objectness;
     public int joint;
-    public int noadjust;
+    public int noAdjust;
     public int reorg;
     public int log;
     public int tanh;
@@ -101,7 +102,7 @@ public class Layer {
     public float probability;
     public float scale;
 
-    public String cweights;
+    public CharBuffer cweights;
     public IntBuffer indexes;
     public IntBuffer inputLayers;
     public IntBuffer inputSizes;
@@ -224,4 +225,9 @@ public class Layer {
     public Tree softmaxTree;
 
     public int workspaceSize;
+
+    public Layer asLayer() {
+
+        return (Layer) this;
+    }
 }

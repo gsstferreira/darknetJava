@@ -4,7 +4,24 @@ import Enums.LearningRatePolicy;
 
 import java.nio.*;
 
-public class Network {
+public class Network implements Cloneable {
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    public Network tryClone() {
+
+        try {
+            return (Network) this.clone();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.exit(-1);
+            return null;
+        }
+    }
 
     public int n;
     public int batch;

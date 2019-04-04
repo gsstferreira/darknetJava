@@ -1,23 +1,29 @@
 import Classes.Image;
-import Classes.Section;
+import Classes.Network;
 import Enums.ImType;
-import Tools.BufferUtils;
-import Tools.Parser;
-import Tools.Rand;
+import Tools.BufferUtil;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.List;
+import java.util.Arrays;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        Image img = Image.loadImage("C:/Users/gferreira/Pictures/pepsis.png",630,354,3);
+        IntBuffer b = IntBuffer.allocate(10);
 
-        Image img2 = img.resizeImage(315,202);
+        for(int i = 0; i < 10; i++) {
+            b.put(i,3*i);
+        }
 
-        img.saveToDisk("C:/Users/gferreira/Pictures/pepsisSame", ImType.JPG,100);
+        System.out.println(Arrays.toString(b.array()));
 
+        for(int i = 0; i < 10; i++) {
+
+            b.put(i,b.get(i) *2);
+        }
+
+        System.out.println(Arrays.toString(b.array()));
     }
 }

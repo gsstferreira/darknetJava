@@ -11,7 +11,9 @@ import java.util.List;
 
 public abstract class Util {
 
-    public static final Date DATE = new Date();
+    public static final int SECRET_NUMBER = -1234;
+    private static final Date date = new Date();
+    private static long clockVal = date.getTime();
 
     public static void topK(FloatBuffer a, int n, int k, IntBuffer index) {
 
@@ -181,7 +183,7 @@ public abstract class Util {
     public static void meanArrays(float[][] a, int n, int els, float[] avg) {
 
         FloatBuffer f = FloatBuffer.wrap(avg);
-        BufferUtils.setBufferValue(f,0);
+        BufferUtil.setBufferValue(f,0);
 
         for(int j = 0; j < n; j++) {
             for(int i = 0; i < els; i++) {
@@ -269,7 +271,7 @@ public abstract class Util {
         scaleArray(a, n, 1.0f/sum);
 
 
-        float r = Rand.rand.nextFloat();
+        float r = Rand.randFloat();
         int i;
         for(i = 0; i < n; ++i){
             r = r - a.get(i);
@@ -406,5 +408,8 @@ public abstract class Util {
         return byteBuffer.getInt(0);
     }
 
+    public static long getTime() {
+         return date.getTime();
+    }
 
 }

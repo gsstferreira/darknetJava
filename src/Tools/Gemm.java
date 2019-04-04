@@ -30,13 +30,12 @@ public abstract class Gemm {
     }
 
     public static FloatBuffer randomMatrix(int rows, int cols) {
-        Random r = Rand.rand;
 
         int i;
         float[] m = new float[rows*cols];
 
         for(i = 0; i < rows*cols; ++i){
-            m[i] = (1.0f*r.nextInt())/Rand.MAX_INT;
+            m[i] = (1.0f*Rand.randInt())/Rand.MAX_INT;
         }
         return FloatBuffer.wrap(m);
     }
@@ -65,11 +64,11 @@ public abstract class Gemm {
         FloatBuffer c = randomMatrix(m,n);
         int i;
 
-        long start = Util.DATE.getTime();
+        long start = Util.getTime();
         for(i = 0; i<10; ++i){
             gemmCpu(TA,TB,m,n,k,1,a,lda,b,ldb,1,c,n);
         }
-        long end = Util.DATE.getTime();
+        long end = Util.getTime();
 
         System.out.print(String.format("Matrix Multiplication %dx%d * %dx%d, TA=%d, TB=%d: %d ms\n",m,k,k,n, TA, TB, end-start));
     }
@@ -78,7 +77,7 @@ public abstract class Gemm {
         gemmCpu(TA,TB,M,N,K,ALPHA,A,lda,B,ldb,BETA,C,ldc);
     }
 
-    private static void gemmCpu(int TA, int TB, int M, int N, int K, float ALPHA, FloatBuffer A, int lda, FloatBuffer B, int ldb, float BETA, FloatBuffer C, int ldc) {
+    public static void gemmCpu(int TA, int TB, int M, int N, int K, float ALPHA, FloatBuffer A, int lda, FloatBuffer B, int ldb, float BETA, FloatBuffer C, int ldc) {
         int i, j;
         for(i = 0; i < M; ++i){
             for(j = 0; j < N; ++j){
