@@ -80,24 +80,24 @@ public class LocalLayer extends Layer {
 
         for(int i = 0; i < batch; ++i){
             
-            FloatBuffer fb = BufferUtil.offsetBuffer(output,i*outputs);
+            FloatBuffer fb = Buffers.offset(output,i*outputs);
             
             Blas.copyCpu(outputs, biases, 1, fb, 1);
         }
 
         for(int i = 0; i < batch; ++i){
 
-            FloatBuffer input = BufferUtil.offsetBuffer(net.input,i*w*h*c);
+            FloatBuffer input = Buffers.offset(net.input,i*w*h*c);
             ImCol.im2ColCpu(input, c, h, w, size, stride, pad, net.workspace);
 
-            FloatBuffer _output = BufferUtil.offsetBuffer(output,i*outputs);
+            FloatBuffer _output = Buffers.offset(output,i*outputs);
 
             for(int j = 0; j < locations; ++j){
 
 
-                FloatBuffer _a = BufferUtil.offsetBuffer(weights,j*size*size*c*n);
-                FloatBuffer _b = BufferUtil.offsetBuffer(net.workspace,j);
-                FloatBuffer _c = BufferUtil.offsetBuffer(_output,j);
+                FloatBuffer _a = Buffers.offset(weights,j*size*size*c*n);
+                FloatBuffer _b = Buffers.offset(net.workspace,j);
+                FloatBuffer _c = Buffers.offset(_output,j);
 
                 int m = n;
                 int n = 1;
@@ -118,20 +118,20 @@ public class LocalLayer extends Layer {
 
         for(i = 0; i < batch; ++i){
 
-            FloatBuffer fb = BufferUtil.offsetBuffer(delta,i*outputs);
+            FloatBuffer fb = Buffers.offset(delta,i*outputs);
             Blas.axpyCpu(outputs, 1, fb, 1, biasUpdates, 1);
         }
 
         for(i = 0; i < batch; ++i){
 
-            FloatBuffer input = BufferUtil.offsetBuffer(net.input,i*w*h*c);
+            FloatBuffer input = Buffers.offset(net.input,i*w*h*c);
 
             ImCol.im2ColCpu(input, c, h, w, size, stride, pad, net.workspace);
 
             for(j = 0; j < locations; ++j){
-                FloatBuffer _a = BufferUtil.offsetBuffer(delta,i*outputs + j);
-                FloatBuffer _b = BufferUtil.offsetBuffer(net.workspace,j);
-                FloatBuffer _c = BufferUtil.offsetBuffer(weightUpdates,j*size*size*c*n);
+                FloatBuffer _a = Buffers.offset(delta,i*outputs + j);
+                FloatBuffer _b = Buffers.offset(net.workspace,j);
+                FloatBuffer _c = Buffers.offset(weightUpdates,j*size*size*c*n);
 
                 int m = n;
                 int n = size*size*c;
@@ -143,9 +143,9 @@ public class LocalLayer extends Layer {
             if(net.delta != null){
                 for(j = 0; j < locations; ++j){
 
-                    FloatBuffer _a = BufferUtil.offsetBuffer(weights,j*size*size*c*n);
-                    FloatBuffer _b = BufferUtil.offsetBuffer(delta,i*outputs + j);
-                    FloatBuffer _c = BufferUtil.offsetBuffer(net.workspace,j);
+                    FloatBuffer _a = Buffers.offset(weights,j*size*size*c*n);
+                    FloatBuffer _b = Buffers.offset(delta,i*outputs + j);
+                    FloatBuffer _c = Buffers.offset(net.workspace,j);
 
                     int m = size*size*c;
                     int n = 1;
@@ -154,7 +154,7 @@ public class LocalLayer extends Layer {
                     Gemm.gemm(1,0,m,n,k,1,_a,m,_b,locations,0,_c,locations);
                 }
 
-                FloatBuffer fb = BufferUtil.offsetBuffer(net.delta,i*c*h*w);
+                FloatBuffer fb = Buffers.offset(net.delta,i*c*h*w);
                 ImCol.col2ImCpu(net.workspace, c, h,  w,  size,  stride, pad, fb);
             }
         }

@@ -4,7 +4,7 @@ import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
 import Tools.Blas;
-import org.lwjgl.BufferUtils;
+import Tools.Buffers;
 
 import java.nio.FloatBuffer;
 
@@ -18,26 +18,26 @@ public class BatchnormLayer extends Layer {
         this.w = this.outW = w;
         this.c = this.outC = c;
 
-        this.output = BufferUtils.createFloatBuffer(h * w * c * batch);
-        this.delta  = BufferUtils.createFloatBuffer(h * w * c * batch);
+        this.output = Buffers.newBufferF(h * w * c * batch);
+        this.delta  = Buffers.newBufferF(h * w * c * batch);
         this.inputs = w*h*c;
         this.outputs = this.inputs;
 
-        this.scales = BufferUtils.createFloatBuffer(c);
-        this.scaleUpdates = BufferUtils.createFloatBuffer(c);
-        this.biases = BufferUtils.createFloatBuffer(c);
-        this.biasUpdates = BufferUtils.createFloatBuffer(c);
+        this.scales = Buffers.newBufferF(c);
+        this.scaleUpdates = Buffers.newBufferF(c);
+        this.biases = Buffers.newBufferF(c);
+        this.biasUpdates = Buffers.newBufferF(c);
         
         for(int i = 0; i < c; ++i){
 
             this.scales.put(i,1);
         }
 
-        this.mean = BufferUtils.createFloatBuffer(c);
-        this.variance = BufferUtils.createFloatBuffer(c);
+        this.mean = Buffers.newBufferF(c);
+        this.variance = Buffers.newBufferF(c);
 
-        this.rollingMean = BufferUtils.createFloatBuffer(c);
-        this.rollingVariance = BufferUtils.createFloatBuffer(c);
+        this.rollingMean = Buffers.newBufferF(c);
+        this.rollingVariance = Buffers.newBufferF(c);
     }
 
     public static void backwardScaleCpu(FloatBuffer xNorm, FloatBuffer delta, int batch, int n, int size, FloatBuffer scaleUpdates) {

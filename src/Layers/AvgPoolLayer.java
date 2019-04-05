@@ -3,7 +3,7 @@ package Layers;
 import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
-import org.lwjgl.BufferUtils;
+import Tools.Buffers;
 
 public class AvgPoolLayer extends Layer {
 
@@ -21,8 +21,8 @@ public class AvgPoolLayer extends Layer {
         this.inputs = h*w*c;
 
         int output_size = this.outputs * batch;
-        this.output = BufferUtils.createFloatBuffer(output_size);
-        this.delta =  BufferUtils.createFloatBuffer(output_size);
+        this.output = Buffers.newBufferF(output_size);
+        this.delta =  Buffers.newBufferF(output_size);
     }
 
     void resize(int width, int height) {

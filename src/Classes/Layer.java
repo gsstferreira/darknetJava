@@ -82,7 +82,7 @@ public class Layer {
     public float noobjectScale;
     public float maskScale;
     public float classScale;
-    public int bias_match;
+    public int biasMatch;
     public int random;
     public float ignoreThresh;
     public float truthThresh;

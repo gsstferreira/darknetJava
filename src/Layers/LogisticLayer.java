@@ -5,8 +5,8 @@ import Classes.Network;
 import Enums.Activation;
 import Enums.LayerType;
 import Tools.Blas;
+import Tools.Buffers;
 import Tools.Util;
-import org.lwjgl.BufferUtils;
 
 public class LogisticLayer extends Layer {
 
@@ -16,10 +16,10 @@ public class LogisticLayer extends Layer {
         this.batch = batch;
         this.inputs = inputs;
         this.outputs = inputs;
-        this.loss = BufferUtils.createFloatBuffer(inputs*batch);
-        this.output = BufferUtils.createFloatBuffer(inputs*batch);
-        this.delta = BufferUtils.createFloatBuffer(inputs*batch);
-        this.cost = BufferUtils.createFloatBuffer(1);
+        this.loss = Buffers.newBufferF(inputs*batch);
+        this.output = Buffers.newBufferF(inputs*batch);
+        this.delta = Buffers.newBufferF(inputs*batch);
+        this.cost = Buffers.newBufferF(1);
     }
 
     public void forward(Network net) {

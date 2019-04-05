@@ -5,7 +5,7 @@ import Classes.Network;
 import Enums.CostType;
 import Enums.LayerType;
 import Tools.Blas;
-import Tools.BufferUtil;
+import Tools.Buffers;
 import Tools.Util;
 import org.lwjgl.BufferUtils;
 
@@ -21,17 +21,17 @@ public class CostLayer extends Layer {
         this.outputs = inputs;
         this.costType = costType;
 
-        this.delta = BufferUtils.createFloatBuffer(inputs*batch);
-        this.output = BufferUtils.createFloatBuffer(inputs*batch);
-        this.cost = BufferUtils.createFloatBuffer(1);
+        this.delta = Buffers.newBufferF(inputs*batch);
+        this.output = Buffers.newBufferF(inputs*batch);
+        this.cost = Buffers.newBufferF(1);
     }
 
     public void resize(int inputs) {
 
         this.inputs = inputs;
         this.outputs = inputs;
-        this.delta = BufferUtil.reallocBuffer(delta,inputs*batch);
-        this.output = BufferUtil.reallocBuffer(output,inputs*batch);
+        this.delta = Buffers.realloc(delta,inputs*batch);
+        this.output = Buffers.realloc(output,inputs*batch);
     }
 
     public void forward(Network net) {

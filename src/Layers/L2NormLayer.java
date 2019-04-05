@@ -4,7 +4,7 @@ import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
 import Tools.Blas;
-import org.lwjgl.BufferUtils;
+import Tools.Buffers;
 
 public class L2NormLayer extends Layer {
 
@@ -14,9 +14,9 @@ public class L2NormLayer extends Layer {
         this.batch = batch;
         this.inputs = inputs;
         this.outputs = inputs;
-        this.output = BufferUtils.createFloatBuffer(inputs*batch);
-        this.scales = BufferUtils.createFloatBuffer(inputs*batch);
-        this.delta = BufferUtils.createFloatBuffer(inputs*batch);
+        this.output = Buffers.newBufferF(inputs*batch);
+        this.scales = Buffers.newBufferF(inputs*batch);
+        this.delta = Buffers.newBufferF(inputs*batch);
     }
 
     public void forward(Network net) {

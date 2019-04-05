@@ -3,7 +3,7 @@ package Layers;
 import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
-import Tools.BufferUtil;
+import Tools.Buffers;
 import Tools.Rand;
 import org.lwjgl.BufferUtils;
 
@@ -16,13 +16,13 @@ public class DropoutLayer extends Layer {
         this.inputs = inputs;
         this.outputs = inputs;
         this.batch = batch;
-        this.rand = BufferUtils.createFloatBuffer(inputs*batch);
+        this.rand = Buffers.newBufferF(inputs*batch);
         this.scale = 1.0f/(1.0f - probability);        
     }
 
     public void resize(int inputs) {
         
-        rand = BufferUtil.reallocBuffer(rand,inputs*batch);
+        rand = Buffers.realloc(rand,inputs*batch);
     }
 
     public void forward(Network net) {

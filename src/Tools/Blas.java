@@ -54,7 +54,7 @@ public abstract class Blas {
                 }
             }
         }
-        BufferUtil.bufferCopy(swap,x,swap.capacity());
+        Buffers.copy(swap,x,swap.capacity());
     } //
 
     public static void weightedSumCpu(FloatBuffer a, FloatBuffer b, FloatBuffer s, int n, FloatBuffer c) {
@@ -386,8 +386,8 @@ public abstract class Blas {
         for(int b = 0; b < batch; ++b){
             for(int g = 0; g < groups; ++g){
 
-                FloatBuffer fb1 = BufferUtil.offsetBuffer(input,b*batch_offset + g*group_offset);
-                FloatBuffer fb2 = BufferUtil.offsetBuffer(output,b*batch_offset + g*group_offset);
+                FloatBuffer fb1 = Buffers.offset(input,b*batch_offset + g*group_offset);
+                FloatBuffer fb2 = Buffers.offset(output,b*batch_offset + g*group_offset);
 
                 softmax(fb1, n, temp, stride, fb2);
             }

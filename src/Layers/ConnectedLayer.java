@@ -6,9 +6,9 @@ import Classes.UpdateArgs;
 import Enums.Activation;
 import Enums.LayerType;
 import Tools.Blas;
+import Tools.Buffers;
 import Tools.Gemm;
 import Tools.Rand;
-import org.lwjgl.BufferUtils;
 
 import java.nio.FloatBuffer;
 
@@ -32,14 +32,14 @@ public class ConnectedLayer extends Layer {
         this.outW = 1;
         this.outC = outputs;
 
-        this.output = BufferUtils.createFloatBuffer(batch*outputs);
-        this.delta = BufferUtils.createFloatBuffer(batch*outputs);
+        this.output = Buffers.newBufferF(batch*outputs);
+        this.delta = Buffers.newBufferF(batch*outputs);
 
-        this.weightUpdates = BufferUtils.createFloatBuffer(inputs*outputs);
-        this.biasUpdates = BufferUtils.createFloatBuffer(outputs);
+        this.weightUpdates = Buffers.newBufferF(inputs*outputs);
+        this.biasUpdates = Buffers.newBufferF(outputs);
 
-        this.weights = BufferUtils.createFloatBuffer(inputs*outputs);
-        this.biases = BufferUtils.createFloatBuffer(outputs);
+        this.weights = Buffers.newBufferF(inputs*outputs);
+        this.biases = Buffers.newBufferF(outputs);
 
         float scale = (float) Math.sqrt(2./inputs);
 
@@ -55,32 +55,32 @@ public class ConnectedLayer extends Layer {
 
         if(adam != 0){
             
-            this.m = BufferUtils.createFloatBuffer(this.inputs*this.outputs);
-            this.v = BufferUtils.createFloatBuffer(this.inputs*this.outputs);
-            this.biasM = BufferUtils.createFloatBuffer(this.outputs);
-            this.scaleM = BufferUtils.createFloatBuffer(this.outputs);
-            this.biasV = BufferUtils.createFloatBuffer(this.outputs);
-            this.scaleV = BufferUtils.createFloatBuffer(this.outputs);
+            this.m = Buffers.newBufferF(this.inputs*this.outputs);
+            this.v = Buffers.newBufferF(this.inputs*this.outputs);
+            this.biasM = Buffers.newBufferF(this.outputs);
+            this.scaleM = Buffers.newBufferF(this.outputs);
+            this.biasV = Buffers.newBufferF(this.outputs);
+            this.scaleV = Buffers.newBufferF(this.outputs);
         }
 
         if(batch_normalize != 0){
-            this.scales = BufferUtils.createFloatBuffer(outputs);
-            this.scaleUpdates = BufferUtils.createFloatBuffer(outputs);
+            this.scales = Buffers.newBufferF(outputs);
+            this.scaleUpdates = Buffers.newBufferF(outputs);
             
             for(i = 0; i < outputs; ++i){
                 this.scales.put(i,1);
             }
 
-            this.mean = BufferUtils.createFloatBuffer(outputs);
-            this.meanDelta = BufferUtils.createFloatBuffer(outputs);
-            this.variance = BufferUtils.createFloatBuffer(outputs);
-            this.varianceDelta = BufferUtils.createFloatBuffer(outputs);
+            this.mean = Buffers.newBufferF(outputs);
+            this.meanDelta = Buffers.newBufferF(outputs);
+            this.variance = Buffers.newBufferF(outputs);
+            this.varianceDelta = Buffers.newBufferF(outputs);
 
-            this.rollingMean = BufferUtils.createFloatBuffer(outputs);
-            this.rollingVariance = BufferUtils.createFloatBuffer(outputs);
+            this.rollingMean = Buffers.newBufferF(outputs);
+            this.rollingVariance = Buffers.newBufferF(outputs);
 
-            this.x = BufferUtils.createFloatBuffer(batch*outputs);
-            this.xNorm = BufferUtils.createFloatBuffer(batch*outputs);
+            this.x = Buffers.newBufferF(batch*outputs);
+            this.xNorm = Buffers.newBufferF(batch*outputs);
         }
         
         this.activation = activation;

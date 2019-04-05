@@ -1,6 +1,8 @@
 package Classes;
 
+import Enums.LayerType;
 import Enums.LearningRatePolicy;
+import Tools.Buffers;
 
 import java.nio.*;
 
@@ -74,7 +76,7 @@ public class Network implements Cloneable {
     public int random;
 
     public int gpuIndex;
-    public Tree[] hierarchy;
+    public Tree hierarchy;
 
     public FloatBuffer input;
     public FloatBuffer truth;
@@ -89,5 +91,49 @@ public class Network implements Cloneable {
     public FloatBuffer truthGpu;
     public FloatBuffer deltaGpu;
     public FloatBuffer outputGpu;
+
+    public Network(){}
+
+    public Network(int n) {
+
+        this.n = n;
+        this.layers = new Layer[n];
+        this.seen = Buffers.newBufferI(1);
+        this.t    = Buffers.newBufferI(1);
+        this.cost = Buffers.newBufferF(1);
+    }
+    
+
+    public LoadArgs getbaseArgs() {
+
+        LoadArgs args = new LoadArgs();
+        args.w = this.w;
+        args.h = this.h;
+        args.size = this.w;
+
+        args.min = this.minCrop;
+        args.max = this.maxCrop;
+        args.angle = this.angle;
+        args.aspect = this.aspect;
+        args.exposure = this.exposure;
+        args.center = this.center;
+        args.saturation = this.saturation;
+        args.hue = this.hue;
+
+        return args;
+    }
+    
+    public Layer getNetworkOutputLayer() {
+
+        int i;
+        for(i = this.n - 1; i >= 0; --i){
+            if(this.layers[i].type != LayerType.COST) {
+                break;
+            }
+        }
+        return this.layers[i];
+    }
+
+
 
 }

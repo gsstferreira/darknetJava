@@ -4,7 +4,7 @@ import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
 import Tools.Blas;
-import Tools.BufferUtil;
+import Tools.Buffers;
 import Tools.Util;
 import org.lwjgl.BufferUtils;
 
@@ -25,14 +25,14 @@ public class IsegLayer extends Layer {
         this.classes = classes;
         this.batch = batch;
         this.extra = ids;
-        this.cost = BufferUtils.createFloatBuffer(1);
+        this.cost = Buffers.newBufferF(1);
         this.outputs = h*w*this.c;
         this.inputs = this.outputs;
         this.truths = 90*(this.w*this.h+1);
-        this.delta = BufferUtils.createFloatBuffer(batch*this.outputs);
-        this.output = BufferUtils.createFloatBuffer(batch*this.outputs);
+        this.delta = Buffers.newBufferF(batch*this.outputs);
+        this.output = Buffers.newBufferF(batch*this.outputs);
 
-        this.counts = BufferUtils.createIntBuffer(90);
+        this.counts = Buffers.newBufferI(90);
         this.sums = new float[90][];
         if(ids != 0){
             int i;
@@ -50,8 +50,8 @@ public class IsegLayer extends Layer {
         outputs = height*width*c;
         inputs = outputs;
 
-        output = BufferUtil.reallocBuffer(output, batch*outputs);
-        delta = BufferUtil.reallocBuffer(delta, batch*outputs);
+        output = Buffers.realloc(output, batch*outputs);
+        delta = Buffers.realloc(delta, batch*outputs);
     }
 
     public void forward(Network net) {
@@ -61,8 +61,8 @@ public class IsegLayer extends Layer {
         int i,b,j,k;
         int ids = this.extra;
 
-        BufferUtil.bufferCopy(net.input,output,outputs*batch);
-        BufferUtil.setBufferValue(delta,0,outputs*batch);
+        Buffers.copy(net.input,output,outputs*batch);
+        Buffers.setValue(delta,0,outputs*batch);
 
         for (b = 0; b < this.batch; ++b){
             // a priori, each pixel has no class
@@ -82,7 +82,7 @@ public class IsegLayer extends Layer {
                     delta.put(index, -0.1f*output.get(index));
                 }
             }
-            BufferUtil.setBufferValue(counts,0,90);
+            Buffers.setValue(counts,0,90);
 
             for(i = 0; i < 90; ++i){
 
@@ -100,7 +100,7 @@ public class IsegLayer extends Layer {
                     if(v != 0) {
 
                         delta.put(index,v - output.get(index));
-                        FloatBuffer fb = BufferUtil.offsetBuffer(output,b*this.outputs + this.classes*this.w*this.h + k);
+                        FloatBuffer fb = Buffers.offset(output,b*this.outputs + this.classes*this.w*this.h + k);
 
                         Blas.axpyCpu(ids, 1, fb, this.w*this.h, FloatBuffer.wrap(this.sums[i]), 1);
                         counts.put(i,counts.get(i) + 1);

@@ -2,6 +2,7 @@ package Classes;
 
 import Enums.ImType;
 import Tools.Blas;
+import Tools.Buffers;
 import Tools.Rand;
 import Tools.Util;
 import org.lwjgl.BufferUtils;
@@ -28,7 +29,7 @@ public class Image {
         this.h = height;
         this.c = c;
 
-        this.data = BufferUtils.createFloatBuffer(width*height*c);
+        this.data = Buffers.newBufferF(width*height*c);
 
         if(random) {
             for(int i = 0; i < w*h*c; ++i){
@@ -45,7 +46,7 @@ public class Image {
         this.h = height;
         this.c = c;
 
-        this.data = BufferUtils.createFloatBuffer(width*height*c);
+        this.data = Buffers.newBufferF(width*height*c);
 
         for(int i = 0; i < this.data.capacity(); i++) {
                 this.data.put(i,data.get(i));
@@ -1413,7 +1414,7 @@ public class Image {
                 rgb[1] = green;
                 rgb[2] = blue;
 
-                Box b = dets[i].bbox;
+                Box b = dets[i].bBox;
 
                 int left  = (int) (b.x-b.w/2.)*w;
                 int right = (int) (b.x+b.w/2.)*w;

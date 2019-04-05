@@ -2,6 +2,7 @@ package Classes;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,36 +39,67 @@ public class Tree {
         }
     }
 
-    public float getHierarchyprobability(float[] x, int c, int stride, int oX) {
+    public float getHierarchyprobability(float[] x, int c, int stride) {
 
         float p = 1;
         while(c >= 0) {
-            p *= x[c*stride + oX];
+            p *= x[c*stride];
             c = this.parent[c];
         }
         return p;
     }
 
-    public void hierarchyPredictions(float[] predictions, int n, boolean onlyLeaves, int stride, int oP) {
+    public float getHierarchyprobability(FloatBuffer x, int c, int stride) {
+
+        float p = 1;
+        while(c >= 0) {
+            p *= x.get(c*stride);
+            c = this.parent[c];
+        }
+        return p;
+    }
+
+    public void hierarchyPredictions(float[] predictions, int n, boolean onlyLeaves, int stride) {
 
         for(int i = 0; i < n; i++) {
 
             int parent = this.parent[i];
             if(parent >= 0) {
-                predictions[i*stride + oP] *= predictions[parent*stride + oP];
+                predictions[i*stride] *= predictions[parent*stride];
             }
         }
         if(onlyLeaves) {
             for(int i = 0; i < n; i++) {
 
                 if(this.leaf[i] != 0) {
-                    predictions[i*stride + oP] = 0;
+                    predictions[i*stride] = 0;
                 }
             }
         }
     }
 
-    public int hierarchyTopPredictions(float[] predictions, float thresh, int stride, int oP) {
+    public void hierarchyPredictions(FloatBuffer predictions, int n, boolean onlyLeaves, int stride) {
+
+        for(int i = 0; i < n; i++) {
+
+            int parent = this.parent[i];
+            if(parent >= 0) {
+
+                predictions.put(i*stride,predictions.get(i*stride) * predictions.get(parent*stride));
+            }
+        }
+        if(onlyLeaves) {
+            for(int i = 0; i < n; i++) {
+
+                if(this.leaf[i] != 0) {
+
+                    predictions.put(i*stride,0);
+                }
+            }
+        }
+    }
+
+    public int hierarchyTopPredictions(float[] predictions, float thresh, int stride) {
 
         float p = 1;
         int group = 0;
@@ -79,7 +111,44 @@ public class Tree {
             for(int i = 0; i <this.groupSize[group]; i++) {
 
                 int index = i + this.groupOffset[group];
-                float val = predictions[oP + (i + this.groupOffset[group])*stride];
+                float val = predictions[(i + this.groupOffset[group])*stride];
+
+                if(val > max) {
+                    max_i = index;
+                    max = val;
+                }
+            }
+
+            if(p*max > thresh) {
+                p *= max;
+                group = this.child[max_i];
+
+                if(this.child[max_i] < 0) {
+                    return max_i;
+                }
+            }
+            else if(group == 0) {
+                return max_i;
+            }
+            else {
+                return this.parent[this.groupOffset[group]];
+            }
+        }
+    }
+
+    public int hierarchyTopPredictions(FloatBuffer predictions, float thresh, int stride) {
+
+        float p = 1;
+        int group = 0;
+
+        while(true) {
+            float max = 0;
+            int max_i = 0;
+
+            for(int i = 0; i <this.groupSize[group]; i++) {
+
+                int index = i + this.groupOffset[group];
+                float val = predictions.get((i + this.groupOffset[group])*stride);
 
                 if(val > max) {
                     max_i = index;

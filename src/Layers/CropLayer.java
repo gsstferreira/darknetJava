@@ -4,7 +4,7 @@ import Classes.Image;
 import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
-import Tools.BufferUtil;
+import Tools.Buffers;
 import Tools.Rand;
 import org.lwjgl.BufferUtils;
 
@@ -36,7 +36,7 @@ public class CropLayer extends Layer {
         this.inputs = this.w * this.h * this.c;
         this.outputs = this.outW * this.outH * this.outC;
 
-        this.output = BufferUtils.createFloatBuffer(this.outputs*batch);
+        this.output = Buffers.newBufferF(this.outputs*batch);
     }
 
     public void resize(int width, int height) {
@@ -50,7 +50,7 @@ public class CropLayer extends Layer {
         inputs = w * h * c;
         outputs = outH * outW * outC;
 
-        output = BufferUtil.reallocBuffer(output,batch*outputs);
+        output = Buffers.realloc(output,batch*outputs);
     }
 
     public void forward(Network net) {

@@ -5,7 +5,7 @@ import Classes.Network;
 import Enums.Activation;
 import Enums.LayerType;
 import Tools.Blas;
-import org.lwjgl.BufferUtils;
+import Tools.Buffers;
 
 public class ActivationLayer extends Layer {
 
@@ -17,8 +17,8 @@ public class ActivationLayer extends Layer {
         this.outputs = inputs;
         this.batch = batch;
 
-        this.output = BufferUtils.createFloatBuffer(batch*inputs);
-        this.delta = BufferUtils.createFloatBuffer(batch*inputs);
+        this.output = Buffers.newBufferF(batch*inputs);
+        this.delta = Buffers.newBufferF(batch*inputs);
 
         this.activation = activation;
     }

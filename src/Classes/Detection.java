@@ -2,7 +2,7 @@ package Classes;
 
 public class Detection {
 
-    public Box bbox;
+    public Box bBox;
     public int classes;
     public float[] prob;
     public float[] mask;

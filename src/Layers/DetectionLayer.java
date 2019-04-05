@@ -6,10 +6,10 @@ import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
 import Tools.Blas;
-import Tools.BufferUtil;
+import Tools.Buffers;
 import Tools.Rand;
 import Tools.Util;
-import org.lwjgl.BufferUtils;
+
 import java.nio.FloatBuffer;
 
 public class DetectionLayer extends Layer {
@@ -30,11 +30,11 @@ public class DetectionLayer extends Layer {
 
         assert(side*side*((1 + this.coords)*this.n + this.classes) == inputs);
 
-        this.cost = BufferUtils.createFloatBuffer(1);
+        this.cost = Buffers.newBufferF(1);
         this.outputs = this.inputs;
         this.truths = this.side*this.side*(1+this.coords+this.classes);
-        this.output = BufferUtils.createFloatBuffer(batch*this.outputs);
-        this.delta = BufferUtils.createFloatBuffer(batch*this.outputs);
+        this.output = Buffers.newBufferF(batch*this.outputs);
+        this.delta = Buffers.newBufferF(batch*this.outputs);
     }
 
     public void forward(Network net) {
@@ -42,7 +42,7 @@ public class DetectionLayer extends Layer {
         int locations = this.side*this.side;
         int i,j;
 
-        BufferUtil.bufferCopy(net.input,output,outputs*batch);
+        Buffers.copy(net.input,output,outputs*batch);
 
         int b;
         if (this.softmax != 0){
@@ -51,7 +51,7 @@ public class DetectionLayer extends Layer {
                 for (i = 0; i < locations; ++i) {
                     int offset = i*this.classes;
 
-                    FloatBuffer fb = BufferUtil.offsetBuffer(this.output,index + offset);
+                    FloatBuffer fb = Buffers.offset(this.output,index + offset);
                     Blas.softmax(fb, this.classes, 1, 1, fb);
                 }
             }
@@ -68,7 +68,7 @@ public class DetectionLayer extends Layer {
 
             int size = this.inputs * this.batch;
 
-            BufferUtil.setBufferValue(this.delta,0,size);
+            Buffers.setValue(this.delta,0,size);
 
             for (b = 0; b < this.batch; ++b){
                 int index = b*this.inputs;
@@ -112,7 +112,7 @@ public class DetectionLayer extends Layer {
                         avg_allcat += this.output.get(class_index+j);
                     }
 
-                    FloatBuffer fb = BufferUtil.offsetBuffer(net.truth,truth_index + 1 + this.classes);
+                    FloatBuffer fb = Buffers.offset(net.truth,truth_index + 1 + this.classes);
                     Box truth = Box.floatToBox(fb, 1);
                     truth.x /= this.side;
                     truth.y /= this.side;
@@ -121,7 +121,7 @@ public class DetectionLayer extends Layer {
 
                         int box_index = index + locations*(this.classes + this.n) + (i*this.n + j) * this.coords;
 
-                        FloatBuffer fb2 = BufferUtil.offsetBuffer(this.output, box_index);
+                        FloatBuffer fb2 = Buffers.offset(this.output, box_index);
                         Box out = Box.floatToBox(fb2, 1);
                         out.x /= this.side;
                         out.y /= this.side;
@@ -163,7 +163,7 @@ public class DetectionLayer extends Layer {
                     int bIndex = index + locations*(this.classes + this.n) + (i*this.n + best_index) * this.coords;
                     int tbIndex = truth_index + 1 + this.classes;
 
-                    fb = BufferUtil.offsetBuffer(this.output,bIndex);
+                    fb = Buffers.offset(this.output,bIndex);
                     Box out = Box.floatToBox(fb, 1);
                     out.x /= this.side;
                     out.y /= this.side;
@@ -236,7 +236,7 @@ public class DetectionLayer extends Layer {
                 b.w = (float)Math.pow(predictions.get(box_index + 2), ((this.sqrt != 0) ? 2:1)) * w;
                 b.h = (float)Math.pow(predictions.get(box_index + 3), ((this.sqrt != 0) ? 2:1)) * h;
 
-                dets[index].bbox = b;
+                dets[index].bBox = b;
                 dets[index].objectness = scale;
 
                 for(j = 0; j < this.classes; ++j){

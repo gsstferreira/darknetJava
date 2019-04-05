@@ -183,7 +183,7 @@ public abstract class Util {
     public static void meanArrays(float[][] a, int n, int els, float[] avg) {
 
         FloatBuffer f = FloatBuffer.wrap(avg);
-        BufferUtil.setBufferValue(f,0);
+        Buffers.setValue(f,0);
 
         for(int j = 0; j < n; j++) {
             for(int i = 0; i < els; i++) {

@@ -38,6 +38,12 @@ public class Box {
         this.h = H;
         this.w = W;
     }
+    public Box(Box b) {
+        x = b.x;
+        y = b.y;
+        w = b.w;
+        h = b.h;
+    }
 
     public static Box floatToBox(FloatBuffer f, int stride) {
 
@@ -107,12 +113,12 @@ public class Box {
             if(dets[i].objectness == 0) {
                 continue;
             }
-            Box a = dets[i].bbox;
+            Box a = dets[i].bBox;
             for(j = i+1; j < total; ++j){
                 if(dets[j].objectness == 0) {
                     continue;
                 }
-                Box b = dets[j].bbox;
+                Box b = dets[j].bBox;
                 if (boxIou(a,b) > thresh){
                     dets[j].objectness = 0;
                     for(k = 0; k < classes; ++k){
@@ -149,9 +155,9 @@ public class Box {
                 if(dets[i].prob[k] == 0) {
                     continue;
                 }
-                Box a = dets[i].bbox;
+                Box a = dets[i].bBox;
                 for(j = i+1; j < total; ++j){
-                    Box b = dets[j].bbox;
+                    Box b = dets[j].bBox;
                     if (boxIou(a,b) > thresh){
                         dets[j].prob[k] = 0;
                     }
