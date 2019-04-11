@@ -8,8 +8,8 @@ public class KeyValuePair {
 
     public KeyValuePair(String k, String v) {
 
-        key = k;
-        value = v;
+        key = k.strip();
+        value = v.strip();
         used = false;
     }
 }

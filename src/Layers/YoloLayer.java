@@ -1,16 +1,14 @@
 package Layers;
 
-import Classes.Box;
-import Classes.Detection;
-import Classes.Layer;
-import Classes.Network;
+import Classes.*;
+import Classes.Buffers.DetectionBuffer;
+import Classes.Buffers.FloatBuffer;
+import Classes.Buffers.IntBuffer;
 import Enums.LayerType;
 import Tools.Blas;
 import Tools.Buffers;
 import Tools.Util;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 
 public class YoloLayer extends Layer {
 
@@ -29,25 +27,25 @@ public class YoloLayer extends Layer {
         this.outH = this.h;
         this.outC = this.c;
         this.classes = classes;
-        this.cost = Buffers.newBufferF(1);
-        this.biases = Buffers.newBufferF(total*2);
+        this.cost = new FloatBuffer(1);
+        this.biases = new FloatBuffer(total*2);
 
         if(mask != null) {
             this.mask = mask;
         }
         else{
-            this.mask = Buffers.newBufferI(n);
+            this.mask = new IntBuffer(n);
             for(i = 0; i < n; ++i){
 
                 this.mask.put(i,i);
             }
         }
-        this.biasUpdates = Buffers.newBufferF(n*2);
+        this.biasUpdates = new FloatBuffer(n*2);
         this.outputs = h*w*n*(classes + 4 + 1);
         this.inputs = this.outputs;
         this.truths = 90*(4 + 1);
-        this.delta = Buffers.newBufferF(batch*this.outputs);
-        this.output = Buffers.newBufferF(batch*this.outputs);
+        this.delta = new FloatBuffer(batch*this.outputs);
+        this.output = new FloatBuffer(batch*this.outputs);
 
         for(i = 0; i < total*2; ++i){
 
@@ -162,7 +160,7 @@ public class YoloLayer extends Layer {
                         int best_t = 0;
                         for(t = 0; t < this.maxBoxes; ++t){
 
-                            var fb = Buffers.offset(net.truth,t*(4 + 1) + b*this.truths);
+                            var fb = net.truth.offsetNew(t*(4 + 1) + b*this.truths);
 
                             Box truth = Box.floatToBox(fb, 1);
 
@@ -199,7 +197,7 @@ public class YoloLayer extends Layer {
                             int class_index = entryIndex(b, n*this.w*this.h + j*this.w + i, 4 + 1);
                             deltaYoloClass(this.output, this.delta, class_index, clas, this.classes, this.w*this.h, null);
 
-                            var fb = Buffers.offset(net.truth,best_t*(4 + 1) + b*this.truths);
+                            var fb = net.truth.offsetNew(best_t*(4 + 1) + b*this.truths);
                             Box truth = Box.floatToBox(fb, 1);
 
                             deltaYoloBox(truth, output, biases, mask.get(n), Box_index, i, j, w, h, net.w, net.h, delta, (2-truth.w*truth.h), w*h);
@@ -210,7 +208,7 @@ public class YoloLayer extends Layer {
 
             for(t = 0; t < this.maxBoxes; ++t){
 
-                var fb = Buffers.offset(net.truth,t*(4 + 1) + b*this.truths);
+                var fb = net.truth.offsetNew(t*(4 + 1) + b*this.truths);
                 Box truth = Box.floatToBox(fb, 1);
 
                 if(truth.x == 0) {
@@ -254,7 +252,7 @@ public class YoloLayer extends Layer {
 
                     int class_index = entryIndex(b, mask_n*this.w*this.h + j*this.w + i, 4 + 1);
 
-                    var avg = Buffers.newBufferF(1);
+                    var avg = new FloatBuffer(1);
                     avg.put(0,avg_cat);
 
                     deltaYoloClass(this.output, this.delta, class_index, clas, this.classes, this.w*this.h, avg);
@@ -281,7 +279,7 @@ public class YoloLayer extends Layer {
         Blas.axpyCpu(this.batch * this.inputs, 1, this.delta, 1, net.delta, 1);
     }
 
-    public void correctYoloBoxes(Detection[] dets, int n, int w, int h, int netw, int neth, int relative) {
+    public void correctYoloBoxes(DetectionBuffer dets, int n, int w, int h, int netw, int neth, int relative) {
 
         int i;
         int new_w;
@@ -291,13 +289,14 @@ public class YoloLayer extends Layer {
             new_w = netw;
             new_h = (h * netw)/w;
         }
+
         else {
             new_h = neth;
             new_w = (w * neth)/h;
         }
 
         for (i = 0; i < n; ++i){
-            Box b = dets[i].bBox;
+            Box b = dets.get(i).bBox;
             b.x =  (b.x - (netw - new_w)/2.0f/netw) / ((float)new_w/netw);
             b.y =  (b.y - (neth - new_h)/2.0f/neth) / ((float)new_h/neth);
             b.w *= (float)netw/new_w;
@@ -309,11 +308,11 @@ public class YoloLayer extends Layer {
                 b.y *= h;
                 b.h *= h;
             }
-            dets[i].bBox = b;
+            dets.get(i).bBox = b;
         }
     }
 
-    public int yoloNumDetections(float thresh) {
+    public int numDetections(float thresh) {
 
         int i, n;
         int count = 0;
@@ -331,7 +330,7 @@ public class YoloLayer extends Layer {
     public void avgFlippedYolo() {
 
         int i,j,n,z;
-        var flip = Buffers.offset(this.output,this.outputs);
+        var flip = this.output.offsetNew(this.outputs);
         for (j = 0; j < this.h; ++j) {
             for (i = 0; i < this.w/2; ++i) {
                 for (n = 0; n < this.n; ++n) {
@@ -358,7 +357,11 @@ public class YoloLayer extends Layer {
         }
     }
 
-    public int getYoloDetections(int w, int h, int netw, int neth, float thresh, IntBuffer map, int relative, Detection[] dets) {
+    public int getYoloDetections(int w, int h, int netw, int neth, float thresh, IntBuffer map, int relative, DetectionBuffer dets) {
+
+        if(dets.size() < 1) {
+            return 0;
+        }
 
         int i,j,n;
         FloatBuffer predictions = this.output;
@@ -378,13 +381,14 @@ public class YoloLayer extends Layer {
                     continue;
                 }
                 int Box_index  = entryIndex(0, n*this.w*this.h + i, 0);
-                dets[count].bBox = getYoloBox(predictions, this.biases, this.mask.get(n), Box_index, col, row, this.w, this.h, netw, neth, this.w*this.h);
-                dets[count].objectness = objectness;
-                dets[count].classes = this.classes;
+
+                dets.get(count).bBox = getYoloBox(predictions, this.biases, this.mask.get(n), Box_index, col, row, this.w, this.h, netw, neth, this.w*this.h);
+                dets.get(count).objectness = objectness;
+                dets.get(count).classes = this.classes;
                 for(j = 0; j < this.classes; ++j){
                     int class_index = entryIndex(0, n*this.w*this.h + i, 4 + 1 + j);
                     float prob = objectness*predictions.get(class_index);
-                    dets[count].prob[j] = (prob > thresh) ? prob : 0;
+                    dets.get(count).prob[j] = (prob > thresh) ? prob : 0;
                 }
                 ++count;
             }

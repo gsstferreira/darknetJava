@@ -1,8 +1,9 @@
 package Classes;
 
+import Classes.Buffers.FloatBuffer;
+import Classes.Buffers.IntBuffer;
 import Enums.ImType;
 import Tools.Blas;
-import Tools.Buffers;
 import Tools.Rand;
 import Tools.Util;
 import org.lwjgl.BufferUtils;
@@ -10,7 +11,7 @@ import org.lwjgl.stb.STBImage;
 import org.lwjgl.stb.STBImageWrite;
 
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
+import java.util.List;
 
 public class Image {
 
@@ -29,7 +30,7 @@ public class Image {
         this.h = height;
         this.c = c;
 
-        this.data = Buffers.newBufferF(width*height*c);
+        this.data = new FloatBuffer(width*height*c);
 
         if(random) {
             for(int i = 0; i < w*h*c; ++i){
@@ -46,9 +47,9 @@ public class Image {
         this.h = height;
         this.c = c;
 
-        this.data = Buffers.newBufferF(width*height*c);
+        this.data = new FloatBuffer(width*height*c);
 
-        for(int i = 0; i < this.data.capacity(); i++) {
+        for(int i = 0; i < this.data.size(); i++) {
                 this.data.put(i,data.get(i));
         }
     }
@@ -231,7 +232,7 @@ public class Image {
 
         Image copy = new Image(w,h,c,false);
 
-        for(int i = 0; i < data.capacity(); i++) {
+        for(int i = 0; i < data.size(); i++) {
             copy.data.put(i,data.get(i));
         }
         return copy;
@@ -391,15 +392,20 @@ public class Image {
                     for(int i = 0; i < width; ++i){
                         int dst_index = i + width*j + width*height*k;
                         int src_index = k + channel*i + channel*width*j;
-                        im.data.put(dst_index,bb.get(src_index)/255.0f);
+
+                        float val = (bb.get(src_index) & 0x000000FF)/255.0f;
+                        im.data.put(dst_index,val);
                     }
                 }
             }
+            bb = null;
+            System.gc();
             return im;
         }
         catch (Exception e) {
             System.out.println(String.format("Cannot load Image '%s'",filename));
             e.printStackTrace();
+            System.exit(-1);
             return null;
         }
     }
@@ -468,7 +474,7 @@ public class Image {
 
         for(int j = 0; j < alphabetNsize; ++j){
             for(int i = 32; i < 127; ++i){
-                String s = String.format("data/labels/%d_%d.png",i,j);
+                String s = String.format("Res/labels/%d_%d.png",i,j);
                 alphabets[j][i] = loadImageColor(s, 0, 0);
             }
         }
@@ -910,16 +916,6 @@ public class Image {
         float d1 = Util.distArray(c1.data, a.data, a.w*a.h*a.c, 100);
         Image c2 = b.crop(-10, shift, b.w, b.h);
         float d2 = Util.distArray(c2.data, a.data, a.w*a.h*a.c, 100);
-
-//        if(d2 < d1 && false){
-//            Image swap = a;
-//            a = b;
-//            b = swap;
-//            shift = -shift;
-//        }
-//        else{
-//            printf("%d\n", shift);
-//        }
 
         Image c = b.crop(delta, shift, a.w, a.h);
         int i;
@@ -1372,11 +1368,11 @@ public class Image {
         constrain();
     }
 
-    public void drawDetections(Detection[] dets, int num, float thresh, String[] names, Image[][] alphabet, int classes) {
+    public void drawDetections(Detection[] dets, int num, float thresh, List<String> names, Image[][] alphabet, int classes) {
 
         int i,j;
 
-        System.out.println("\n\n[");
+        System.out.print("\n[");
 
         for(i = 0; i < num; ++i){
 
@@ -1387,15 +1383,15 @@ public class Image {
                 if (dets[i].prob[j] > thresh){
                     if (_class < 0) {
 
-                        labelString = labelString.concat(names[j]);
+                        labelString = labelString.concat(names.get(j));
                         _class = j;
                     }
                     else {
 
                         labelString = labelString.concat(", ");
-                        labelString = labelString.concat(names[j]);
+                        labelString = labelString.concat(names.get(j));
                     }
-                    System.out.println(String.format("(%s:%.0f)",names[j],dets[i].prob[j]*100));
+                    System.out.println(String.format("(%s:%.0f)",names.get(j),dets[i].prob[j]*100));
                 }
             }
 
@@ -1438,12 +1434,12 @@ public class Image {
 
                 if (alphabet != null) {
                     Image label = getLabel(alphabet, labelString, (int) (h*.03));
-                    drawLabel(top + width, left, label, FloatBuffer.wrap(rgb));
+                    drawLabel(top + width, left, label, new FloatBuffer(rgb));
                 }
                 
                 if (dets[i].mask != null) {
 
-                    Image mask = new Image(14, 14, 1, FloatBuffer.wrap(dets[i].mask));
+                    Image mask = new Image(14, 14, 1, new FloatBuffer(dets[i].mask));
 
                     Image resized_mask = mask.resizeImage((int) b.w*w, (int) b.h*h);
                     Image tmask = resized_mask.thresholdImage(0.5f);

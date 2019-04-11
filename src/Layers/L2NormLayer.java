@@ -1,10 +1,10 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
 import Tools.Blas;
-import Tools.Buffers;
 
 public class L2NormLayer extends Layer {
 
@@ -14,9 +14,9 @@ public class L2NormLayer extends Layer {
         this.batch = batch;
         this.inputs = inputs;
         this.outputs = inputs;
-        this.output = Buffers.newBufferF(inputs*batch);
-        this.scales = Buffers.newBufferF(inputs*batch);
-        this.delta = Buffers.newBufferF(inputs*batch);
+        this.output = new FloatBuffer(inputs*batch);
+        this.scales = new FloatBuffer(inputs*batch);
+        this.delta = new FloatBuffer(inputs*batch);
     }
 
     public void forward(Network net) {

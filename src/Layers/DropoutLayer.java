@@ -1,11 +1,11 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
 import Tools.Buffers;
 import Tools.Rand;
-import org.lwjgl.BufferUtils;
 
 public class DropoutLayer extends Layer {
 
@@ -16,7 +16,7 @@ public class DropoutLayer extends Layer {
         this.inputs = inputs;
         this.outputs = inputs;
         this.batch = batch;
-        this.rand = Buffers.newBufferF(inputs*batch);
+        this.rand = new FloatBuffer(inputs*batch);
         this.scale = 1.0f/(1.0f - probability);        
     }
 

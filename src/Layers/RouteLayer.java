@@ -1,12 +1,14 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
+import Classes.Buffers.IntBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
 import Tools.Blas;
 import Tools.Buffers;
 
-import java.nio.IntBuffer;
+
 
 public class RouteLayer extends Layer {
 
@@ -26,8 +28,8 @@ public class RouteLayer extends Layer {
 
         this.outputs = outputs;
         this.inputs = outputs;
-        this.delta = Buffers.newBufferF(outputs * batch);
-        this.output = Buffers.newBufferF(outputs*batch);
+        this.delta = new FloatBuffer(outputs * batch);
+        this.output = new FloatBuffer(outputs*batch);
     }
 
     public void resize(Network net) {
@@ -72,8 +74,8 @@ public class RouteLayer extends Layer {
 
             for(j = 0; j < this.batch; ++j){
 
-                var fb1 = Buffers.offset(input,j*input_size);
-                var fb2 = Buffers.offset(this.output,offset + j*this.outputs);
+                var fb1 = input.offsetNew(j*input_size);
+                var fb2 = this.output.offsetNew(offset + j*this.outputs);
 
                 Blas.copyCpu(input_size, fb1, 1, fb2, 1);
             }
@@ -93,8 +95,8 @@ public class RouteLayer extends Layer {
 
             for(j = 0; j < this.batch; ++j){
 
-                var fb1 = Buffers.offset(this.delta,offset + j*this.outputs);
-                var fb2 = Buffers.offset(delta, j*input_size);
+                var fb1 = this.delta.offsetNew(offset + j*this.outputs);
+                var fb2 = delta.offsetNew(j*input_size);
 
                 Blas.axpyCpu(input_size, 1, fb1, 1, fb2, 1);
             }

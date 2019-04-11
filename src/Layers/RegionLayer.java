@@ -1,12 +1,13 @@
 package Layers;
 
 import Classes.*;
+import Classes.Buffers.DetectionBuffer;
+import Classes.Buffers.FloatBuffer;
+import Classes.Buffers.IntBuffer;
 import Enums.LayerType;
 import Tools.Buffers;
 import Tools.Util;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 
 public class RegionLayer extends Layer {
 
@@ -24,14 +25,14 @@ public class RegionLayer extends Layer {
         this.outC = this.c;
         this.classes = classes;
         this.coords = coords;
-        this.cost = Buffers.newBufferF(1);
-        this.biases = Buffers.newBufferF(n*2);
-        this.biasUpdates = Buffers.newBufferF(n*2);
+        this.cost = new FloatBuffer(1);
+        this.biases = new FloatBuffer(n*2);
+        this.biasUpdates = new FloatBuffer(n*2);
         this.outputs = h*w*n*(classes + coords + 1);
         this.inputs = this.outputs;
         this.truths = 30*(this.coords + 1);
-        this.delta = Buffers.newBufferF(batch*this.outputs);
-        this.output = Buffers.newBufferF(batch*this.outputs);
+        this.delta = new FloatBuffer(batch*this.outputs);
+        this.output = new FloatBuffer(batch*this.outputs);
         int i;
 
         for(i = 0; i < n*2; ++i){
@@ -171,7 +172,7 @@ public class RegionLayer extends Layer {
                 int onlyclass = 0;
                 for(t = 0; t < 30; ++t){
 
-                    FloatBuffer truthBox = Buffers.offset(net.truth,t*(coords + 1) + b*this.truths);
+                    FloatBuffer truthBox = net.truth.offsetNew(t*(coords + 1) + b*this.truths);
                     Box truth = Box.floatToBox(truthBox, 1);
 
                     if(truth.x == 0) {
@@ -189,8 +190,8 @@ public class RegionLayer extends Layer {
 
                             delta.put(obj_index,noobjectScale * ( - this.output.get(obj_index)));
 
-                            FloatBuffer fb = Buffers.offset(this.output,class_index);
-                            float p = scale*  softmaxTree.getHierarchyprobability(fb, clas, this.w*this.h);
+                            FloatBuffer fb = this.output.offsetNew(class_index);
+                            float p = scale * softmaxTree.getHierarchyprobability(fb, clas, this.w*this.h);
 
                             if(p > maxp){
                                 maxp = p;
@@ -201,7 +202,7 @@ public class RegionLayer extends Layer {
                         int class_index = entryIndex(b, maxi, coords + 1);
                         int obj_index = entryIndex(b, maxi, coords);
 
-                        FloatBuffer fbb = FloatBuffer.allocate(1);
+                        FloatBuffer fbb = new FloatBuffer(1);
                         fbb.put(0,avg_cat);
 
                         deltaRegionClass(output,delta, class_index, clas,classes,softmaxTree,classScale, w*h, fbb, (softmax == 0) ? 1 : 0);
@@ -236,7 +237,7 @@ public class RegionLayer extends Layer {
 
                         for(t = 0; t < 30; ++t){
 
-                            FloatBuffer truthBox = Buffers.offset(net.truth,t*(coords + 1) + b*this.truths);
+                            FloatBuffer truthBox = net.truth.offsetNew(t*(coords + 1) + b*this.truths);
                             Box truth = Box.floatToBox(truthBox, 1);
 
                             if(truth.x != 0) {
@@ -276,7 +277,7 @@ public class RegionLayer extends Layer {
             }
             for(t = 0; t < 30; ++t){
 
-                FloatBuffer truthBox = Buffers.offset(net.truth,t*(coords + 1) + b*this.truths);
+                FloatBuffer truthBox = net.truth.offsetNew(t*(coords + 1) + b*this.truths);
                 Box truth = Box.floatToBox(truthBox, 1);
 
                 if(truth.x == 0) {
@@ -313,7 +314,7 @@ public class RegionLayer extends Layer {
                 if(this.coords > 4){
                     int mask_index = entryIndex(b, best_n*this.w*this.h + j*this.w + i, 4);
 
-                    FloatBuffer truthMask = Buffers.offset(net.truth,t*(coords + 1) + b*this.truths + 5);
+                    FloatBuffer truthMask = net.truth.offsetNew(t*(coords + 1) + b*this.truths + 5);
                     deltaRegionMask(truthMask, this.output, this.coords - 4, mask_index, this.delta, this.w*this.h, (int) this.maskScale);
                 }
                 if(iou > .5f) recall += 1;
@@ -342,7 +343,7 @@ public class RegionLayer extends Layer {
 
                 int class_index = entryIndex(b, best_n*this.w*this.h + j*this.w + i, this.coords + 1);
 
-                FloatBuffer fbb = FloatBuffer.allocate(1);
+                FloatBuffer fbb = new FloatBuffer(1);
                 fbb.put(0,avg_cat);
 
                 deltaRegionClass(output, delta, class_index, clas, classes, softmaxTree, classScale, w*h, fbb, (softmax == 0) ? 1 : 0);
@@ -363,7 +364,7 @@ public class RegionLayer extends Layer {
 
     }
 
-    public void correctRegionBoxes(Detection[] dets, int n, int w, int h, int netw, int neth, int relative) {
+    public void correctRegionBoxes(DetectionBuffer dets, int n, int w, int h, int netw, int neth, int relative) {
 
         int i;
         int new_w;
@@ -379,7 +380,7 @@ public class RegionLayer extends Layer {
         }
 
         for (i = 0; i < n; ++i){
-            Box b = dets[i].bBox;
+            Box b = dets.get(i).bBox;
             b.x =  (b.x - (netw - new_w)/2.0f/netw) / ((float)new_w/netw);
             b.y =  (b.y - (neth - new_h)/2.0f/neth) / ((float)new_h/neth);
             b.w *= (float)netw/new_w;
@@ -391,16 +392,16 @@ public class RegionLayer extends Layer {
                 b.y *= h;
                 b.h *= h;
             }
-            dets[i].bBox = b;
+            dets.get(i).bBox = b;
         }
     }
 
-    public void getRegionDetections(int w, int h, int netw, int neth, float thresh, IntBuffer map, float tree_thresh, int relative, Detection[] dets) {
+    public void getRegionDetections(int w, int h, int netw, int neth, float thresh, IntBuffer map, float tree_thresh, int relative, DetectionBuffer dets) {
 
         int i,j,n,z;
         FloatBuffer predictions = this.output;
         if (this.batch == 2) {
-            FloatBuffer flip = Buffers.offset(this.output,this.outputs);
+            FloatBuffer flip = this.output.offsetNew(this.outputs);
 
             for (j = 0; j < this.h; ++j) {
                 for (i = 0; i < this.w/2; ++i) {
@@ -434,7 +435,7 @@ public class RegionLayer extends Layer {
             for(n = 0; n < this.n; ++n){
                 int index = n*this.w*this.h + i;
                 for(j = 0; j < this.classes; ++j){
-                    dets[index].prob[j] = 0;
+                    dets.get(index).prob[j] = 0;
                 }
 
                 int obj_index  = entryIndex(0, n*this.w*this.h + i, this.coords);
@@ -442,40 +443,40 @@ public class RegionLayer extends Layer {
                 int mask_index = entryIndex(0, n*this.w*this.h + i, 4);
 
                 float scale = (this.background != 0) ? 1 : predictions.get(obj_index);
-                dets[index].bBox = getRegionBox(predictions, this.biases, n, Box_index, col, row, this.w, this.h, this.w*this.h);
-                dets[index].objectness = scale > thresh ? scale : 0;
+                dets.get(index).bBox = getRegionBox(predictions, this.biases, n, Box_index, col, row, this.w, this.h, this.w*this.h);
+                dets.get(index).objectness = scale > thresh ? scale : 0;
 
-                if(dets[index].mask != null){
+                if(dets.get(index).mask != null){
                     for(j = 0; j < this.coords - 4; ++j){
-                        dets[index].mask[j] = this.output.get(mask_index + j*this.w*this.h);
+                        dets.get(index).mask[j] = this.output.get(mask_index + j*this.w*this.h);
                     }
                 }
 
                 int class_index = entryIndex(0, n*this.w*this.h + i, this.coords + ((this.background == 0) ? 1 : 0));
                 if(this.softmaxTree != null){
 
-                    FloatBuffer fb = Buffers.offset(predictions,class_index);
+                    FloatBuffer fb = predictions.offsetNew(class_index);
                     softmaxTree.hierarchyPredictions(fb, this.classes, false, this.w*this.h);
 
                     if(map != null){
                         for(j = 0; j < 200; ++j){
                             int class_index2 = entryIndex(0, n*this.w*this.h + i, this.coords + 1 + map.get(j));
                             float prob = scale*predictions.get(class_index2);
-                            dets[index].prob[j] = (prob > thresh) ? prob : 0;
+                            dets.get(index).prob[j] = (prob > thresh) ? prob : 0;
                         }
                     }
                     else {
                         int j1 =  softmaxTree.hierarchyTopPredictions(fb,tree_thresh, this.w*this.h);
-                        dets[index].prob[j1] = (scale > thresh) ? scale : 0;
+                        dets.get(index).prob[j1] = (scale > thresh) ? scale : 0;
                     }
                 }
                 else {
-                    if(dets[index].objectness != 0){
+                    if(dets.get(index).objectness != 0){
                         for(j = 0; j < this.classes; ++j){
 
                             int class_index3 = entryIndex(0, n*this.w*this.h + i, this.coords + 1 + j);
                             float prob = scale*predictions.get(class_index3);
-                            dets[index].prob[j] = (prob > thresh) ? prob : 0;
+                            dets.get(index).prob[j] = (prob > thresh) ? prob : 0;
                         }
                     }
                 }

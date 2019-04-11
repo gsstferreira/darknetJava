@@ -1,12 +1,14 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
+import Classes.Buffers.IntBuffer;
 import Classes.Image;
 import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
 import Tools.Buffers;
 import Tools.Rand;
-import org.lwjgl.BufferUtils;
+
 
 public class MaxpoolLayer extends Layer {
 
@@ -42,9 +44,9 @@ public class MaxpoolLayer extends Layer {
         this.size = size;
         this.stride = stride;
         int output_size = outH * outW * outC * batch;
-        indexes = Buffers.newBufferI(output_size);
-        output = Buffers.newBufferF(output_size);
-        delta =  Buffers.newBufferF(output_size);
+        indexes = new IntBuffer(output_size);
+        output = new FloatBuffer(output_size);
+        delta =  new FloatBuffer(output_size);
     }
 
     public void resize(int width, int height) {

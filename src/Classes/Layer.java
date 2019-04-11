@@ -1,11 +1,14 @@
 package Classes;
 
+import Classes.Buffers.FloatBuffer;
+import Classes.Buffers.IntBuffer;
 import Enums.Activation;
 import Enums.CostType;
 import Enums.LayerType;
+import Layers.*;
 
-import java.lang.reflect.Type;
-import java.nio.*;
+import java.nio.ByteBuffer;
+
 
 public class Layer {
 
@@ -102,7 +105,7 @@ public class Layer {
     public float probability;
     public float scale;
 
-    public CharBuffer cweights;
+    public ByteBuffer cweights;
     public IntBuffer indexes;
     public IntBuffer inputLayers;
     public IntBuffer inputSizes;
@@ -224,10 +227,95 @@ public class Layer {
 
     public Tree softmaxTree;
 
-    public int workspaceSize;
-
-    public Layer asLayer() {
-
-        return (Layer) this;
+    public long workspaceSize;
+    
+    public void forwardLayer(Network net) {
+        
+        switch (this.type) {
+            case CONVOLUTIONAL:
+                ((ConvolutionalLayer)this).forward(net);
+                break;
+            case DECONVOLUTIONAL:
+                ((DeconvolutionalLayer)this).forward(net);
+                break;
+            case LOCAL:
+                ((LocalLayer)this).forward(net);
+                break;
+            case ACTIVE:
+                ((ActivationLayer)this).forward(net);
+                break;
+            case LOGXENT:
+                ((LogisticLayer)this).forward(net);
+                break;
+            case L2NORM:
+                ((L2NormLayer)this).forward(net);
+                break;
+            case RNN:
+                ((RnnLayer)this).forward(net);
+                break;
+            case GRU:
+                ((GruLayer)this).forward(net);
+                break;
+            case LSTM:
+                ((LstmLayer)this).forward(net);
+                break;
+            case CRNN:
+                ((CrnnLayer)this).forward(net);
+                break;
+            case CONNECTED:
+                ((ConnectedLayer)this).forward(net);
+                break;
+            case CROP:
+                ((CropLayer)this).forward(net);
+                break;
+            case COST:
+                ((CostLayer)this).forward(net);
+                break;
+            case REGION:
+                ((RegionLayer)this).forward(net);
+                break;
+            case YOLO:
+                ((YoloLayer)this).forward(net);
+                break;
+            case ISEG:
+                ((IsegLayer)this).forward(net);
+                break;
+            case DETECTION:
+                ((DetectionLayer)this).forward(net);
+                break;
+            case SOFTMAX:
+                ((SoftmaxLayer)this).forward(net);
+                break;
+            case NORMALIZATION:
+                ((NormalizationLayer)this).forward(net);
+                break;
+            case BATCHNORM:
+                ((BatchnormLayer)this).forward(net);
+                break;
+            case MAXPOOL:
+                ((MaxpoolLayer)this).forward(net);
+                break;
+            case REORG:
+                ((ReorgLayer)this).forward(net);
+                break;
+            case AVGPOOL:
+                ((AvgPoolLayer)this).forward(net);
+                break;
+            case ROUTE:
+                ((RouteLayer)this).forward(net);
+                break;
+            case UPSAMPLE:
+                ((UpsampleLayer)this).forward(net);
+                break;
+            case SHORTCUT:
+                ((ShortcutLayer)this).forward(net);
+                break;
+            case DROPOUT:
+                ((DropoutLayer)this).forward(net);
+                break;
+            default:
+                System.out.println(String.format("Layer::forward - Layer type not recognized: '%s'\n", type.name()));
+                break;
+        }
     }
 }

@@ -1,8 +1,9 @@
 package Classes;
 
+import Classes.Buffers.FloatBuffer;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 

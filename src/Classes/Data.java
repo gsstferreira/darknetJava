@@ -32,8 +32,16 @@ public class Data {
             return list;
         }
         catch (Exception e) {
+            e.printStackTrace();
             System.out.println(String.format("Error trying to load file '%s'.",fileName));
             return null;
         }
+    }
+
+    public static List<String> getLabels(String filename) {
+
+        var list = getPaths(filename);
+
+        return list;
     }
 }

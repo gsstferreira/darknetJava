@@ -1,16 +1,38 @@
 package Classes;
 
+import Classes.Buffers.DetectionBuffer;
+import Classes.Buffers.FloatBuffer;
+import Classes.Buffers.IntBuffer;
+import Classes.Buffers.LongBuffer;
 import Enums.LayerType;
 import Enums.LearningRatePolicy;
+import Layers.DetectionLayer;
+import Layers.RegionLayer;
+import Layers.YoloLayer;
+import Tools.Blas;
 import Tools.Buffers;
-
-import java.nio.*;
+import Tools.Parser;
 
 public class Network implements Cloneable {
 
     @Override
     public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+        Network n = (Network) super.clone();
+
+        if(n.workspace != null){n.workspace = Buffers.copyNew(n.workspace,n.workspace.size());}
+        if(n.seen != null){n.seen = Buffers.copyNew(n.seen,n.seen.size());}
+        if(n.t != null){n.t = Buffers.copyNew(n.t,n.t.size());}
+        if(n.output != null){n.output = Buffers.copyNew(n.output,n.output.size());}
+        if(n.cost != null){n.cost = Buffers.copyNew(n.cost,n.cost.size());}
+
+        if(n.scales != null){n.scales = Buffers.copyNew(n.scales,n.scales.size());}
+        if(n.steps != null){n.steps = Buffers.copyNew(n.steps,n.steps.size());}
+
+        if(n.input != null){n.input = Buffers.copyNew(n.input,n.input.size());}
+        if(n.truth != null){n.truth = Buffers.copyNew(n.truth,n.truth.size());}
+        if(n.delta != null){n.delta = Buffers.copyNew(n.delta,n.delta.size());}
+
+        return n;
     }
 
     public Network tryClone() {
@@ -28,7 +50,7 @@ public class Network implements Cloneable {
     public int n;
     public int batch;
 
-    public IntBuffer seen;
+    public LongBuffer seen;
     public IntBuffer t;
     public float epoch;
     public int subdivisions;
@@ -87,22 +109,30 @@ public class Network implements Cloneable {
     public FloatBuffer cost;
     public float clip;
 
-    public FloatBuffer inputGpu;
-    public FloatBuffer truthGpu;
-    public FloatBuffer deltaGpu;
-    public FloatBuffer outputGpu;
-
     public Network(){}
 
     public Network(int n) {
 
         this.n = n;
         this.layers = new Layer[n];
-        this.seen = Buffers.newBufferI(1);
-        this.t    = Buffers.newBufferI(1);
-        this.cost = Buffers.newBufferF(1);
+        this.seen = new LongBuffer(1);
+        this.t    = new IntBuffer(1);
+        this.cost = new FloatBuffer(1);
     }
-    
+
+    public static Network loadNetwork(String cfgFile, String weightsFile, int clear) {
+
+        Network net = Parser.parseNetworkCfg(cfgFile);
+
+        if(weightsFile != null && !weightsFile.equals("")) {
+            Parser.loadWeights(net,weightsFile);
+        }
+
+        if(clear != 0) {
+            net.seen.put(0,0);
+        }
+        return net;
+    }
 
     public LoadArgs getbaseArgs() {
 
@@ -134,6 +164,141 @@ public class Network implements Cloneable {
         return this.layers[i];
     }
 
+    public void setBatchNetwork(int b) {
 
+        this.batch = b;
 
+        for(int i = 0; i < this.n; ++i){
+            this.layers[i].batch = b;
+        }
+    }
+
+    public Detection[] getBoxes(int w, int h, float thresh, float hier, IntBuffer map, int relative, IntBuffer num) {
+
+        Detection[] dets = makeBoxes(thresh, num);
+        fillBoxes(w, h, thresh, hier, map, relative, dets);
+        return dets;
+    }
+
+    FloatBuffer predictImage(Image im) {
+
+        Image imr = im.letterbox(this.w, this.h);
+        this.setBatchNetwork(1);
+        return this.predict(imr.data);
+    }
+
+    public FloatBuffer predict(FloatBuffer input) {
+
+        Network clone = this.tryClone();
+
+        clone.input = input;
+        clone.truth = null;
+        clone.train = 0;
+        clone.delta = null;
+
+        clone.forward();
+
+        return clone.output;
+    }
+
+    public Detection[] makeBoxes(float thresh, IntBuffer num) {
+
+        Layer l = layers[n - 1];
+        int i;
+        int nboxes = numDetections(thresh);
+
+        if(num != null) {
+            num.put(0,nboxes);
+        }
+
+        Detection[] dets = new Detection[nboxes];
+
+        for(i = 0; i < nboxes; ++i){
+
+            dets[i] = new Detection();
+            dets[i].prob = new float[l.classes];
+            if(l.coords > 4){
+                dets[i].mask = new float[l.coords - 4];
+            }
+        }
+        return dets;
+    }
+
+    public void fillBoxes( int w, int h, float thresh, float hier, IntBuffer map, int relative, Detection[] dets) {
+
+        int j;
+
+        DetectionBuffer detBuffer = new DetectionBuffer(dets);
+
+        for(j = 0; j < n; ++j){
+            Layer l = this.layers[j];
+
+            if(l.type == LayerType.YOLO){
+
+                int count = ((YoloLayer)l).getYoloDetections(w, h, this.w, this.h, thresh, map, relative, detBuffer);
+                detBuffer.offset(count);
+            }
+
+            if(l.type == LayerType.REGION){
+
+                ((RegionLayer)l).getRegionDetections( w, h, this.w, this.h, thresh, map, hier, relative, detBuffer);
+                detBuffer.offset(l.w*l.h*l.n);
+            }
+
+            if(l.type == LayerType.DETECTION){
+
+                ((DetectionLayer)l).getDetectionDetections(w, h, thresh, detBuffer);
+                detBuffer.offset(l.w*l.h*l.n);
+            }
+        }
+    }
+
+    public int numDetections(float thresh) {
+
+        int i;
+        int s = 0;
+        for(i = 0; i < n; ++i){
+            Layer l = layers[i];
+            if(l.type == LayerType.YOLO){
+                s += ((YoloLayer)l).numDetections(thresh);
+            }
+            if(l.type == LayerType.DETECTION || l.type == LayerType.REGION){
+                s += l.w*l.h*l.n;
+            }
+        }
+        return s;
+    }
+
+    public void forward() {
+
+        int i;
+        for(i = 0; i < n; ++i){
+            index = i;
+            Layer l = layers[i];
+            if(l.delta != null){
+                Blas.fillCpu(l.outputs * l.batch, 0, l.delta, 1);
+            }
+
+            l.forwardLayer(this);
+            input = l.output;
+            if(l.truth != 0) {
+                truth = l.output;
+            }
+        }
+        calcCost();
+    }
+
+    public void calcCost() {
+
+        int i;
+        float sum = 0;
+        int count = 0;
+        for(i = 0; i < n; ++i){
+            if(layers[i].cost != null){
+                sum += layers[i].cost.get(0);
+                ++count;
+            }
+        }
+        this.cost.put(0,sum/count);
+    }
 }

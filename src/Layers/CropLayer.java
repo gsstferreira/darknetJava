@@ -1,12 +1,12 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Image;
 import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
 import Tools.Buffers;
 import Tools.Rand;
-import org.lwjgl.BufferUtils;
 
 public class CropLayer extends Layer {
 
@@ -36,7 +36,7 @@ public class CropLayer extends Layer {
         this.inputs = this.w * this.h * this.c;
         this.outputs = this.outW * this.outH * this.outC;
 
-        this.output = Buffers.newBufferF(this.outputs*batch);
+        this.output = new FloatBuffer(this.outputs*batch);
     }
 
     public void resize(int width, int height) {

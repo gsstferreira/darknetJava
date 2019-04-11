@@ -1,11 +1,11 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Enums.Activation;
 import Enums.LayerType;
 import Tools.Blas;
-import Tools.Buffers;
 
 public class ActivationLayer extends Layer {
 
@@ -17,8 +17,8 @@ public class ActivationLayer extends Layer {
         this.outputs = inputs;
         this.batch = batch;
 
-        this.output = Buffers.newBufferF(batch*inputs);
-        this.delta = Buffers.newBufferF(batch*inputs);
+        this.output = new FloatBuffer(batch*inputs);
+        this.delta = new FloatBuffer(batch*inputs);
 
         this.activation = activation;
     }

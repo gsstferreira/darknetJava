@@ -1,13 +1,12 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
 import Enums.Activation;
 import Enums.LayerType;
 import Tools.Blas;
-import Tools.Buffers;
-import org.lwjgl.BufferUtils;
 
 public class RnnLayer extends Layer {
 
@@ -15,10 +14,10 @@ public class RnnLayer extends Layer {
 
         int num = l.outputs*l.batch*steps;
 
-        l.output = Buffers.offset(l.output,num);
-        l.delta = Buffers.offset(l.delta,num);
-        l.x = Buffers.offset(l.x,num);
-        l.xNorm = Buffers.offset(l.xNorm,num);
+        l.output.offset(num);
+        l.delta.offset(num);
+        l.x.offset(num);
+        l.xNorm.offset(num);
     }
 
     public RnnLayer(int batch, int inputs, int outputs, int steps, Activation activation, int batch_normalize, int adam) {
@@ -29,8 +28,8 @@ public class RnnLayer extends Layer {
         this.steps = steps;
         this.inputs = inputs;
 
-        this.state = Buffers.newBufferF(batch*outputs);
-        this.prevState = Buffers.newBufferF(batch*outputs);
+        this.state = new FloatBuffer(batch*outputs);
+        this.prevState = new FloatBuffer(batch*outputs);
 
         this.inputLayer = new ConnectedLayer(batch*steps, inputs, outputs, activation, batch_normalize, adam);
         this.inputLayer.batch = batch;
@@ -80,11 +79,12 @@ public class RnnLayer extends Layer {
 
             if(net.train != 0) {
 
-                this.state = Buffers.offset(this.state,outputs*batch);
+                this.state.offset(outputs*batch);
             }
             if(this.shortcut != 0){
                 Blas.copyCpu(this.outputs * this.batch, old_state, 1, this.state, 1);
-            }else{
+            }
+            else{
                 Blas.fillCpu(this.outputs * this.batch, 0, this.state, 1);
             }
             Blas.axpyCpu(this.outputs * this.batch, 1, inputLayer.output, 1, this.state, 1);
@@ -94,7 +94,7 @@ public class RnnLayer extends Layer {
 
             ((ConnectedLayer)outputLayer).forward(s);
 
-            net.input = Buffers.offset(net.input,this.inputs*this.batch);
+            net.input.offset(this.inputs*this.batch);
 
             incrementLayer(inputLayer, 1);
             incrementLayer(selfLayer, 1);
@@ -112,7 +112,7 @@ public class RnnLayer extends Layer {
         incrementLayer(selfLayer, this.steps-1);
         incrementLayer(outputLayer, this.steps-1);
 
-        this.state = Buffers.offset(this.state,outputs*batch*steps);
+        this.state.offset(outputs*batch*steps);
 
         for (i = this.steps-1; i >= 0; --i) {
             Blas.copyCpu(this.outputs * this.batch, inputLayer.output, 1, this.state, 1);
@@ -123,11 +123,11 @@ public class RnnLayer extends Layer {
 
             ((ConnectedLayer)outputLayer).backward(s);
 
-            this.state = Buffers.offset(this.state,- outputs*batch);
+            this.state.offset(-outputs*batch);
 
             s.input = this.state;
 
-            s.delta = Buffers.offset(selfLayer.delta, - outputs*batch);
+            s.delta = selfLayer.delta.offsetNew(-outputs*batch);
 
             if (i == 0) {
                 s.delta = null;
@@ -138,16 +138,15 @@ public class RnnLayer extends Layer {
             Blas.copyCpu(this.outputs*this.batch, selfLayer.delta, 1, inputLayer.delta, 1);
             if (i > 0 && this.shortcut != 0) {
 
-                var fb = Buffers.offset(selfLayer.delta, - outputs*batch);
-
+                var fb = selfLayer.delta.offsetNew(-outputs*batch);
                 Blas.axpyCpu(this.outputs*this.batch, 1, selfLayer.delta, 1, fb, 1);
             }
 
-            s.input = Buffers.offset(net.input,inputs*batch);
+            s.input = net.input.offsetNew(inputs*batch);
 
             if(net.delta != null) {
 
-                s.delta = Buffers.offset(net.delta,inputs*batch);
+                s.delta = net.delta.offsetNew(inputs*batch);
             }
             else {
                 s.delta = null;

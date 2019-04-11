@@ -1,15 +1,12 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
 import Enums.Activation;
 import Enums.LayerType;
 import Tools.Blas;
-import Tools.Buffers;
-import org.lwjgl.BufferUtils;
-
-import java.nio.FloatBuffer;
 
 public class LstmLayer extends Layer {
 
@@ -17,10 +14,10 @@ public class LstmLayer extends Layer {
 
         int num = l.outputs*l.batch*steps;
 
-        l.output = Buffers.offset(l.output,num);
-        l.delta = Buffers.offset(l.delta,num);
-        l.x = Buffers.offset(l.x,num);;
-        l.xNorm = Buffers.offset(l.xNorm,num);
+        l.output.offset(num);
+        l.delta.offset(num);
+        l.x.offset(num);
+        l.xNorm.offset(num);
     }
 
     public LstmLayer(int batch, int inputs, int outputs, int steps, int batch_normalize, int adam) {
@@ -59,24 +56,24 @@ public class LstmLayer extends Layer {
         this.batchNormalize = batch_normalize;
         this.outputs = outputs;
 
-        this.output = Buffers.newBufferF(outputs*batch*steps);
-        this.state = Buffers.newBufferF(outputs*batch);
+        this.output = new FloatBuffer(outputs*batch*steps);
+        this.state = new FloatBuffer(outputs*batch);
         
-        this.prevStateCpu = Buffers.newBufferF(batch*outputs);
-        this.prevCellCpu = Buffers.newBufferF(batch*outputs);
-        this.cellCpu = Buffers.newBufferF(batch*outputs*steps);
+        this.prevStateCpu = new FloatBuffer(batch*outputs);
+        this.prevCellCpu = new FloatBuffer(batch*outputs);
+        this.cellCpu = new FloatBuffer(batch*outputs*steps);
 
-        this.fCpu = Buffers.newBufferF(batch*outputs);
-        this.iCpu = Buffers.newBufferF(batch*outputs);
-        this.gCpu = Buffers.newBufferF(batch*outputs);
-        this.oCpu = Buffers.newBufferF(batch*outputs);
-        this.cCpu = Buffers.newBufferF(batch*outputs);
-        this.hCpu = Buffers.newBufferF(batch*outputs);
-        this.tempCpu = Buffers.newBufferF(batch*outputs);
-        this.temp2Cpu = Buffers.newBufferF(batch*outputs);
-        this.temp3Cpu = Buffers.newBufferF(batch*outputs);
-        this.dcCpu = Buffers.newBufferF(batch*outputs);
-        this.dhCpu = Buffers.newBufferF(batch*outputs);
+        this.fCpu = new FloatBuffer(batch*outputs);
+        this.iCpu = new FloatBuffer(batch*outputs);
+        this.gCpu = new FloatBuffer(batch*outputs);
+        this.oCpu = new FloatBuffer(batch*outputs);
+        this.cCpu = new FloatBuffer(batch*outputs);
+        this.hCpu = new FloatBuffer(batch*outputs);
+        this.tempCpu = new FloatBuffer(batch*outputs);
+        this.temp2Cpu = new FloatBuffer(batch*outputs);
+        this.temp3Cpu = new FloatBuffer(batch*outputs);
+        this.dcCpu = new FloatBuffer(batch*outputs);
+        this.dhCpu = new FloatBuffer(batch*outputs);
     }
 
     public void update(UpdateArgs a) {
@@ -155,9 +152,9 @@ public class LstmLayer extends Layer {
             Blas.copyCpu(outputs*batch, cCpu, 1, cellCpu, 1);
             Blas.copyCpu(outputs*batch, hCpu, 1, output, 1);
 
-            state.input = Buffers.offset(state.input,inputs*batch);
-            output = Buffers.offset(output,outputs*batch);
-            cellCpu = Buffers.offset(cellCpu,outputs*batch);
+            state.input.offset(inputs*batch);
+            output.offset(outputs*batch);
+            cellCpu.offset(outputs*batch);
 
             incrementLayer(wf, 1);
             incrementLayer(wi, 1);
@@ -187,21 +184,21 @@ public class LstmLayer extends Layer {
         incrementLayer(ug, steps - 1);
         incrementLayer(uo, steps - 1);
 
-        state.input = Buffers.offset(state.input,inputs*batch*(steps - 1));
+        state.input.offset(inputs*batch*(steps - 1));
 
         if (state.delta != null) {
 
-            state.delta = Buffers.offset(state.delta,inputs*batch*(steps - 1));
+            state.delta.offset(inputs*batch*(steps - 1));
         }
 
-        output = Buffers.offset(output,outputs*batch*(steps - 1));
-        cellCpu = Buffers.offset(cellCpu,outputs*batch*(steps - 1));
-        delta = Buffers.offset(delta,outputs*batch*(steps - 1));
+        output.offset(outputs*batch*(steps - 1));
+        cellCpu.offset(outputs*batch*(steps - 1));
+        delta.offset(outputs*batch*(steps - 1));
         
         for (i = steps - 1; i >= 0; --i) {
 
-            FloatBuffer fba = Buffers.offset(cellCpu, -outputs*batch);
-            FloatBuffer fbb = Buffers.offset(output, -outputs*batch);
+            FloatBuffer fba = cellCpu.offsetNew(-outputs*batch);
+            FloatBuffer fbb = output.offsetNew(-outputs*batch);
             
             if (i != 0) {
                 Blas.copyCpu(outputs*batch, fba, 1, prevCellCpu, 1);
@@ -213,7 +210,7 @@ public class LstmLayer extends Layer {
             }
             Blas.copyCpu(outputs*batch, output, 1, hCpu, 1);
 
-            dhCpu = (i == 0) ? null : Buffers.offset(delta, - outputs*batch);
+            dhCpu = (i == 0) ? null : delta.offsetNew(-outputs*batch);
 
             Blas.copyCpu(outputs*batch, wf.output, 1, fCpu, 1);
             Blas.axpyCpu(outputs*batch, 1, uf.output, 1, fCpu, 1);
@@ -308,16 +305,16 @@ public class LstmLayer extends Layer {
             Blas.mulCpu(outputs*batch, fCpu, 1, tempCpu, 1);
             Blas.copyCpu(outputs*batch, tempCpu, 1, dcCpu, 1);
 
-            state.input = Buffers.offset(state.input,-inputs*batch);
+            state.input.offset(-inputs*batch);
 
             if (state.delta != null) {
 
-                state.delta = Buffers.offset(state.delta,-inputs*batch);
+                state.delta.offset(-inputs*batch);
             }
 
-            output = Buffers.offset(output,-outputs*batch);
-            cellCpu = Buffers.offset(cellCpu,-outputs*batch);
-            delta = Buffers.offset(delta,-outputs*batch);
+            output.offset(-outputs*batch);
+            cellCpu.offset(-outputs*batch);
+            delta.offset(-outputs*batch);
 
             incrementLayer(wf, -1);
             incrementLayer(wi, -1);

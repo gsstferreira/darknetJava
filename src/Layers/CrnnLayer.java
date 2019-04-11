@@ -1,15 +1,12 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
 import Enums.Activation;
 import Enums.LayerType;
 import Tools.Blas;
-import Tools.Buffers;
-import org.lwjgl.BufferUtils;
-
-import java.nio.FloatBuffer;
 
 public class CrnnLayer extends Layer {
 
@@ -17,10 +14,10 @@ public class CrnnLayer extends Layer {
 
         int num = l.outputs*l.batch*steps;
 
-        l.output = Buffers.offset(l.output,num);
-        l.delta = Buffers.offset(l.delta,num);
-        l.x = Buffers.offset(l.x,num);
-        l.xNorm = Buffers.offset(l.xNorm,num);
+        l.output.offset(num);
+        l.delta.offset(num);
+        l.x.offset(num);
+        l.xNorm.offset(num);
     }
 
     public CrnnLayer(int batch, int h, int w, int c, int hidden_filters, int output_filters, int steps, Activation activation, int batch_normalize) {
@@ -40,7 +37,7 @@ public class CrnnLayer extends Layer {
         this.hidden = h * w * hidden_filters;
         this.outputs = this.outH * this.outW * this.outC;
 
-        this.state = Buffers.newBufferF(this.hidden*batch*(steps + 1));
+        this.state = new FloatBuffer(this.hidden*batch*(steps + 1));
 
         this.inputLayer = new ConvolutionalLayer(batch*steps, h, w, c, hidden_filters, 1, 3, 1, 1,  activation, batch_normalize, 0, 0, 0);
         this.inputLayer.batch = batch;
@@ -93,7 +90,7 @@ public class CrnnLayer extends Layer {
                 FloatBuffer old_state = state;
 
                 if(net.train != 0) {
-                    state = Buffers.offset(state,hidden*batch);
+                    state.offset(hidden*batch);
                 }
                 if(shortcut != 0){
                     Blas.copyCpu(hidden * batch, old_state, 1, state, 1);
@@ -108,7 +105,7 @@ public class CrnnLayer extends Layer {
                 s.input = state;
                 ((ConvolutionalLayer)output_Layer).forward(s);
 
-                net.input = Buffers.offset(net.input,inputs*batch);
+                net.input.offset(inputs*batch);
 
                 incrementLayer(input_Layer, 1);
                 incrementLayer(self_Layer, 1);
@@ -134,7 +131,7 @@ public class CrnnLayer extends Layer {
             incrementLayer(self_Layer, steps-1);
             incrementLayer(output_Layer, steps-1);
 
-            state = Buffers.offset(state,hidden*batch*steps);
+            state.offset(hidden*batch*steps);
 
             for (i = steps - 1; i >= 0; --i) {
 
@@ -146,10 +143,10 @@ public class CrnnLayer extends Layer {
 
                 ((ConvolutionalLayer)output_Layer).backward(s);
 
-                state = Buffers.offset(state,-hidden*batch);
+                state.offset(-hidden*batch);
 
                 s.input = state;
-                delta = Buffers.offset(self_Layer.delta,-hidden*batch);
+                delta = self_Layer.delta.offsetNew(-hidden*batch);
 
                 if (i == 0) {
                     s.delta = null;
@@ -161,15 +158,15 @@ public class CrnnLayer extends Layer {
 
                 if (i > 0 && shortcut != 0) {
 
-                    FloatBuffer fb = Buffers.offset(self_Layer.delta,-hidden*batch);
+                    FloatBuffer fb = self_Layer.delta.offsetNew(-hidden*batch);
                     Blas.axpyCpu(hidden*batch, 1, self_Layer.delta, 1, fb, 1);
                 }
 
-                s.input = Buffers.offset(net.input,i*inputs*batch);
+                s.input = net.input.offsetNew(i*inputs*batch);
 
                 if(net.delta != null) {
 
-                    s.delta = Buffers.offset(net.delta,i*inputs*batch);
+                    s.delta = net.delta.offsetNew(i*inputs*batch);
                 }
                 else {
                     s.delta = null;

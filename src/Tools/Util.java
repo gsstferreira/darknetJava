@@ -1,19 +1,17 @@
 package Tools;
 
+import Classes.Buffers.FloatBuffer;
+import Classes.Buffers.IntBuffer;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public abstract class Util {
 
     public static final int SECRET_NUMBER = -1234;
-    private static final Date date = new Date();
-    private static long clockVal = date.getTime();
 
     public static void topK(FloatBuffer a, int n, int k, IntBuffer index) {
 
@@ -69,15 +67,16 @@ public abstract class Util {
             }
             reader.close();
 
-            IntBuffer ib = IntBuffer.allocate(list.size());
+            IntBuffer ib = new IntBuffer(list.size());
 
-            for(int i = 0; i < ib.capacity(); i++) {
+            for(int i = 0; i < ib.size(); i++) {
                 ib.put(i,list.get(i));
             }
 
             return ib;
         }
         catch (Exception e) {
+            e.printStackTrace();
             System.out.println(String.format("Error trying to load file '%s'.",fileName));
             return null;
         }
@@ -182,7 +181,7 @@ public abstract class Util {
 
     public static void meanArrays(float[][] a, int n, int els, float[] avg) {
 
-        FloatBuffer f = FloatBuffer.wrap(avg);
+        FloatBuffer f = new FloatBuffer(avg);
         Buffers.setValue(f,0);
 
         for(int j = 0; j < n; j++) {
@@ -377,39 +376,34 @@ public abstract class Util {
                 field[i] = Float.NaN;
             }
         }
-        return FloatBuffer.wrap(field);
+        return new FloatBuffer(field);
     }
 
-    public static String toByteArray(int val) {
+    public static byte[] toByteArray(int val) {
 
         ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         byteBuffer.putInt(val);
 
-        return new String(byteBuffer.array());
+        return Buffers.reverse(byteBuffer).array();
     }
 
-    public static String toByteArray(float val) {
+    public static byte[] toByteArray(float val) {
 
         ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         byteBuffer.putFloat(val);
 
-        return new String(byteBuffer.array());
+        return Buffers.reverse(byteBuffer).array();
     }
 
-    public static float toFloat(byte[] bytes) {
+    public static float byteToFloat(byte[] bytes) {
 
-        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        ByteBuffer byteBuffer = Buffers.reverse(ByteBuffer.wrap(bytes));
         return byteBuffer.getFloat(0);
     }
 
-    public static float toInt(byte[] bytes) {
+    public static int byteToInt(byte[] bytes) {
 
-        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        ByteBuffer byteBuffer = Buffers.reverse(ByteBuffer.wrap(bytes));
         return byteBuffer.getInt(0);
     }
-
-    public static long getTime() {
-         return date.getTime();
-    }
-
 }

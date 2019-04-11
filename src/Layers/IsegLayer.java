@@ -1,14 +1,15 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
+import Classes.Buffers.IntBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
 import Tools.Blas;
 import Tools.Buffers;
 import Tools.Util;
-import org.lwjgl.BufferUtils;
 
-import java.nio.FloatBuffer;
+
 
 public class IsegLayer extends Layer {
 
@@ -25,14 +26,14 @@ public class IsegLayer extends Layer {
         this.classes = classes;
         this.batch = batch;
         this.extra = ids;
-        this.cost = Buffers.newBufferF(1);
+        this.cost = new FloatBuffer(1);
         this.outputs = h*w*this.c;
         this.inputs = this.outputs;
         this.truths = 90*(this.w*this.h+1);
-        this.delta = Buffers.newBufferF(batch*this.outputs);
-        this.output = Buffers.newBufferF(batch*this.outputs);
+        this.delta = new FloatBuffer(batch*this.outputs);
+        this.output = new FloatBuffer(batch*this.outputs);
 
-        this.counts = Buffers.newBufferI(90);
+        this.counts = new IntBuffer(90);
         this.sums = new float[90][];
         if(ids != 0){
             int i;
@@ -56,7 +57,7 @@ public class IsegLayer extends Layer {
 
     public void forward(Network net) {
 
-        long time = Util.getTime();
+        long time = System.currentTimeMillis();
 
         int i,b,j,k;
         int ids = this.extra;
@@ -86,7 +87,7 @@ public class IsegLayer extends Layer {
 
             for(i = 0; i < 90; ++i){
 
-                Blas.fillCpu(ids, 0, FloatBuffer.wrap(this.sums[i]), 1);
+                Blas.fillCpu(ids, 0, new FloatBuffer(this.sums[i]), 1);
                 int c = (int) net.truth.get(b*this.truths + i*(this.w*this.h+1));
 
                 if(c < 0) {
@@ -100,9 +101,9 @@ public class IsegLayer extends Layer {
                     if(v != 0) {
 
                         delta.put(index,v - output.get(index));
-                        FloatBuffer fb = Buffers.offset(output,b*this.outputs + this.classes*this.w*this.h + k);
+                        FloatBuffer fb = output.offsetNew(b*this.outputs + this.classes*this.w*this.h + k);
 
-                        Blas.axpyCpu(ids, 1, fb, this.w*this.h, FloatBuffer.wrap(this.sums[i]), 1);
+                        Blas.axpyCpu(ids, 1, fb, this.w*this.h, new FloatBuffer(this.sums[i]), 1);
                         counts.put(i,counts.get(i) + 1);
                     }
                 }
@@ -137,7 +138,7 @@ public class IsegLayer extends Layer {
                 if(this.counts.get(i) == 0) {
                     continue;
                 }
-                Blas.scalCpu(ids, 1.f/this.counts.get(i), FloatBuffer.wrap(this.sums[i]), 1);
+                Blas.scalCpu(ids, 1.f/this.counts.get(i), new FloatBuffer(this.sums[i]), 1);
                 if(b == 0 && net.gpuIndex == 0) {
 
                     System.out.print(String.format("%4d, %6.3f, ", this.counts.get(i), mse[i]));
@@ -189,7 +190,7 @@ public class IsegLayer extends Layer {
         }
         this.cost.put(0,(float)Math.pow(Util.magArray(this.delta, this.outputs * this.batch), 2));
 
-        long time2 = Util.getTime();
+        long time2 = System.currentTimeMillis();
         System.out.print(String.format("took %f sec\n",(time2 - time)/1000.0f));
     }
 

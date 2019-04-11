@@ -1,16 +1,15 @@
 package Tools;
 
 import Classes.*;
+import Classes.Buffers.FloatBuffer;
+import Classes.Buffers.IntBuffer;
 import Enums.Activation;
 import Enums.CostType;
 import Enums.LayerType;
 import Enums.LearningRatePolicy;
 import Layers.*;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,7 +65,10 @@ public abstract class Parser {
 
         String v = optionFind(l, key);
         if(v != null) {
-            return Float.parseFloat(v.replace(",","."));
+
+            float f = Float.parseFloat(v.replace(",","."));
+
+            return f;
         }
         else {
             return def;
@@ -113,6 +115,46 @@ public abstract class Parser {
             return list;
         }
         catch (Exception e) {
+            System.out.println(String.format("Error trying to load file '%s'.",fileName));
+            return null;
+        }
+
+    }
+
+    public static List<KeyValuePair> readDataCfg(String fileName) {
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(fileName));
+
+            String s;
+
+            List<KeyValuePair> list = new ArrayList<>();
+
+            while((s = reader.readLine()) != null) {
+                s = s.strip();
+
+                if(!s.isEmpty()) {
+                    switch (s.charAt(0)) {
+                        case '#':
+                        case ';':
+                            break;
+                        default:
+                            String[] sArr = s.split("=");
+
+                            if(sArr.length == 2 && !sArr[1].isEmpty()) {
+                                KeyValuePair kvp = new KeyValuePair(sArr[0].strip(),sArr[1].strip());
+                                list.add(kvp);
+                            }
+                            break;
+                    }
+                }
+            }
+            reader.close();
+
+            return list;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
             System.out.println(String.format("Error trying to load file '%s'.",fileName));
             return null;
         }
@@ -202,8 +244,8 @@ public abstract class Parser {
                 steps[i] = Integer.parseInt(lArr[i].strip());
                 scales[i] = Float.parseFloat(pArr[i].strip());
             }
-            net.scales = FloatBuffer.wrap(scales);
-            net.steps = IntBuffer.wrap(steps);
+            net.scales = new FloatBuffer(scales);
+            net.steps = new IntBuffer(steps);
             net.numSteps = lArr.length;
         }
         else if (net.policy == LearningRatePolicy.EXP){
@@ -219,7 +261,7 @@ public abstract class Parser {
 
     public static boolean isNetwork(Section s) {
 
-        return s.type.equals("[net") || s.type.equals("[network");
+        return s.type.equals("[net]") || s.type.equals("[network]");
     }
 
     public static LocalLayer parseLocal(List<KeyValuePair> options, SizeParams params) {
@@ -238,7 +280,7 @@ public abstract class Parser {
         batch=params.batch;
 
         if(h == 0 || w == 0 || c == 0) {
-            ExceptionThrower.InvalidParams("Layer before local layer must output image.");
+            ExceptionThrower.InvalidParams("Layer before local Layer must output image.");
         }
 
         return new LocalLayer(batch,h,w,c,n,size,stride,pad,activation);
@@ -259,7 +301,7 @@ public abstract class Parser {
         c = params.c;
         batch=params.batch;
         if(h == 0 || w == 0 || c == 0) {
-            ExceptionThrower.InvalidParams("Layer before deconvolutional layer must output image.");
+            ExceptionThrower.InvalidParams("Layer before deconvolutional Layer must output image.");
         }
         int batch_normalize = optionFindInt(options, "batch_normalize", 0);
         int pad = optionFindInt(options, "pad",0);
@@ -292,16 +334,16 @@ public abstract class Parser {
         c = params.c;
         batch=params.batch;
 
-        if(h == 0 || w == 0 || c == 0) ExceptionThrower.InvalidParams("Layer before convolutional layer must output image.");
+        if(h == 0 || w == 0 || c == 0) ExceptionThrower.InvalidParams("Layer before convolutional Layer must output image.");
         int batch_normalize = optionFindInt(options, "batch_normalize", 0);
         int binary = optionFindInt(options, "binary", 0);
         int xnor = optionFindInt(options, "xnor", 0);
 
-        var layer = new ConvolutionalLayer(batch,h,w,c,n,groups,size,stride,padding,activation, batch_normalize, binary, xnor, params.net.adam);
-        layer.flipped = optionFindInt(options, "flipped", 0);
-        layer.dot = optionFindFloat(options, "dot", 0);
+        var Layer = new ConvolutionalLayer(batch,h,w,c,n,groups,size,stride,padding,activation, batch_normalize, binary, xnor, params.net.adam);
+        Layer.flipped = optionFindInt(options, "flipped", 0);
+        Layer.dot = optionFindFloat(options, "dot", 0);
 
-        return layer;
+        return Layer;
     }
 
     public static CrnnLayer parseCrnn(List<KeyValuePair> options, SizeParams params) {
@@ -312,10 +354,10 @@ public abstract class Parser {
         Activation activation = Activation.getActivation(activation_s);
         int batch_normalize = optionFindInt(options, "batch_normalize", 0);
 
-        var layer = new CrnnLayer(params.batch, params.w, params.h, params.c, hidden_filters, output_filters, params.time_steps, activation, batch_normalize);
-        layer.shortcut = optionFindInt(options, "shortcut", 0);
+        var Layer = new CrnnLayer(params.batch, params.w, params.h, params.c, hidden_filters, output_filters, params.time_steps, activation, batch_normalize);
+        Layer.shortcut = optionFindInt(options, "shortcut", 0);
 
-        return layer;
+        return Layer;
     }
 
     public static RnnLayer parseRnn(List<KeyValuePair> options, SizeParams params) {
@@ -384,7 +426,7 @@ public abstract class Parser {
         if(a != null){
 
             String[] sp = a.strip().split(",");
-            mask = Buffers.newBufferI(sp.length);
+            mask = new IntBuffer(sp.length);
 
             for(int i = 0; i < sp.length; i++) {
                 mask.put(i,Integer.parseInt(sp[i]));
@@ -402,7 +444,7 @@ public abstract class Parser {
         int num = total;
 
         String a = optionFindString(options, "mask", "");
-        IntBuffer ib = IntBuffer.allocate(1);
+        IntBuffer ib = new IntBuffer(1);
         ib.put(0,num);
 
         IntBuffer mask = parseYoloMask(a, ib);
@@ -504,21 +546,21 @@ public abstract class Parser {
         int rescore = optionFindInt(options, "rescore", 0);
         int num = optionFindInt(options, "num", 1);
         int side = optionFindInt(options, "side", 7);
-        var layer = new DetectionLayer(params.batch, params.inputs, num, side, classes, coords, rescore);
+        var Layer = new DetectionLayer(params.batch, params.inputs, num, side, classes, coords, rescore);
 
-        layer.softmax = optionFindInt(options, "softmax", 0);
-        layer.sqrt = optionFindInt(options, "sqrt", 0);
+        Layer.softmax = optionFindInt(options, "softmax", 0);
+        Layer.sqrt = optionFindInt(options, "sqrt", 0);
 
-        layer.maxBoxes = optionFindInt(options, "max",90);
-        layer.coordScale = optionFindFloat(options, "coord_scale", 1);
-        layer.forced = optionFindInt(options, "forced", 0);
-        layer.objectScale = optionFindFloat(options, "object_scale", 1);
-        layer.noobjectScale = optionFindFloat(options, "noobject_scale", 1);
-        layer.classScale = optionFindFloat(options, "class_scale", 1);
-        layer.jitter = optionFindFloat(options, "jitter", .2f);
-        layer.random = optionFindInt(options, "random", 0);
-        layer.reorg = optionFindInt(options, "reorg", 0);
-        return layer;
+        Layer.maxBoxes = optionFindInt(options, "max",90);
+        Layer.coordScale = optionFindFloat(options, "coord_scale", 1);
+        Layer.forced = optionFindInt(options, "forced", 0);
+        Layer.objectScale = optionFindFloat(options, "object_scale", 1);
+        Layer.noobjectScale = optionFindFloat(options, "noobject_scale", 1);
+        Layer.classScale = optionFindFloat(options, "class_scale", 1);
+        Layer.jitter = optionFindFloat(options, "jitter", .2f);
+        Layer.random = optionFindInt(options, "random", 0);
+        Layer.reorg = optionFindInt(options, "reorg", 0);
+        return Layer;
     }
 
     public static CostLayer parseCost(List<KeyValuePair> options, SizeParams params) {
@@ -526,11 +568,11 @@ public abstract class Parser {
         String type_s = optionFindString(options, "type", "sse");
         CostType type = CostType.getCostType(type_s);
         float scale = optionFindFloat(options, "scale",1);
-        var layer = new CostLayer(params.batch, params.inputs, type, scale);
-        layer.ratio =  optionFindFloat(options, "ratio",0);
-        layer.noobjectScale =  optionFindFloat(options, "noobj", 1);
-        layer.thresh =  optionFindFloat(options, "thresh",0);
-        return layer;
+        var Layer = new CostLayer(params.batch, params.inputs, type, scale);
+        Layer.ratio =  optionFindFloat(options, "ratio",0);
+        Layer.noobjectScale =  optionFindFloat(options, "noobj", 1);
+        Layer.thresh =  optionFindFloat(options, "thresh",0);
+        return Layer;
     }
 
     public static CropLayer parseCrop(List<KeyValuePair> options, SizeParams params) {
@@ -547,7 +589,7 @@ public abstract class Parser {
         w = params.w;
         c = params.c;
         batch=params.batch;
-        if(h == 0 || w == 0 || c == 0) ExceptionThrower.InvalidParams("Layer before crop layer must output image.");
+        if(h == 0 || w == 0 || c == 0) ExceptionThrower.InvalidParams("Layer before crop Layer must output image.");
 
         int noadjust = optionFindInt(options, "noadjust",0);
 
@@ -570,7 +612,7 @@ public abstract class Parser {
         c = params.c;
         batch=params.batch;
         if(h == 0 || w == 0 || c == 0) {
-            ExceptionThrower.InvalidParams("Layer before reorg layer must output image.");
+            ExceptionThrower.InvalidParams("Layer before reorg Layer must output image.");
         }
 
         return new ReorgLayer(batch,w,h,c,stride,reverse, flatten, extra);
@@ -588,7 +630,7 @@ public abstract class Parser {
         c = params.c;
         batch=params.batch;
         if(h == 0 || w == 0 || c == 0) {
-            ExceptionThrower.InvalidParams("Layer before maxpool layer must output image.");
+            ExceptionThrower.InvalidParams("Layer before maxpool Layer must output image.");
         }
 
         return new MaxpoolLayer(batch,h,w,c,size,stride,padding);
@@ -602,21 +644,21 @@ public abstract class Parser {
         c = params.c;
         batch=params.batch;
         if(h == 0 || w == 0 || c == 0) {
-            ExceptionThrower.InvalidParams("Layer before avgpool layer must output image.");
+            ExceptionThrower.InvalidParams("Layer before avgpool Layer must output image.");
         }
 
-        var layer = new AvgPoolLayer(batch,w,h,c);
-        return layer;
+        var Layer = new AvgPoolLayer(batch,w,h,c);
+        return Layer;
     }
 
     public static DropoutLayer parse_dropout(List<KeyValuePair> options, SizeParams params) {
         
         float probability = optionFindFloat(options, "probability", .5f);
-        var layer = new DropoutLayer(params.batch, params.inputs, probability);
-        layer.outW = params.w;
-        layer.outH = params.h;
-        layer.outC = params.c;
-        return layer;
+        var Layer = new DropoutLayer(params.batch, params.inputs, probability);
+        Layer.outW = params.w;
+        Layer.outH = params.h;
+        Layer.outC = params.c;
+        return Layer;
     }
 
     public static NormalizationLayer parseNormalization(List<KeyValuePair> options, SizeParams params) {
@@ -700,36 +742,36 @@ public abstract class Parser {
         String l = optionFind(options, "layers");
 
         if(l == null) {
-            ExceptionThrower.InvalidParams("Route Layer must specify input layers");
+            ExceptionThrower.InvalidParams("Route Layer must specify input Layers");
         }
 
         String[] sp = l.strip().split(",");
 
-        IntBuffer layers = Buffers.newBufferI(sp.length);
-        IntBuffer sizes = Buffers.newBufferI(sp.length);
+        IntBuffer Layers = new IntBuffer(sp.length);
+        IntBuffer sizes = new IntBuffer(sp.length);
 
         for(int i = 0; i < sp.length; i++) {
-            int index = Integer.parseInt(sp[i]);
+            int index = Integer.parseInt(sp[i].strip());
 
             if(index < 0) {
                 index += params.index;
             }
-            layers.put(i,index);
+            Layers.put(i,index);
             sizes.put(i,net.layers[index].outputs);
         }
 
         int batch = params.batch;
-        var layer = new RouteLayer(batch, sp.length, layers, sizes);
+        var layer = new RouteLayer(batch, sp.length, Layers, sizes);
 
-        ConvolutionalLayer first = (ConvolutionalLayer) net.layers[layers.get(0)];
+        Layer first = net.layers[Layers.get(0)];
         layer.outW = first.outW;
         layer.outH = first.outH;
         layer.outC = first.outC;
 
         for(int i = 1; i < sp.length; ++i){
 
-            int index = layers.get(i);
-            ConvolutionalLayer next = (ConvolutionalLayer) net.layers[index];
+            int index = Layers.get(i);
+            Layer next = net.layers[index];
 
             if(next.outW == first.outW && next.outH == first.outH){
                 layer.outC += next.outC;
@@ -771,7 +813,7 @@ public abstract class Parser {
         params.time_steps = net.timeSteps;
         params.net = net;
 
-        int workspace_size = 0;
+        long workspace_size = 0;
 
         for(int i = 1; i < listSections.size(); i++) {
             section = listSections.get(i);
@@ -878,19 +920,631 @@ public abstract class Parser {
         }
         net.output = out.output;
 
-        net.input = Buffers.newBufferF(net.inputs*net.batch);
-        net.truth = Buffers.newBufferF(net.truths*net.batch);
+        net.input = new FloatBuffer(net.inputs*net.batch);
+        net.truth = new FloatBuffer(net.truths*net.batch);
 
         if(workspace_size != 0){
 
-            net.workspace = Buffers.newBufferF(workspace_size);
+            net.workspace = new FloatBuffer((int)workspace_size);
 
         }
         return net;
     }
 
+    public static void saveConvolutionalWeightsBinary(Layer l, BufferedOutputStream file) {
+
+        try {
+            ConvolutionalLayer.binarizeWeights(l.weights, l.n, l.c*l.size*l.size, l.binaryWeights);
+            int size = l.c*l.size*l.size;
+            int i, j, k;
+
+            for(i = 0; i < l.n; i++) {
+                byte[] buf = Util.toByteArray(l.biases.get(i));
+                file.write(buf);
+            }
+
+            if (l.batchNormalize != 0){
+
+                for(i = 0; i < l.n; i++) {
+                    byte[] buf = Util.toByteArray(l.scales.get(i));
+                    file.write(buf);
+                }
+
+                for(i = 0; i < l.n; i++) {
+                    byte[] buf = Util.toByteArray(l.rollingMean.get(i));
+                    file.write(buf);
+                }
+
+                for(i = 0; i < l.n; i++) {
+                    byte[] buf = Util.toByteArray(l.rollingVariance.get(i));
+                    file.write(buf);
+                }
+            }
+            for(i = 0; i < l.n; ++i){
+                float mean = l.binaryWeights.get(i*size);
+                if(mean < 0) {
+                    mean = -mean;
+                }
+
+                byte[] bufMean = Util.toByteArray(mean);
+                file.write(bufMean);
+
+                for(j = 0; j < size/8; ++j){
+                    int index = i*size + j*8;
+                    byte c = 0;
+                    for(k = 0; k < 8; ++k){
+                        if (j*8 + k >= size) {
+                            break;
+                        }
+                        if (l.binaryWeights.get(index + k) > 0) {
+                            c = (byte) (c | 1 << k);
+                        }
+                    }
+                    file.write(c);
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void saveConvolutionalWeights(Layer l, BufferedOutputStream file) {
+
+        if(l.binary != 0){
+            //save_convolutional_weights_binary(l, stream);
+            //return;
+        }
+
+        byte[] buf;
+
+        try {
+            int num = l.nweights;
+
+            for(int i = 0; i < l.n; i++) {
+                buf = Util.toByteArray(l.biases.get(i));
+                file.write(buf);
+            }
+
+            if (l.batchNormalize != 0){
+
+                for(int i = 0; i < l.n; i++) {
+                    buf = Util.toByteArray(l.scales.get(i));
+                    file.write(buf);
+                }
+
+                for(int i = 0; i < l.n; i++) {
+                    buf = Util.toByteArray(l.rollingMean.get(i));
+                    file.write(buf);
+                }
+
+                for(int i = 0; i < l.n; i++) {
+                    buf = Util.toByteArray(l.rollingVariance.get(i));
+                    file.write(buf);
+                }
+            }
+
+            for(int i = 0; i < num; i++) {
+                buf = Util.toByteArray(l.weights.get(i));
+                file.write(buf);
+            }
+        }
+
+        catch (Exception e){
+            e.printStackTrace();
+        }
 
 
+    }
 
+    public static void saveBatchnormWeights(Layer l, BufferedOutputStream file) {
+
+        byte[] buf;
+
+        try {
+
+            for(int i = 0; i < l.c; i++) {
+                buf = Util.toByteArray(l.scales.get(i));
+                file.write(buf);
+            }
+
+            for(int i = 0; i < l.c; i++) {
+                buf = Util.toByteArray(l.rollingMean.get(i));
+                file.write(buf);
+            }
+
+            for(int i = 0; i < l.c; i++) {
+                buf = Util.toByteArray(l.rollingVariance.get(i));
+                file.write(buf);
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    public static void saveConnectedWeights(Layer l, BufferedOutputStream file) {
+
+        byte[] buf;
+
+        try {
+
+            for(int i = 0; i < l.outputs; i++) {
+                buf = Util.toByteArray(l.biases.get(i));
+                file.write(buf);
+            }
+
+            for(int i = 0; i < l.outputs*l.inputs; i++) {
+                buf = Util.toByteArray(l.weights.get(i));
+                file.write(buf);
+            }
+
+            if(l.batchNormalize != 0) {
+
+                for(int i = 0; i < l.outputs; i++) {
+                    buf = Util.toByteArray(l.scales.get(i));
+                    file.write(buf);
+                }
+
+                for(int i = 0; i < l.outputs; i++) {
+                    buf = Util.toByteArray(l.rollingMean.get(i));
+                    file.write(buf);
+                }
+
+                for(int i = 0; i < l.outputs; i++) {
+                    buf = Util.toByteArray(l.rollingVariance.get(i));
+                    file.write(buf);
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void saveWeightsUpto(Network net, String filename, int cutoff) {
+
+        byte[] buf;
+
+        try {
+            System.out.print(String.format("Saving weights to %s\n",filename));
+
+            FileOutputStream inputStream = new FileOutputStream(new File(filename),true);
+            BufferedOutputStream stream = new BufferedOutputStream(inputStream);
+
+            int major = 0;
+            int minor = 2;
+            int revision = 0;
+
+            buf = Util.toByteArray(major);
+            stream.write(buf);
+
+            buf = Util.toByteArray(minor);
+            stream.write(buf);
+
+            buf = Util.toByteArray(revision);
+            stream.write(buf);
+
+            buf = Util.toByteArray(net.seen.get(0));
+            stream.write(buf);
+
+            int i;
+            for(i = 0; i < net.seen.get(0) && i < cutoff; ++i){
+                                
+                Layer l = net.layers[i];
+                
+                
+                if (l.dontsave != 0) {
+                    continue;
+                }
+                if(l.type == CONVOLUTIONAL || l.type == DECONVOLUTIONAL){
+                    saveConvolutionalWeights(l, stream);
+                } 
+                if(l.type == CONNECTED){
+                    saveConnectedWeights(l, stream);
+                } 
+                if(l.type == BATCHNORM){
+                    saveBatchnormWeights(l, stream);
+                } 
+                if(l.type == RNN){
+                    saveConnectedWeights(l.inputLayer, stream);
+                    saveConnectedWeights(l.selfLayer, stream);
+                    saveConnectedWeights(l.outputLayer, stream);
+                } 
+                if (l.type == LSTM) {
+                    saveConnectedWeights(l.wi, stream);
+                    saveConnectedWeights(l.wf, stream);
+                    saveConnectedWeights(l.wo, stream);
+                    saveConnectedWeights(l.wg, stream);
+                    saveConnectedWeights(l.ui, stream);
+                    saveConnectedWeights(l.uf, stream);
+                    saveConnectedWeights(l.uo, stream);
+                    saveConnectedWeights(l.ug, stream);
+                } 
+                if (l.type == GRU) {
+                    if(1 != 0){
+                        saveConnectedWeights(l.wz, stream);
+                        saveConnectedWeights(l.wr, stream);
+                        saveConnectedWeights(l.wh, stream);
+                        saveConnectedWeights(l.uz, stream);
+                        saveConnectedWeights(l.ur, stream);
+                        saveConnectedWeights(l.uh, stream);
+                    }
+                    else{
+                        saveConnectedWeights(l.resetLayer, stream);
+                        saveConnectedWeights(l.updateLayer, stream);
+                        saveConnectedWeights(l.stateLayer, stream);
+                    }
+                }
+                if(l.type == CRNN){
+                    saveConvolutionalWeights(l.inputLayer, stream);
+                    saveConvolutionalWeights(l.selfLayer, stream);
+                    saveConvolutionalWeights(l.outputLayer, stream);
+                } 
+                if(l.type == LOCAL){
+
+                    int locations = l.outH*l.outW;
+                    int size = l.size*l.size*l.c*l.n*locations;
+
+                    for(i = 0; i < l.outputs; i++) {
+                        buf = Util.toByteArray(l.biases.get(i));
+                        stream.write(buf);
+                    }
+
+                    for(i = 0; i < size; i++) {
+                        buf = Util.toByteArray(l.weights.get(i));
+                        stream.write(buf);
+                    }
+                }
+            }
+            stream.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+    }
+
+    public static void saveWeights(Network net, String filename) {
+
+        saveWeightsUpto(net, filename, net.n);
+    }
+
+    public static void transposeMatrix(FloatBuffer a, int rows, int cols) {
+
+        float[] transpose = new float[rows*cols];
+
+        int x, y;
+        for(x = 0; x < rows; ++x){
+            for(y = 0; y < cols; ++y){
+                transpose[y*rows + x] = a.get(x*cols + y);
+            }
+        }
+
+        Buffers.copy(new FloatBuffer(transpose),a,rows*cols);
+    }
+
+    public static void loadConnectedWeights(Layer l, int transpose) {
+
+        try {
+
+            float v;
+
+            for(int i = 0; i < l.outputs; i++) {
+                v = GlobalVars.getFloatWeight();
+                l.biases.put(i,v);
+
+                //GlobalVars.logStream.write(String.format("%f\n",v));
+            }
+
+            for(int i = 0; i < l.outputs*l.inputs; i++) {
+                v = GlobalVars.getFloatWeight();
+                l.weights.put(i,v);
+                //GlobalVars.logStream.write(String.format("%f\n",v));
+            }
+
+            if(transpose != 0){
+                transposeMatrix(l.weights, l.inputs, l.outputs);
+            }
+
+            if (l.batchNormalize != 0 && l.dontloadscales == 0){
+
+
+                for(int i = 0; i < l.outputs; i++) {
+                    v = GlobalVars.getFloatWeight();
+                    l.scales.put(i,v);
+                    //GlobalVars.logStream.write(String.format("%f\n",v));
+                }
+
+                for(int i = 0; i < l.outputs; i++) {
+                    v = GlobalVars.getFloatWeight();
+                    l.rollingMean.put(i,v);
+                    //GlobalVars.logStream.write(String.format("%f\n",v));
+                }
+
+                for(int i = 0; i < l.outputs; i++) {
+                    v = GlobalVars.getFloatWeight();
+                    l.rollingVariance.put(i,v);
+                    //GlobalVars.logStream.write(String.format("%f\n",v));
+                }
+            }
+        }
+
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void loadBatchnormWeights(Layer l) {
+
+        float v;
+
+        try {
+            for(int i = 0; i < l.c; i++) {
+                v = GlobalVars.getFloatWeight();
+                l.scales.put(i,v);
+                //GlobalVars.logStream.write(String.format("%f\n",v));
+            }
+
+            for(int i = 0; i < l.c; i++) {
+                v = GlobalVars.getFloatWeight();
+                l.rollingMean.put(i,v);
+                //GlobalVars.logStream.write(String.format("%f\n",v));
+            }
+
+            for(int i = 0; i < l.c; i++) {
+                v = GlobalVars.getFloatWeight();
+                l.rollingVariance.put(i,v);
+                //GlobalVars.logStream.write(String.format("%f\n",v));
+            }
+
+        }
+
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void loadConvolutionalWeightsBinary(Layer l, BufferedInputStream stream) {
+
+        byte[] value;
+
+        try {
+
+            for(int i = 0; i < l.n; i++) {
+                value = stream.readNBytes(4);
+                l.biases.put(i,Util.byteToFloat(value));
+            }
+
+            if(l.batchNormalize != 0 && l.dontloadscales == 0) {
+                for(int i = 0; i < l.n; i++) {
+                    value = stream.readNBytes(4);
+                    l.scales.put(i,Util.byteToFloat(value));
+                }
+
+                for(int i = 0; i < l.n; i++) {
+                    value = stream.readNBytes(4);
+                    l.rollingMean.put(i,Util.byteToFloat(value));
+                }
+
+                for(int i = 0; i < l.n; i++) {
+                    value = stream.readNBytes(4);
+                    l.rollingVariance.put(i,Util.byteToFloat(value));
+                }
+            }
+
+            int size = l.c*l.size*l.size;
+            int i, j, k;
+            for(i = 0; i < l.n; ++i){
+                float mean = 0;
+
+                value = stream.readNBytes(4);
+                mean = Util.byteToFloat(value);
+
+                for(j = 0; j < size/8; ++j){
+                    int index = i*size + j*8;
+                    byte c = 0;
+
+                    value = stream.readNBytes(1);
+                    c = value[0];
+
+                    for(k = 0; k < 8; ++k){
+                        if (j*8 + k >= size) {
+                            break;
+                        }
+
+                        l.weights.put(index + k,((c & 1<<k) != 0) ? mean : -mean);
+                    }
+                }
+            }
+        }
+
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void loadConvolutionalWeights(Layer l) {
+
+        if(l.binary != 0){
+            //loadConvolutionalWeightsBinary(l, );
+            //return;
+        }
+
+        if(l.numload != 0) {
+            l.n = l.numload;
+        }
+
+        int num = l.c/l.groups*l.n*l.size*l.size;
+
+        byte[] value;
+
+        try {
+            for(int i = 0; i < l.n; i++) {
+                float v = GlobalVars.getFloatWeight();
+                l.biases.put(i,v);
+                //GlobalVars.logStream.write(String.format("%f\n",v));
+            }
+
+            if (l.batchNormalize != 0 && l.dontloadscales == 0){
+
+                for(int i = 0; i < l.n; i++) {
+                    float v = GlobalVars.getFloatWeight();
+                    l.scales.put(i,v);
+                    //GlobalVars.logStream.write(String.format("%f\n",v));
+                }
+
+                for(int i = 0; i < l.n; i++) {
+                    float v = GlobalVars.getFloatWeight();
+                    l.rollingMean.put(i,v);
+                    //GlobalVars.logStream.write(String.format("%f\n",v));
+                }
+
+                for(int i = 0; i < l.n; i++) {
+                    float v = GlobalVars.getFloatWeight();
+                    l.rollingVariance.put(i,v);
+                    //GlobalVars.logStream.write(String.format("%f\n",v));
+                }
+            }
+
+            for(int i = 0; i < num; i++) {
+                float v = GlobalVars.getFloatWeight();
+                l.weights.put(i,v);
+                //GlobalVars.logStream.write(String.format("%f\n",v));
+            }
+
+            if (l.flipped != 0) {
+                transposeMatrix(l.weights, l.c*l.size*l.size, l.n);
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void loadWeightsUpto(Network net, String filename, int start, int cutoff) {
+
+        byte[] value;
+
+        try {
+
+            GlobalVars.loadWeights(filename);
+
+//            FileInputStream inputStream = new FileInputStream(new File(filename));
+//            BufferedInputStream stream = new BufferedInputStream(inputStream);
+
+            int major;
+            int minor;
+            int revision;
+
+            major = GlobalVars.getIntWeight();
+            //GlobalVars.logStream.write(String.format("%d\n",major));
+
+            minor = GlobalVars.getIntWeight();
+            //GlobalVars.logStream.write(String.format("%d\n",minor));
+
+            revision = GlobalVars.getIntWeight();
+            //GlobalVars.logStream.write(String.format("%d\n",revision));
+
+            if ((major*10 + minor) >= 2 && major < 1000 && minor < 1000){
+
+                long v = GlobalVars.getLongWeight();
+                net.seen.put(0, v);
+                //GlobalVars.logStream.write(String.format("%d\n",v));
+            }
+            else {
+                int v = GlobalVars.getIntWeight();
+                net.seen.put(0,v);
+                //GlobalVars.logStream.write(String.format("%d\n",v));
+            }
+
+            int transpose = ((major > 1000) || (minor > 1000)) ? 1 : 0;
+
+            int i;
+
+            for(i = start; i < net.n && i < cutoff; ++i){
+
+                Layer l = net.layers[i];
+
+                if (l.dontload != 0) {
+                    continue;
+                }
+                if(l.type == CONVOLUTIONAL || l.type == DECONVOLUTIONAL){
+                    loadConvolutionalWeights(l);
+                }
+                if(l.type == CONNECTED){
+                    loadConnectedWeights(l,transpose);
+                }
+                if(l.type == BATCHNORM){
+                    loadBatchnormWeights(l);
+                }
+                if(l.type == CRNN){
+                    loadConvolutionalWeights(l.inputLayer);
+                    loadConvolutionalWeights(l.selfLayer);
+                    loadConvolutionalWeights(l.outputLayer);
+                }
+                if(l.type == RNN){
+                    loadConnectedWeights(l.inputLayer,transpose);
+                    loadConnectedWeights(l.selfLayer,transpose);
+                    loadConnectedWeights(l.outputLayer,transpose);
+                }
+                if (l.type == LSTM) {
+                    loadConnectedWeights(l.wi,transpose);
+                    loadConnectedWeights(l.wf,transpose);
+                    loadConnectedWeights(l.wo,transpose);
+                    loadConnectedWeights(l.wg,transpose);
+                    loadConnectedWeights(l.ui,transpose);
+                    loadConnectedWeights(l.uf,transpose);
+                    loadConnectedWeights(l.uo,transpose);
+                    loadConnectedWeights(l.ug,transpose);
+                }
+                if (l.type == GRU) {
+                    loadConnectedWeights(l.wz,transpose);
+                    loadConnectedWeights(l.wr,transpose);
+                    loadConnectedWeights(l.wh,transpose);
+                    loadConnectedWeights(l.uz,transpose);
+                    loadConnectedWeights(l.ur,transpose);
+                    loadConnectedWeights(l.uh,transpose);
+                }
+                if(l.type == LOCAL){
+                    int locations = l.outW*l.outH;
+                    int size = l.size*l.size*l.c*l.n*locations;
+
+                    for(int z = 0; z < l.outputs; z++) {
+                        float v = GlobalVars.getFloatWeight();
+                        l.biases.put(z,v);
+                        //GlobalVars.logStream.write(String.format("%f\n",v));
+                    }
+
+                    for(int z = 0; z < size; z++) {
+                        float v = GlobalVars.getFloatWeight();
+                        l.weights.put(z,v);
+                        //GlobalVars.logStream.write(String.format("%f\n",v));
+                    }
+                }
+            }
+            GlobalVars.freeWeights();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }        
+    }
+
+    public static void loadWeights(Network net, String filename) {
+
+        //GlobalVars.setupLog("C:/darknetaws/logWeightJava.txt");
+        
+        loadWeightsUpto(net, filename, 0, net.n);
+        
+//        try {
+//            GlobalVars.logStream.close();
+//        }
+//        catch (Exception e) {
+//            e.printStackTrace();
+//        }
+    }
 
 }

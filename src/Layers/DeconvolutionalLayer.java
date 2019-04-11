@@ -1,14 +1,12 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
 import Enums.Activation;
 import Enums.LayerType;
 import Tools.*;
-import org.lwjgl.BufferUtils;
-
-import java.nio.FloatBuffer;
 
 public class DeconvolutionalLayer extends Layer {
 
@@ -51,11 +49,11 @@ public class DeconvolutionalLayer extends Layer {
         this.nweights = c*n*size*size;
         this.nbiases = n;
 
-        this.weights = Buffers.newBufferF(c*n*size*size);
-        this.weightUpdates = Buffers.newBufferF(c*n*size*size);
+        this.weights = new FloatBuffer(c*n*size*size);
+        this.weightUpdates = new FloatBuffer(c*n*size*size);
 
-        this.biases = Buffers.newBufferF(n);
-        this.biasUpdates = Buffers.newBufferF(n);
+        this.biases = new FloatBuffer(n);
+        this.biasUpdates = new FloatBuffer(n);
 
         float scale = 0.02f;
         for(i = 0; i < c*n*size*size; ++i) {
@@ -78,41 +76,41 @@ public class DeconvolutionalLayer extends Layer {
 
         Blas.scalCpu(this.nweights, (float) this.outW * this.outH / (this.w * this.h), this.weights, 1);
 
-        this.output = Buffers.newBufferF(this.batch*this.outputs);
-        this.delta  = Buffers.newBufferF(this.batch*this.outputs);
+        this.output = new FloatBuffer(this.batch*this.outputs);
+        this.delta  = new FloatBuffer(this.batch*this.outputs);
         
         this.batchNormalize = batch_normalize;
 
         if(batch_normalize != 0){
             
-            this.scales = Buffers.newBufferF(n);
-            this.scaleUpdates = Buffers.newBufferF(n);
+            this.scales = new FloatBuffer(n);
+            this.scaleUpdates = new FloatBuffer(n);
             
             for(i = 0; i < n; ++i){
                 
                 this.scales.put(i,1);
             }
 
-            this.mean = Buffers.newBufferF(n);
-            this.variance = Buffers.newBufferF(n);
+            this.mean = new FloatBuffer(n);
+            this.variance = new FloatBuffer(n);
 
-            this.meanDelta = Buffers.newBufferF(n);
-            this.varianceDelta = Buffers.newBufferF(n);
+            this.meanDelta = new FloatBuffer(n);
+            this.varianceDelta = new FloatBuffer(n);
 
-            this.rollingMean = Buffers.newBufferF(n);
-            this.rollingVariance = Buffers.newBufferF(n);
+            this.rollingMean = new FloatBuffer(n);
+            this.rollingVariance = new FloatBuffer(n);
             
-            this.x = Buffers.newBufferF(this.batch*this.outputs);
-            this.xNorm = Buffers.newBufferF(this.batch*this.outputs);
+            this.x = new FloatBuffer(this.batch*this.outputs);
+            this.xNorm = new FloatBuffer(this.batch*this.outputs);
         }
         
         if(adam != 0){
-            this.m = Buffers.newBufferF(c*n*size*size);
-            this.v = Buffers.newBufferF(c*n*size*size);
-            this.biasM = Buffers.newBufferF(n);
-            this.scaleM = Buffers.newBufferF(n);
-            this.biasV = Buffers.newBufferF(n);
-            this.scaleV = Buffers.newBufferF(n);
+            this.m = new FloatBuffer(c*n*size*size);
+            this.v = new FloatBuffer(c*n*size*size);
+            this.biasM = new FloatBuffer(n);
+            this.scaleM = new FloatBuffer(n);
+            this.biasV = new FloatBuffer(n);
+            this.scaleV = new FloatBuffer(n);
         }
         
         this.activation = activation;
@@ -172,12 +170,12 @@ public class DeconvolutionalLayer extends Layer {
 
         for(i = 0; i < this.batch; ++i){
             FloatBuffer a = this.weights;
-            FloatBuffer b = Buffers.offset(net.input,i*this.c*this.h*this.w);
+            FloatBuffer b = net.input.offsetNew(i*this.c*this.h*this.w);
             FloatBuffer c = net.workspace;
 
             Gemm.gemmCpu(1,0,m,n,k,1,a,m,b,n,0,c,n);
 
-            FloatBuffer fb = Buffers.offset(this.output,i*this.outputs);
+            FloatBuffer fb = this.output.offsetNew(i*this.outputs);
             ImCol.col2ImCpu(net.workspace, this.outC, this.outH, this.outW, this.size, this.stride, this.pad, fb);
         }
 
@@ -212,11 +210,11 @@ public class DeconvolutionalLayer extends Layer {
             int n = this.size*this.size*this.n;
             int k = this.h*this.w;
 
-            FloatBuffer a = Buffers.offset(net.input,i*m*k);
+            FloatBuffer a = net.input.offsetNew(i*m*k);
             FloatBuffer b = net.workspace;
             FloatBuffer c = this.weightUpdates;
 
-            FloatBuffer fb = Buffers.offset(delta,i*this.outputs);
+            FloatBuffer fb = delta.offsetNew(i*this.outputs);
 
             ImCol.im2ColCpu(fb, this.outC, this.outH, this.outW,this.size, this.stride, this.pad, b);
             Gemm.gemmCpu(0,1,m,n,k,1,a,k,b,k,1,c,n);
@@ -229,7 +227,7 @@ public class DeconvolutionalLayer extends Layer {
 
                 a = this.weights;
                 b = net.workspace;
-                c = Buffers.offset(net.delta,i*n*m);
+                c = net.delta.offsetNew(i*n*m);
 
                 Gemm.gemmCpu(0,0,m,n,k,1,a,k,b,n,1,c,n);
             }

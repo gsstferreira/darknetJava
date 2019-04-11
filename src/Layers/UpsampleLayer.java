@@ -1,5 +1,6 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
@@ -27,8 +28,8 @@ public class UpsampleLayer extends Layer {
         this.stride = stride;
         this.outputs = this.outW*this.outH*this.outC;
         this.inputs = this.w*this.h*this.c;
-        this.delta =  Buffers.newBufferF(this.outputs*batch);
-        this.output = Buffers.newBufferF(this.outputs*batch);
+        this.delta =  new FloatBuffer(this.outputs*batch);
+        this.output = new FloatBuffer(this.outputs*batch);
     }
 
     public void resize(int w, int h) {

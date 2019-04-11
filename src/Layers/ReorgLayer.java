@@ -1,11 +1,11 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
 import Tools.Blas;
 import Tools.Buffers;
-
 
 public class ReorgLayer extends Layer {
 
@@ -39,8 +39,8 @@ public class ReorgLayer extends Layer {
         }
 
         int output_size = this.outputs * batch;
-        this.output = Buffers.newBufferF(output_size);
-        this.delta = Buffers.newBufferF(output_size);
+        this.output = new FloatBuffer(output_size);
+        this.delta = new FloatBuffer(output_size);
     }
 
     public void resize(int w, int h) {
@@ -88,8 +88,8 @@ public class ReorgLayer extends Layer {
         else if (this.extra != 0) {
             for(i = 0; i < this.batch; ++i){
 
-                var fb = Buffers.offset(net.input,i*this.inputs);
-                var fb2 = Buffers.offset(this.output,i*this.outputs);
+                var fb = net.input.offsetNew(i*this.inputs);
+                var fb2 = this.output.offsetNew(i*this.outputs);
 
                 Blas.copyCpu(this.inputs, fb, 1, fb2, 1);
             }
@@ -122,8 +122,8 @@ public class ReorgLayer extends Layer {
         else if (this.extra != 0) {
             for(i = 0; i < this.batch; ++i){
 
-                var fb = Buffers.offset(this.delta,i*this.outputs);
-                var fb2 = Buffers.offset(net.delta,i*this.inputs);
+                var fb = this.delta.offsetNew(i*this.outputs);
+                var fb2 = net.delta.offsetNew(i*this.inputs);
 
                 Blas.copyCpu(this.inputs, fb, 1, fb2, 1);
             }

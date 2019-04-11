@@ -1,5 +1,6 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Enums.CostType;
@@ -7,7 +8,6 @@ import Enums.LayerType;
 import Tools.Blas;
 import Tools.Buffers;
 import Tools.Util;
-import org.lwjgl.BufferUtils;
 
 public class CostLayer extends Layer {
 
@@ -21,9 +21,9 @@ public class CostLayer extends Layer {
         this.outputs = inputs;
         this.costType = costType;
 
-        this.delta = Buffers.newBufferF(inputs*batch);
-        this.output = Buffers.newBufferF(inputs*batch);
-        this.cost = Buffers.newBufferF(1);
+        this.delta = new FloatBuffer(inputs*batch);
+        this.output = new FloatBuffer(inputs*batch);
+        this.cost = new FloatBuffer(1);
     }
 
     public void resize(int inputs) {

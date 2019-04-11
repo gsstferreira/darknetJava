@@ -1,6 +1,7 @@
 package Tools;
 
-import java.nio.FloatBuffer;
+
+import Classes.Buffers.FloatBuffer;
 
 public abstract class ImCol {
 
@@ -22,11 +23,11 @@ public abstract class ImCol {
         row -= pad;
         col -= pad;
 
-        if(row >= 0 && col >= 0 && row < height && col < width) {
-            return im.get(col + width*(row + height*channel));
+        if(row < 0 || col < 0 || row >= height || col >= width) {
+            return 0;
         }
         else {
-            return 0;
+            return im.get(col + width*(row + height*channel));
         }
     }
 
@@ -53,8 +54,8 @@ public abstract class ImCol {
         }
     }
 
-    public static void im2ColCpu(FloatBuffer dataIm, int channels, int height, int width, int ksize, int stride, int pad, FloatBuffer dataCol)
-    {
+    public static void im2ColCpu(FloatBuffer dataIm, int channels, int height, int width, int ksize, int stride, int pad, FloatBuffer dataCol) {
+
         int c,h,w;
         int height_col = (height + 2*pad - ksize) / stride + 1;
         int width_col = (width + 2*pad - ksize) / stride + 1;

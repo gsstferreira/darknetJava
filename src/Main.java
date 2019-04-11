@@ -1,23 +1,20 @@
-import java.nio.IntBuffer;
-import java.util.Arrays;
+
+import Tools.Detector;
+
+import java.io.*;
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 public class Main {
 
     public static void main(String[] args) {
 
-        IntBuffer b = IntBuffer.allocate(10);
+        String cfgFile = "C:/darknetaws/cfg/yolov3-tiny.cfg";
+        String weightFile = "C:/darknetaws/backup/yolov3-tiny_20000.weights";
+        String dataFile = "C:/darknetaws/cfg/myYolo2.data";
+        String imgPath = "C:/darknetaws/data/dual6.jpg";
 
-        for(int i = 0; i < 10; i++) {
-            b.put(i,3*i);
-        }
-
-        System.out.println(Arrays.toString(b.array()));
-
-        for(int i = 0; i < 10; i++) {
-
-            b.put(i,b.get(i) *2);
-        }
-
-        System.out.println(Arrays.toString(b.array()));
+        Detector.runDetector(dataFile,cfgFile,weightFile,imgPath);
     }
 }

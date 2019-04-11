@@ -1,5 +1,6 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Enums.Activation;
@@ -24,8 +25,8 @@ public class ShortcutLayer extends Layer {
 
         this.index = index;
 
-        this.delta = Buffers.newBufferF(this.outputs*batch);
-        this.output = Buffers.newBufferF(this.outputs*batch);
+        this.delta = new FloatBuffer(this.outputs*batch);
+        this.output = new FloatBuffer(this.outputs*batch);
     }
 
     public void resize(int w, int h) {

@@ -1,5 +1,6 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Image;
 import Classes.Layer;
 import Classes.Network;
@@ -9,7 +10,6 @@ import Enums.LayerType;
 import Tools.*;
 import org.lwjgl.BufferUtils;
 
-import java.nio.FloatBuffer;
 
 public class ConvolutionalLayer extends Layer {
 
@@ -20,7 +20,7 @@ public class ConvolutionalLayer extends Layer {
         binaryWeights = swap;
     }
 
-    private static void binarizeWeights(FloatBuffer weights, int n, int size, FloatBuffer binary) {
+    public static void binarizeWeights(FloatBuffer weights, int n, int size, FloatBuffer binary) {
         
         int i, f;
         for(f = 0; f < n; ++f){
@@ -82,8 +82,7 @@ public class ConvolutionalLayer extends Layer {
     
     public static int getWorkspaceSize(Layer l){
 
-        //TODO size_t??
-        return l.outH*l.outW*l.size*l.size*l.c/l.groups*Float.SIZE;
+        return l.outH*l.outW*l.size*l.size*l.c/l.groups;
     }
     
     public ConvolutionalLayer(int batch, int h, int w, int c, int n, int groups, int size, int stride, int padding,
@@ -104,18 +103,16 @@ public class ConvolutionalLayer extends Layer {
         this.pad = padding;
         this.batchNormalize = batchNormalize;
 
-        weights = Buffers.newBufferF(c/groups*n*size*size);
-        weightUpdates = Buffers.newBufferF(c/groups*n*size*size);
+        weights = new FloatBuffer(c/groups*n*size*size);
+        weightUpdates = new FloatBuffer(c/groups*n*size*size);
 
-        biases = Buffers.newBufferF(n);
-        biasUpdates = Buffers.newBufferF(n);
+        biases = new FloatBuffer(n);
+        biasUpdates = new FloatBuffer(n);
 
         nweights = c/groups*n*size*size;
         nbiases = n;
 
-        //TODO remove float cast?
         float scale = (float) Math.sqrt(2./(float)(size*size*c/groups));
-
 
         for(i = 0; i < nweights; ++i) {
             weights.put(i,scale* Rand.randNormal());
@@ -127,45 +124,45 @@ public class ConvolutionalLayer extends Layer {
         this.outputs = outH * outW * outC;
         this.inputs = this.w * this.h * this.c;
 
-        output = Buffers.newBufferF(this.batch*outputs);
-        delta  = Buffers.newBufferF(this.batch*outputs);
+        output = new FloatBuffer(this.batch*outputs);
+        delta  = new FloatBuffer(this.batch*outputs);
 
         if(binary != 0){
-            binaryWeights = Buffers.newBufferF(this.nweights);
-            cweights = BufferUtils.createCharBuffer(this.nweights);
-            scales = Buffers.newBufferF(n);
+            binaryWeights = new FloatBuffer(this.nweights);
+            cweights = BufferUtils.createByteBuffer(this.nweights);
+            scales = new FloatBuffer(n);
         }
         if(xnor != 0){
-            binaryWeights = Buffers.newBufferF(this.nweights);
-            binaryInput = Buffers.newBufferF(this.batch*inputs);
+            binaryWeights = new FloatBuffer(this.nweights);
+            binaryInput = new FloatBuffer(this.batch*inputs);
         }
         if(batchNormalize != 0){
 
-            scales = Buffers.newBufferF(n);
-            scaleUpdates = Buffers.newBufferF(n);
+            scales = new FloatBuffer(n);
+            scaleUpdates = new FloatBuffer(n);
 
             for(i = 0; i < n; ++i){
                 scales.put(i,1);
             }
 
-            mean = Buffers.newBufferF(n);
-            variance = Buffers.newBufferF(n);
+            mean = new FloatBuffer(n);
+            variance = new FloatBuffer(n);
 
-            meanDelta = Buffers.newBufferF(n);
-            varianceDelta = Buffers.newBufferF(n);
+            meanDelta = new FloatBuffer(n);
+            varianceDelta = new FloatBuffer(n);
 
-            rollingMean = Buffers.newBufferF(n);
-            rollingVariance = Buffers.newBufferF(n);
-            x = Buffers.newBufferF(this.batch*outputs);
-            xNorm = Buffers.newBufferF(this.batch*outputs);
+            rollingMean = new FloatBuffer(n);
+            rollingVariance = new FloatBuffer(n);
+            x = new FloatBuffer(this.batch*outputs);
+            xNorm = new FloatBuffer(this.batch*outputs);
         }
         if(adam != 0){
-            m = Buffers.newBufferF(this.nweights);
-            v = Buffers.newBufferF(this.nweights);
-            biasM = Buffers.newBufferF(n);
-            scaleM = Buffers.newBufferF(n);
-            biasV = Buffers.newBufferF(n);
-            scaleV = Buffers.newBufferF(n);
+            m = new FloatBuffer(this.nweights);
+            v = new FloatBuffer(this.nweights);
+            biasM = new FloatBuffer(n);
+            scaleM = new FloatBuffer(n);
+            biasV = new FloatBuffer(n);
+            scaleV = new FloatBuffer(n);
         }
 
         this.workspaceSize = getWorkspaceSize(this);
@@ -254,7 +251,7 @@ public class ConvolutionalLayer extends Layer {
         for(b = 0; b < batch; ++b){
             for(i = 0; i < n; ++i){
                 
-                FloatBuffer _delta = Buffers.offset(delta,size*(i+b*n));
+                FloatBuffer _delta = delta.offsetNew(size*(i+b*n));
                 bias_updates.put(i,bias_updates.get(i) + Util.sumArray(_delta, size));
             }
         }
@@ -279,14 +276,15 @@ public class ConvolutionalLayer extends Layer {
         for(i = 0; i < batch; ++i){
             for(j = 0; j < groups; ++j){
 
-                FloatBuffer _a = Buffers.offset(weights,j*nweights/groups);
+                FloatBuffer _a = weights.offsetNew(j*nweights/groups);
                 FloatBuffer _b = net.workspace;
-                FloatBuffer _c = Buffers.offset(output,(i*groups + j)*n*m);
-                FloatBuffer im = Buffers.offset(net.input,(i*groups + j)*c/groups*h*w);
+                FloatBuffer _c = output.offsetNew((i*groups + j)*n*m);
+                FloatBuffer im = net.input.offsetNew((i*groups + j)*c/groups*h*w);
 
                 if (size == 1) {
                     _b = im;
-                } else {
+                }
+                else {
                     ImCol.im2ColCpu(im, c/groups, h, w, size, stride, pad, _b);
                 }
                 Gemm.gemm(0,0,m,n,k,1,_a,k,_b,n,1,_c,n);
@@ -297,7 +295,7 @@ public class ConvolutionalLayer extends Layer {
             BatchnormLayer.staticForward(this, net);
         }
         else {
-            addBias(output, biases, batch, n, outH*outW);
+            addBias(output, biases, batch, this.n, outH*outW);
         }
 
         Activation.activateArray(output, outputs*batch, activation);
@@ -325,12 +323,12 @@ public class ConvolutionalLayer extends Layer {
         for(i = 0; i < batch; ++i){
             for(j = 0; j < groups; ++j){
 
-                FloatBuffer _a = Buffers.offset(delta,(i*groups + j)*m*k);
+                FloatBuffer _a = delta.offsetNew((i*groups + j)*m*k);
                 FloatBuffer _b = net.workspace;
-                FloatBuffer _c = Buffers.offset(weightUpdates,j*nweights/groups);
+                FloatBuffer _c = weightUpdates.offsetNew(j*nweights/groups);
 
-                FloatBuffer im  = Buffers.offset(net.input,(i * groups + j)*c/groups*h*w);
-                FloatBuffer imd = Buffers.offset(net.delta,(i * groups + j)*c/groups*h*w);
+                FloatBuffer im  = net.input.offsetNew((i * groups + j)*c/groups*h*w);
+                FloatBuffer imd = net.delta.offsetNew((i * groups + j)*c/groups*h*w);
 
                 if(size == 1){
                     _b = im;
@@ -343,8 +341,8 @@ public class ConvolutionalLayer extends Layer {
 
                 if (net.delta != null) {
 
-                    _a = Buffers.offset(weights,j*nweights/groups);
-                    _b = Buffers.offset(delta,(i*groups + j)*m*k);
+                    _a = weights.offsetNew(j*nweights/groups);
+                    _b = delta.offsetNew((i*groups + j)*m*k);
                     _c = net.workspace;
 
                     if (size == 1) {
@@ -387,7 +385,7 @@ public class ConvolutionalLayer extends Layer {
         int w = size;
         int _c = c/groups;
 
-        FloatBuffer fb = Buffers.offset(weights,i*h*w*_c);
+        FloatBuffer fb = weights.offsetNew(i*h*w*_c);
         return new Image(w,h,_c,fb);
     }
 

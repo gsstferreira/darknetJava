@@ -1,11 +1,11 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Enums.Activation;
 import Enums.LayerType;
 import Tools.Blas;
-import Tools.Buffers;
 import Tools.Util;
 
 public class LogisticLayer extends Layer {
@@ -16,10 +16,10 @@ public class LogisticLayer extends Layer {
         this.batch = batch;
         this.inputs = inputs;
         this.outputs = inputs;
-        this.loss = Buffers.newBufferF(inputs*batch);
-        this.output = Buffers.newBufferF(inputs*batch);
-        this.delta = Buffers.newBufferF(inputs*batch);
-        this.cost = Buffers.newBufferF(1);
+        this.loss = new FloatBuffer(inputs*batch);
+        this.output = new FloatBuffer(inputs*batch);
+        this.delta = new FloatBuffer(inputs*batch);
+        this.cost = new FloatBuffer(1);
     }
 
     public void forward(Network net) {

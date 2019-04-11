@@ -1,13 +1,12 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
 import Enums.Activation;
 import Enums.LayerType;
 import Tools.Blas;
-import Tools.Buffers;
-import org.lwjgl.BufferUtils;
 
 import static Enums.Activation.LOGISTIC;
 
@@ -16,10 +15,10 @@ public class GruLayer extends Layer {
     public static void increment_Layer(Layer l, int steps) {
 
         int num = l.outputs*l.batch*steps;
-        l.output = Buffers.offset(l.output,num);
-        l.delta = Buffers.offset(l.delta,num);
-        l.x = Buffers.offset(l.x,num);
-        l.xNorm = Buffers.offset(l.xNorm,num);
+        l.output.offset(num);
+        l.delta.offset(num);
+        l.x.offset(num);
+        l.xNorm.offset(num);
         
     }
 
@@ -53,16 +52,16 @@ public class GruLayer extends Layer {
         this.batchNormalize = batch_normalize;
         
         this.outputs = outputs;
-        this.output = Buffers.newBufferF(outputs*batch*steps);
-        this.delta = Buffers.newBufferF(outputs*batch*steps);
-        this.state = Buffers.newBufferF(outputs*batch);
-        this.prevState = Buffers.newBufferF(outputs*batch);
-        this.forgotState = Buffers.newBufferF(outputs*batch);
-        this.forgotDelta = Buffers.newBufferF(outputs*batch);
+        this.output = new FloatBuffer(outputs*batch*steps);
+        this.delta = new FloatBuffer(outputs*batch*steps);
+        this.state = new FloatBuffer(outputs*batch);
+        this.prevState = new FloatBuffer(outputs*batch);
+        this.forgotState = new FloatBuffer(outputs*batch);
+        this.forgotDelta = new FloatBuffer(outputs*batch);
 
-        this.rCpu = Buffers.newBufferF(outputs*batch);
-        this.zCpu = Buffers.newBufferF(outputs*batch);
-        this.hCpu = Buffers.newBufferF(outputs*batch);
+        this.rCpu = new FloatBuffer(outputs*batch);
+        this.zCpu = new FloatBuffer(outputs*batch);
+        this.hCpu = new FloatBuffer(outputs*batch);
     }
 
     public void update(UpdateArgs a) {
@@ -132,8 +131,8 @@ public class GruLayer extends Layer {
                 Blas.weightedSumCpu(state, hCpu, zCpu, outputs*batch, output);
                 Blas.copyCpu(outputs*batch, output, 1, state, 1);
 
-                net.input = Buffers.offset(net.input,inputs*batch);
-                output = Buffers.offset(output,inputs*batch);
+                net.input.offset(inputs*batch);
+                output.offset(inputs*batch);
 
                 increment_Layer(uz, 1);
                 increment_Layer(ur, 1);

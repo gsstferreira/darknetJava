@@ -1,10 +1,10 @@
 package Classes;
 
+import Classes.Buffers.FloatBuffer;
+import Classes.Buffers.IntBuffer;
 import Tools.Rand;
 import Tools.Util;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 
 public class Matrix {
 
@@ -29,8 +29,8 @@ public class Matrix {
 
         for(int i = 0; i < truth.rows; i++) {
 
-            IntBuffer ib = IntBuffer.wrap(indexes);
-            FloatBuffer fb = FloatBuffer.wrap(guess.vals[i]);
+            IntBuffer ib = new IntBuffer(indexes);
+            FloatBuffer fb = new FloatBuffer(guess.vals[i]);
 
             Util.topK(fb,n,k,ib);
             for(int j = 0; j < k; j++) {

@@ -1,7 +1,7 @@
 package Tools;
 
 
-import java.nio.FloatBuffer;
+import Classes.Buffers.FloatBuffer;
 
 // Completo
 public abstract class Blas {
@@ -36,7 +36,7 @@ public abstract class Blas {
 
     public static void flatten(FloatBuffer x, int size, int layers, int batch, int forward) {
 
-        FloatBuffer swap = FloatBuffer.allocate(size*layers*batch);
+        FloatBuffer swap = new FloatBuffer(size*layers*batch);
 
         for(int b = 0; b < batch; ++b){
             for(int c = 0; c < layers; ++c){
@@ -54,7 +54,7 @@ public abstract class Blas {
                 }
             }
         }
-        Buffers.copy(swap,x,swap.capacity());
+        Buffers.copy(swap,x,swap.size());
     } //
 
     public static void weightedSumCpu(FloatBuffer a, FloatBuffer b, FloatBuffer s, int n, FloatBuffer c) {
@@ -386,8 +386,8 @@ public abstract class Blas {
         for(int b = 0; b < batch; ++b){
             for(int g = 0; g < groups; ++g){
 
-                FloatBuffer fb1 = Buffers.offset(input,b*batch_offset + g*group_offset);
-                FloatBuffer fb2 = Buffers.offset(output,b*batch_offset + g*group_offset);
+                var fb1 = input.offsetNew(b*batch_offset + g*group_offset);
+                var fb2 = output.offsetNew(b*batch_offset + g*group_offset);
 
                 softmax(fb1, n, temp, stride, fb2);
             }

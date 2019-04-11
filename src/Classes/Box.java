@@ -1,6 +1,7 @@
 package Classes;
 
-import java.nio.FloatBuffer;
+import Classes.Buffers.FloatBuffer;
+
 import java.util.*;
 
 

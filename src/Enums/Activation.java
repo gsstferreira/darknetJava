@@ -1,6 +1,6 @@
 package Enums;
 
-import java.nio.FloatBuffer;
+import Classes.Buffers.FloatBuffer;
 
 public enum Activation {
 

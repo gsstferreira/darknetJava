@@ -1,9 +1,9 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
-import Tools.Buffers;
 
 public class AvgPoolLayer extends Layer {
 
@@ -21,18 +21,18 @@ public class AvgPoolLayer extends Layer {
         this.inputs = h*w*c;
 
         int output_size = this.outputs * batch;
-        this.output = Buffers.newBufferF(output_size);
-        this.delta =  Buffers.newBufferF(output_size);
+        this.output = new FloatBuffer(output_size);
+        this.delta =  new FloatBuffer(output_size);
     }
 
-    void resize(int width, int height) {
+    public void resize(int width, int height) {
 
         w = width;
         h = height;
         inputs = height*width*c;
     }
 
-    void forward(Network net) {
+    public void forward(Network net) {
 
         int b,i,k;
 
@@ -50,7 +50,7 @@ public class AvgPoolLayer extends Layer {
         }
     }
 
-    void backward(Network net) {
+    public void backward(Network net) {
 
         int b,i,k;
 

@@ -1,5 +1,6 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
@@ -9,8 +10,6 @@ import Tools.Blas;
 import Tools.Buffers;
 import Tools.Gemm;
 import Tools.Rand;
-
-import java.nio.FloatBuffer;
 
 
 public class ConnectedLayer extends Layer {
@@ -32,14 +31,14 @@ public class ConnectedLayer extends Layer {
         this.outW = 1;
         this.outC = outputs;
 
-        this.output = Buffers.newBufferF(batch*outputs);
-        this.delta = Buffers.newBufferF(batch*outputs);
+        this.output = new FloatBuffer(batch*outputs);
+        this.delta = new FloatBuffer(batch*outputs);
 
-        this.weightUpdates = Buffers.newBufferF(inputs*outputs);
-        this.biasUpdates = Buffers.newBufferF(outputs);
+        this.weightUpdates = new FloatBuffer(inputs*outputs);
+        this.biasUpdates = new FloatBuffer(outputs);
 
-        this.weights = Buffers.newBufferF(inputs*outputs);
-        this.biases = Buffers.newBufferF(outputs);
+        this.weights = new FloatBuffer(inputs*outputs);
+        this.biases = new FloatBuffer(outputs);
 
         float scale = (float) Math.sqrt(2./inputs);
 
@@ -55,32 +54,32 @@ public class ConnectedLayer extends Layer {
 
         if(adam != 0){
             
-            this.m = Buffers.newBufferF(this.inputs*this.outputs);
-            this.v = Buffers.newBufferF(this.inputs*this.outputs);
-            this.biasM = Buffers.newBufferF(this.outputs);
-            this.scaleM = Buffers.newBufferF(this.outputs);
-            this.biasV = Buffers.newBufferF(this.outputs);
-            this.scaleV = Buffers.newBufferF(this.outputs);
+            this.m = new FloatBuffer(this.inputs*this.outputs);
+            this.v = new FloatBuffer(this.inputs*this.outputs);
+            this.biasM = new FloatBuffer(this.outputs);
+            this.scaleM = new FloatBuffer(this.outputs);
+            this.biasV = new FloatBuffer(this.outputs);
+            this.scaleV = new FloatBuffer(this.outputs);
         }
 
         if(batch_normalize != 0){
-            this.scales = Buffers.newBufferF(outputs);
-            this.scaleUpdates = Buffers.newBufferF(outputs);
+            this.scales = new FloatBuffer(outputs);
+            this.scaleUpdates = new FloatBuffer(outputs);
             
             for(i = 0; i < outputs; ++i){
                 this.scales.put(i,1);
             }
 
-            this.mean = Buffers.newBufferF(outputs);
-            this.meanDelta = Buffers.newBufferF(outputs);
-            this.variance = Buffers.newBufferF(outputs);
-            this.varianceDelta = Buffers.newBufferF(outputs);
+            this.mean = new FloatBuffer(outputs);
+            this.meanDelta = new FloatBuffer(outputs);
+            this.variance = new FloatBuffer(outputs);
+            this.varianceDelta = new FloatBuffer(outputs);
 
-            this.rollingMean = Buffers.newBufferF(outputs);
-            this.rollingVariance = Buffers.newBufferF(outputs);
+            this.rollingMean = new FloatBuffer(outputs);
+            this.rollingVariance = new FloatBuffer(outputs);
 
-            this.x = Buffers.newBufferF(batch*outputs);
-            this.xNorm = Buffers.newBufferF(batch*outputs);
+            this.x = new FloatBuffer(batch*outputs);
+            this.xNorm = new FloatBuffer(batch*outputs);
         }
         
         this.activation = activation;

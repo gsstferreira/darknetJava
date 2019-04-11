@@ -75,9 +75,12 @@ public abstract class Rand {
             return scale;
         }
         else {
-            return 1.0f/scale;
+            return 1.0f / scale;
         }
+    }
 
+    public static void setRandSeed(long seed) {
+        rand.setSeed(seed);
     }
 
 }

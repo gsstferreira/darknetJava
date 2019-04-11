@@ -1,5 +1,6 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
@@ -7,7 +8,6 @@ import Enums.Activation;
 import Enums.LayerType;
 import Tools.*;
 
-import java.nio.FloatBuffer;
 
 public class LocalLayer extends Layer {
 
@@ -54,19 +54,19 @@ public class LocalLayer extends Layer {
         this.outputs = this.outH * this.outW * this.outC;
         this.inputs = this.w * this.h * this.c;
 
-        this.weights = FloatBuffer.allocate(c*n*size*size*locations);
-        this.weightUpdates = FloatBuffer.allocate(c*n*size*size*locations);
+        this.weights = new FloatBuffer(c*n*size*size*locations);
+        this.weightUpdates = new FloatBuffer(c*n*size*size*locations);
 
-        this.biases = FloatBuffer.allocate(this.outputs);
-        this.biasUpdates = FloatBuffer.allocate(this.outputs);
+        this.biases = new FloatBuffer(this.outputs);
+        this.biasUpdates = new FloatBuffer(this.outputs);
 
         float scale = (float) Math.sqrt(2./(size*size*c));
         for(i = 0; i < c*n*size*size; ++i) {
             this.weights.put(i,scale* Rand.randUniform(-1, 1));
         }
 
-        this.output = FloatBuffer.allocate(this.batch*outH*outW*n);
-        this.delta  = FloatBuffer.allocate(this.batch*outH*outW*n);
+        this.output = new FloatBuffer(this.batch*outH*outW*n);
+        this.delta  = new FloatBuffer(this.batch*outH*outW*n);
 
         this.workspaceSize = outH*outW*size*size*c;
         this.activation = activation;
@@ -80,24 +80,24 @@ public class LocalLayer extends Layer {
 
         for(int i = 0; i < batch; ++i){
             
-            FloatBuffer fb = Buffers.offset(output,i*outputs);
+            FloatBuffer fb = output.offsetNew(i*outputs);
             
             Blas.copyCpu(outputs, biases, 1, fb, 1);
         }
 
         for(int i = 0; i < batch; ++i){
 
-            FloatBuffer input = Buffers.offset(net.input,i*w*h*c);
+            FloatBuffer input = net.input.offsetNew(i*w*h*c);
             ImCol.im2ColCpu(input, c, h, w, size, stride, pad, net.workspace);
 
-            FloatBuffer _output = Buffers.offset(output,i*outputs);
+            FloatBuffer _output = output.offsetNew(i*outputs);
 
             for(int j = 0; j < locations; ++j){
 
 
-                FloatBuffer _a = Buffers.offset(weights,j*size*size*c*n);
-                FloatBuffer _b = Buffers.offset(net.workspace,j);
-                FloatBuffer _c = Buffers.offset(_output,j);
+                FloatBuffer _a = weights.offsetNew(j*size*size*c*n);
+                FloatBuffer _b = net.workspace.offsetNew(j);
+                FloatBuffer _c = _output.offsetNew(j);
 
                 int m = n;
                 int n = 1;
@@ -118,20 +118,20 @@ public class LocalLayer extends Layer {
 
         for(i = 0; i < batch; ++i){
 
-            FloatBuffer fb = Buffers.offset(delta,i*outputs);
+            FloatBuffer fb = delta.offsetNew(i*outputs);
             Blas.axpyCpu(outputs, 1, fb, 1, biasUpdates, 1);
         }
 
         for(i = 0; i < batch; ++i){
 
-            FloatBuffer input = Buffers.offset(net.input,i*w*h*c);
+            FloatBuffer input = net.input.offsetNew(i*w*h*c);
 
             ImCol.im2ColCpu(input, c, h, w, size, stride, pad, net.workspace);
 
             for(j = 0; j < locations; ++j){
-                FloatBuffer _a = Buffers.offset(delta,i*outputs + j);
-                FloatBuffer _b = Buffers.offset(net.workspace,j);
-                FloatBuffer _c = Buffers.offset(weightUpdates,j*size*size*c*n);
+                FloatBuffer _a = delta.offsetNew(i*outputs + j);
+                FloatBuffer _b = net.workspace.offsetNew(j);
+                FloatBuffer _c = weightUpdates.offsetNew(j*size*size*c*n);
 
                 int m = n;
                 int n = size*size*c;
@@ -143,9 +143,9 @@ public class LocalLayer extends Layer {
             if(net.delta != null){
                 for(j = 0; j < locations; ++j){
 
-                    FloatBuffer _a = Buffers.offset(weights,j*size*size*c*n);
-                    FloatBuffer _b = Buffers.offset(delta,i*outputs + j);
-                    FloatBuffer _c = Buffers.offset(net.workspace,j);
+                    FloatBuffer _a = weights.offsetNew(j*size*size*c*n);
+                    FloatBuffer _b = delta.offsetNew(i*outputs + j);
+                    FloatBuffer _c = net.workspace.offsetNew(j);
 
                     int m = size*size*c;
                     int n = 1;
@@ -154,7 +154,7 @@ public class LocalLayer extends Layer {
                     Gemm.gemm(1,0,m,n,k,1,_a,m,_b,locations,0,_c,locations);
                 }
 
-                FloatBuffer fb = Buffers.offset(net.delta,i*c*h*w);
+                FloatBuffer fb = net.delta.offsetNew(i*c*h*w);
                 ImCol.col2ImCpu(net.workspace, c, h,  w,  size,  stride, pad, fb);
             }
         }

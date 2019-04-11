@@ -1,5 +1,6 @@
 package Layers;
 
+import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Enums.LayerType;
@@ -18,10 +19,10 @@ public class SoftmaxLayer extends Layer {
         this.groups = groups;
         this.inputs = inputs;
         this.outputs = inputs;
-        this.loss = Buffers.newBufferF(inputs*batch);
-        this.output = Buffers.newBufferF(inputs*batch);
-        this.delta = Buffers.newBufferF(inputs*batch);
-        this.cost = Buffers.newBufferF(1);
+        this.loss = new FloatBuffer(inputs*batch);
+        this.output = new FloatBuffer(inputs*batch);
+        this.delta = new FloatBuffer(inputs*batch);
+        this.cost = new FloatBuffer(1);
     }
 
     public void forward(Network net) {
@@ -32,8 +33,8 @@ public class SoftmaxLayer extends Layer {
             for (i = 0; i < this.softmaxTree.groups; ++i) {
                 int group_size = this.softmaxTree.groupSize[i];
 
-                var fb1 = Buffers.offset(net.input, count);
-                var fb2 = Buffers.offset(net.output,count);
+                var fb1 = net.input.offsetNew(count);
+                var fb2 = net.output.offsetNew(count);
 
                 Blas.softmaxCpu(fb1, group_size, this.batch, this.inputs, 1, 0, 1, this.temperature, fb2);
                 count += group_size;
