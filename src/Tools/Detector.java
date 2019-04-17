@@ -6,11 +6,12 @@ import Classes.Buffers.IntBuffer;
 import Enums.ImType;
 
 import java.util.List;
+import java.util.Objects;
 
 
 public abstract class Detector {
 
-    public static DetectionResult testDetector(String namesFile, String cfgfile, String weightfile, String filename, float thresh, float hier_thresh, String outfile) {
+    private static DetectionResult testDetector(String filename, float thresh, float hier_thresh) {
 
         long time1;
         long time2;
@@ -47,29 +48,19 @@ public abstract class Detector {
         Detection[] dets = net.getBoxes( im.w, im.h, thresh, hier_thresh, null, 1, b);
         nboxes = b.get(0);
 
-
-        if (nms != 0) {
-
-            Box.doNmsSort(dets,nboxes,l.classes,nms);
-        }
+        Box.doNmsSort(dets,nboxes,l.classes,nms);
 
         List<Result> resultList = im.drawDetections(dets, nboxes, thresh, GlobalVars.getNames(), GlobalVars.getAlphabet(), l.classes);
 
-        if(outfile != null){
-            im.saveToDisk(outfile, ImType.JPG,80);
-        }
-        else{
-            im.saveToDisk("../predictions", ImType.JPG,80);
-        }
+        im.saveToDisk(Objects.requireNonNullElse(null, "lastPrediction"), ImType.JPG, 80);
 
-        return new DetectionResult(procTime,resultList);
+        return new DetectionResult(procTime,resultList,im.w,im.h);
     }
 
-    public static DetectionResult runDetector(String datacfg, String cfgfile, String weightfile, String filename) {
+    public static DetectionResult runDetector(String imagePath, float thresh) {
 
-        float thresh = 0.5f;
         float hier_thresh = 0.5f;
 
-        return testDetector(datacfg,cfgfile,weightfile,filename,thresh,hier_thresh,null);
+        return testDetector(imagePath, thresh,hier_thresh);
     }
 }

@@ -385,8 +385,8 @@ public abstract class Blas {
         for(int b = 0; b < batch; ++b){
             for(int g = 0; g < groups; ++g){
 
-                var fb1 = input.offsetNew(b*batch_offset + g*group_offset);
-                var fb2 = output.offsetNew(b*batch_offset + g*group_offset);
+                FloatBuffer fb1 = input.offsetNew(b*batch_offset + g*group_offset);
+                FloatBuffer fb2 = output.offsetNew(b*batch_offset + g*group_offset);
 
                 softmax(fb1, n, temp, stride, fb2);
             }

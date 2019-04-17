@@ -35,8 +35,8 @@ public class SoftmaxLayer extends Layer {
             for (i = 0; i < this.softmaxTree.groups; ++i) {
                 int group_size = this.softmaxTree.groupSize[i];
 
-                var fb1 = net.input.offsetNew(count);
-                var fb2 = net.output.offsetNew(count);
+                FloatBuffer fb1 = net.input.offsetNew(count);
+                FloatBuffer fb2 = net.output.offsetNew(count);
 
                 Blas.softmaxCpu(fb1, group_size, this.batch, this.inputs, 1, 0, 1, this.temperature, fb2);
                 count += group_size;

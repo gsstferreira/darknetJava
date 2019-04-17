@@ -31,7 +31,7 @@ public class FloatBuffer {
 
     public FloatBuffer offsetNew(int off) {
 
-        var dec = new FloatBuffer(this.array);
+        FloatBuffer dec = new FloatBuffer(this.array);
 
         dec.offset = off + this.offset;
 
@@ -58,7 +58,7 @@ public class FloatBuffer {
      */
     public FloatBuffer shallowClone() {
 
-        var buff = new FloatBuffer(this.array);
+        FloatBuffer buff = new FloatBuffer(this.array);
         buff.offset(this.offset);
 
         return buff;

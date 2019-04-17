@@ -31,7 +31,7 @@ public class LongBuffer {
 
     public LongBuffer offsetNew(int off) {
 
-        var dec = new LongBuffer(this.array);
+        LongBuffer dec = new LongBuffer(this.array);
 
         dec.offset = off + this.offset;
 
@@ -57,7 +57,7 @@ public class LongBuffer {
      */
     public LongBuffer shallowClone() {
 
-        var buff = new LongBuffer(this.array);
+        LongBuffer buff = new LongBuffer(this.array);
         buff.offset(this.offset);
 
         return buff;

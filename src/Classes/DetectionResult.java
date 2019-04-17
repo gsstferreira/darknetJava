@@ -7,11 +7,15 @@ public class DetectionResult {
 
     public float ProcessTimeSecs;
     public int TotalDetections;
+    public int ImageWidth;
+    public int ImageHeight;
     public List<Result> Detections;
 
-    public DetectionResult(float procTime, List<Result> detections) {
+    public DetectionResult(float procTime, List<Result> detections,int w, int h) {
 
         this.ProcessTimeSecs = procTime;
+        this.ImageHeight = h;
+        this.ImageWidth = w;
 
         if(detections == null) {
             this.Detections = new ArrayList<>();

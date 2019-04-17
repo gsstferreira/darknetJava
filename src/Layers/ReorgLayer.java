@@ -95,8 +95,8 @@ public class ReorgLayer extends Layer {
         else if (this.extra != 0) {
             for(i = 0; i < this.batch; ++i){
 
-                var fb = net.input.offsetNew(i*this.inputs);
-                var fb2 = this.output.offsetNew(i*this.outputs);
+                FloatBuffer fb = net.input.offsetNew(i*this.inputs);
+                FloatBuffer fb2 = this.output.offsetNew(i*this.outputs);
 
                 Blas.copyCpu(this.inputs, fb, 1, fb2, 1);
             }
@@ -129,8 +129,8 @@ public class ReorgLayer extends Layer {
         else if (this.extra != 0) {
             for(i = 0; i < this.batch; ++i){
 
-                var fb = this.delta.offsetNew(i*this.outputs);
-                var fb2 = net.delta.offsetNew(i*this.inputs);
+                FloatBuffer fb = this.delta.offsetNew(i*this.outputs);
+                FloatBuffer fb2 = net.delta.offsetNew(i*this.inputs);
 
                 Blas.copyCpu(this.inputs, fb, 1, fb2, 1);
             }

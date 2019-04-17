@@ -5,6 +5,7 @@ import Classes.Buffers.IntBuffer;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +36,14 @@ public abstract class Util {
     public static String readFile(String fileName) {
 
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(fileName));
 
+            BufferedReader reader;
+            if(GlobalVars.isJar) {
+                reader = new BufferedReader(new InputStreamReader(Util.class.getResourceAsStream("/" + fileName)));
+            }
+            else {
+                reader = new BufferedReader(new FileReader(fileName));
+            }
             StringBuilder sb = new StringBuilder();
             String s;
 
@@ -57,9 +64,15 @@ public abstract class Util {
 
         try {
 
-            List<Integer> list = new ArrayList<>();
+            BufferedReader reader;
+            if(GlobalVars.isJar) {
+                reader = new BufferedReader(new InputStreamReader(Util.class.getResourceAsStream("/" + fileName)));
+            }
+            else {
+                reader = new BufferedReader(new FileReader(fileName));
+            }
 
-            BufferedReader reader = new BufferedReader(new FileReader(fileName));
+            List<Integer> list = new ArrayList<>();
             String s;
 
             while((s = reader.readLine()) != null) {

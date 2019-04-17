@@ -11,14 +11,14 @@ import java.util.List;
 
 public abstract class GlobalVars {
 
+    public static boolean isJar = false;
+
     private static Image[][] alphabet;
     private static Network network;
     private static List<String> names;
 
     private static byte[] weightBytes;
     private static int offset;
-
-    public static BufferedWriter logStream;
 
     public static void loadAlphabet() {
 
@@ -70,9 +70,14 @@ public abstract class GlobalVars {
     public static void loadWeights(String weightFile) {
 
         try {
-            FileInputStream inputStream = new FileInputStream(new File(weightFile));
-            BufferedInputStream stream = new BufferedInputStream(inputStream);
 
+            BufferedInputStream stream;
+            if(isJar) {
+                stream = new BufferedInputStream(GlobalVars.class.getResourceAsStream("/" + weightFile));
+            }
+            else {
+                stream = new BufferedInputStream(new FileInputStream(weightFile));
+            }
             weightBytes = stream.readAllBytes();
             stream.close();
             offset = 0;
@@ -91,17 +96,6 @@ public abstract class GlobalVars {
 
         System.gc();
     }
-
-    public static void setupLog(String logFile) {
-
-        try {
-            logStream = new BufferedWriter(new FileWriter(logFile));
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
 
     public static int getIntWeight() {
 

@@ -1,7 +1,11 @@
 package Classes;
 
+import Tools.GlobalVars;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,8 +24,13 @@ public class Data {
         List<String> list = new ArrayList<>();
 
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(fileName));
-
+            BufferedReader reader;
+            if(GlobalVars.isJar) {
+                reader = new BufferedReader(new InputStreamReader(Data.class.getResourceAsStream("/" + fileName)));
+            }
+            else {
+                reader = new BufferedReader(new FileReader(fileName));
+            }
             String s;
 
             while((s = reader.readLine()) != null) {
@@ -40,7 +49,7 @@ public class Data {
 
     public static List<String> getLabels(String filename) {
 
-        var list = getPaths(filename);
+        List<String> list = getPaths(filename);
 
         return list;
     }

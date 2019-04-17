@@ -78,7 +78,13 @@ public abstract class Parser {
     public static List<Section> readCfg(String fileName) {
 
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(fileName));
+            BufferedReader reader;
+            if(GlobalVars.isJar){
+                reader = new BufferedReader(new InputStreamReader(Parser.class.getResourceAsStream("/" + fileName)));
+            }
+            else {
+                reader = new BufferedReader(new FileReader(fileName));
+            }
 
             String s;
 
@@ -339,7 +345,7 @@ public abstract class Parser {
         int binary = optionFindInt(options, "binary", 0);
         int xnor = optionFindInt(options, "xnor", 0);
 
-        var layer = new ConvolutionalLayer(batch,h,w,c,n,groups,size,stride,padding,activation, batch_normalize, binary, xnor, params.net.adam);
+        ConvolutionalLayer layer = new ConvolutionalLayer(batch,h,w,c,n,groups,size,stride,padding,activation, batch_normalize, binary, xnor, params.net.adam);
         layer.flipped = optionFindInt(options, "flipped", 0);
         layer.dot = optionFindFloat(options, "dot", 0);
 
@@ -354,7 +360,7 @@ public abstract class Parser {
         Activation activation = Activation.getActivation(activation_s);
         int batch_normalize = optionFindInt(options, "batch_normalize", 0);
 
-        var Layer = new CrnnLayer(params.batch, params.w, params.h, params.c, hidden_filters, output_filters, params.time_steps, activation, batch_normalize);
+        CrnnLayer Layer = new CrnnLayer(params.batch, params.w, params.h, params.c, hidden_filters, output_filters, params.time_steps, activation, batch_normalize);
         Layer.shortcut = optionFindInt(options, "shortcut", 0);
 
         return Layer;
@@ -367,7 +373,7 @@ public abstract class Parser {
         Activation activation = Activation.getActivation(activation_s);
         int batch_normalize = optionFindInt(options, "batch_normalize", 0);
 
-        var l = new RnnLayer(params.batch, params.inputs, output, params.time_steps, activation, batch_normalize, params.net.adam);
+        RnnLayer l = new RnnLayer(params.batch, params.inputs, output, params.time_steps, activation, batch_normalize, params.net.adam);
         l.shortcut = optionFindInt(options, "shortcut", 0);
 
         return l;
@@ -378,7 +384,7 @@ public abstract class Parser {
         int output = optionFindInt(options, "output",1);
         int batch_normalize = optionFindInt(options, "batch_normalize", 0);
 
-        var l = new GruLayer(params.batch, params.inputs, output, params.time_steps, batch_normalize, params.net.adam);
+        GruLayer l = new GruLayer(params.batch, params.inputs, output, params.time_steps, batch_normalize, params.net.adam);
         l.tanh = optionFindInt(options, "tanh", 0);
 
         return l;
@@ -405,7 +411,7 @@ public abstract class Parser {
     public static SoftmaxLayer parseSoftmax(List<KeyValuePair> options, SizeParams params) {
 
         int groups = optionFindInt(options, "groups",1);
-        var l = new SoftmaxLayer(params.batch, params.inputs, groups);
+        SoftmaxLayer l = new SoftmaxLayer(params.batch, params.inputs, groups);
         l.temperature = optionFindFloat(options, "temperature", 1);
         String tree_file = optionFindString(options, "tree", "");
         if (tree_file != null) {
@@ -450,7 +456,7 @@ public abstract class Parser {
         IntBuffer mask = parseYoloMask(a, ib);
         num = ib.get(0);
 
-        var l = new YoloLayer(params.batch, params.w, params.h, num, total, mask, classes);
+        YoloLayer l = new YoloLayer(params.batch, params.w, params.h, num, total, mask, classes);
         assert(l.outputs == params.inputs);
 
         l.maxBoxes = optionFindInt(options, "max",90);
@@ -482,7 +488,7 @@ public abstract class Parser {
         
         int classes = optionFindInt(options, "classes", 20);
         int ids = optionFindInt(options, "ids", 32);
-        var l = new IsegLayer(params.batch, params.w, params.h, classes, ids);
+        IsegLayer l = new IsegLayer(params.batch, params.w, params.h, classes, ids);
         assert(l.outputs == params.inputs);
         return l;
     }
@@ -493,7 +499,7 @@ public abstract class Parser {
         int classes = optionFindInt(options, "classes", 20);
         int num = optionFindInt(options, "num", 1);
 
-        var l = new RegionLayer(params.batch, params.w, params.h, num, classes, coords);
+        RegionLayer l = new RegionLayer(params.batch, params.w, params.h, num, classes, coords);
         assert(l.outputs == params.inputs);
 
         l.log = optionFindInt(options, "log", 0);
@@ -546,7 +552,7 @@ public abstract class Parser {
         int rescore = optionFindInt(options, "rescore", 0);
         int num = optionFindInt(options, "num", 1);
         int side = optionFindInt(options, "side", 7);
-        var Layer = new DetectionLayer(params.batch, params.inputs, num, side, classes, coords, rescore);
+        DetectionLayer Layer = new DetectionLayer(params.batch, params.inputs, num, side, classes, coords, rescore);
 
         Layer.softmax = optionFindInt(options, "softmax", 0);
         Layer.sqrt = optionFindInt(options, "sqrt", 0);
@@ -568,7 +574,7 @@ public abstract class Parser {
         String type_s = optionFindString(options, "type", "sse");
         CostType type = CostType.getCostType(type_s);
         float scale = optionFindFloat(options, "scale",1);
-        var Layer = new CostLayer(params.batch, params.inputs, type, scale);
+        CostLayer Layer = new CostLayer(params.batch, params.inputs, type, scale);
         Layer.ratio =  optionFindFloat(options, "ratio",0);
         Layer.noobjectScale =  optionFindFloat(options, "noobj", 1);
         Layer.thresh =  optionFindFloat(options, "thresh",0);
@@ -593,7 +599,7 @@ public abstract class Parser {
 
         int noadjust = optionFindInt(options, "noadjust",0);
 
-        var l = new CropLayer(batch,h,w,c,crop_height,crop_width,flip, angle, saturation, exposure);
+        CropLayer l = new CropLayer(batch,h,w,c,crop_height,crop_width,flip, angle, saturation, exposure);
         l.shift = optionFindFloat(options, "shift", 0);
         l.noAdjust = noadjust;
         return l;
@@ -647,14 +653,13 @@ public abstract class Parser {
             ExceptionThrower.InvalidParams("Layer before avgpool Layer must output image.");
         }
 
-        var Layer = new AvgPoolLayer(batch,w,h,c);
-        return Layer;
+        return new AvgPoolLayer(batch,w,h,c);
     }
 
     public static DropoutLayer parse_dropout(List<KeyValuePair> options, SizeParams params) {
         
         float probability = optionFindFloat(options, "probability", .5f);
-        var Layer = new DropoutLayer(params.batch, params.inputs, probability);
+        DropoutLayer Layer = new DropoutLayer(params.batch, params.inputs, probability);
         Layer.outW = params.w;
         Layer.outH = params.h;
         Layer.outC = params.c;
@@ -687,7 +692,7 @@ public abstract class Parser {
         int batch = params.batch;
         Layer from = net.layers[index];
 
-        var s = new ShortcutLayer(batch, index, params.w, params.h, params.c, from.outW, from.outH, from.outC);
+        ShortcutLayer s = new ShortcutLayer(batch, index, params.w, params.h, params.c, from.outW, from.outH, from.outC);
 
         String activation_s = optionFindString(options, "activation", "linear");
         Activation activation = Activation.getActivation(activation_s);
@@ -699,7 +704,7 @@ public abstract class Parser {
 
     public static L2NormLayer parseL2Norm(List<KeyValuePair> options, SizeParams params) {
 
-        var l = new L2NormLayer(params.batch, params.inputs);
+        L2NormLayer l = new L2NormLayer(params.batch, params.inputs);
         l.h = l.outH = params.h;
         l.w = l.outW = params.w;
         l.c = l.outC = params.c;
@@ -708,7 +713,7 @@ public abstract class Parser {
 
     public static LogisticLayer parseLogistic(List<KeyValuePair> options, SizeParams params) {
 
-        var l = new LogisticLayer(params.batch, params.inputs);
+        LogisticLayer l = new LogisticLayer(params.batch, params.inputs);
         l.h = l.outH = params.h;
         l.w = l.outW = params.w;
         l.c = l.outC = params.c;
@@ -720,7 +725,7 @@ public abstract class Parser {
         String activation_s = optionFindString(options, "activation", "linear");
         Activation activation = Activation.getActivation(activation_s);
 
-        var l = new ActivationLayer(params.batch, params.inputs, activation);
+        ActivationLayer l = new ActivationLayer(params.batch, params.inputs, activation);
 
         l.h = l.outH = params.h;
         l.w = l.outW = params.w;
@@ -732,7 +737,7 @@ public abstract class Parser {
     public static UpsampleLayer parseUpsample(List<KeyValuePair> options, SizeParams params, Network net) {
 
         int stride = optionFindInt(options, "stride",2);
-        var l = new UpsampleLayer(params.batch, params.w, params.h, params.c, stride);
+        UpsampleLayer l = new UpsampleLayer(params.batch, params.w, params.h, params.c, stride);
         l.scale = optionFindFloat(options, "scale", 1);
         return l;
     }
@@ -761,7 +766,7 @@ public abstract class Parser {
         }
 
         int batch = params.batch;
-        var layer = new RouteLayer(batch, sp.length, layers, sizes);
+        RouteLayer layer = new RouteLayer(batch, sp.length, layers, sizes);
 
         Layer first = net.layers[layers.get(0)];
         layer.outW = first.outW;
@@ -787,7 +792,7 @@ public abstract class Parser {
 
     public static Network parseNetworkCfg(String filename) {
 
-        var listSections = readCfg(filename);
+        List<Section> listSections = readCfg(filename);
         
         assert listSections != null;
         Section section = listSections.get(0);
@@ -799,7 +804,7 @@ public abstract class Parser {
         Network net = new Network(listSections.size() - 1);
         SizeParams params = new SizeParams();
 
-        var options = section.options;
+        List<KeyValuePair> options = section.options;
 
         if(!isNetwork(section)){
             ExceptionThrower.InvalidParams("First section must be [net] or [network]");
@@ -993,11 +998,6 @@ public abstract class Parser {
 
     public static void saveConvolutionalWeights(Layer l, BufferedOutputStream file) {
 
-        if(l.binary != 0){
-            //save_convolutional_weights_binary(l, stream);
-            //return;
-        }
-
         byte[] buf;
 
         try {
@@ -1166,19 +1166,12 @@ public abstract class Parser {
                     saveConnectedWeights(l.ug, stream);
                 } 
                 if (l.type == GRU) {
-                    if(1 != 0){
-                        saveConnectedWeights(l.wz, stream);
-                        saveConnectedWeights(l.wr, stream);
-                        saveConnectedWeights(l.wh, stream);
-                        saveConnectedWeights(l.uz, stream);
-                        saveConnectedWeights(l.ur, stream);
-                        saveConnectedWeights(l.uh, stream);
-                    }
-                    else{
-                        saveConnectedWeights(l.resetLayer, stream);
-                        saveConnectedWeights(l.updateLayer, stream);
-                        saveConnectedWeights(l.stateLayer, stream);
-                    }
+                    saveConnectedWeights(l.wz, stream);
+                    saveConnectedWeights(l.wr, stream);
+                    saveConnectedWeights(l.wh, stream);
+                    saveConnectedWeights(l.uz, stream);
+                    saveConnectedWeights(l.ur, stream);
+                    saveConnectedWeights(l.uh, stream);
                 }
                 if(l.type == CRNN){
                     saveConvolutionalWeights(l.inputLayer, stream);
@@ -1237,14 +1230,11 @@ public abstract class Parser {
             for(int i = 0; i < l.outputs; i++) {
                 v = GlobalVars.getFloatWeight();
                 l.biases.put(i,v);
-
-                //GlobalVars.logStream.write(String.format("%f\n",v));
             }
 
             for(int i = 0; i < l.outputs*l.inputs; i++) {
                 v = GlobalVars.getFloatWeight();
                 l.weights.put(i,v);
-                //GlobalVars.logStream.write(String.format("%f\n",v));
             }
 
             if(transpose != 0){
@@ -1257,19 +1247,16 @@ public abstract class Parser {
                 for(int i = 0; i < l.outputs; i++) {
                     v = GlobalVars.getFloatWeight();
                     l.scales.put(i,v);
-                    //GlobalVars.logStream.write(String.format("%f\n",v));
                 }
 
                 for(int i = 0; i < l.outputs; i++) {
                     v = GlobalVars.getFloatWeight();
                     l.rollingMean.put(i,v);
-                    //GlobalVars.logStream.write(String.format("%f\n",v));
                 }
 
                 for(int i = 0; i < l.outputs; i++) {
                     v = GlobalVars.getFloatWeight();
                     l.rollingVariance.put(i,v);
-                    //GlobalVars.logStream.write(String.format("%f\n",v));
                 }
             }
         }
@@ -1287,19 +1274,16 @@ public abstract class Parser {
             for(int i = 0; i < l.c; i++) {
                 v = GlobalVars.getFloatWeight();
                 l.scales.put(i,v);
-                //GlobalVars.logStream.write(String.format("%f\n",v));
             }
 
             for(int i = 0; i < l.c; i++) {
                 v = GlobalVars.getFloatWeight();
                 l.rollingMean.put(i,v);
-                //GlobalVars.logStream.write(String.format("%f\n",v));
             }
 
             for(int i = 0; i < l.c; i++) {
                 v = GlobalVars.getFloatWeight();
                 l.rollingVariance.put(i,v);
-                //GlobalVars.logStream.write(String.format("%f\n",v));
             }
 
         }
@@ -1370,11 +1354,6 @@ public abstract class Parser {
 
     public static void loadConvolutionalWeights(Layer l) {
 
-        if(l.binary != 0){
-            //loadConvolutionalWeightsBinary(l, );
-            //return;
-        }
-
         if(l.numload != 0) {
             l.n = l.numload;
         }
@@ -1385,7 +1364,6 @@ public abstract class Parser {
             for(int i = 0; i < l.n; i++) {
                 float v = GlobalVars.getFloatWeight();
                 l.biases.put(i,v);
-                //GlobalVars.logStream.write(String.format("%f\n",v));
             }
 
             if (l.batchNormalize != 0 && l.dontloadscales == 0){
@@ -1393,26 +1371,22 @@ public abstract class Parser {
                 for(int i = 0; i < l.n; i++) {
                     float v = GlobalVars.getFloatWeight();
                     l.scales.put(i,v);
-                    //GlobalVars.logStream.write(String.format("%f\n",v));
                 }
 
                 for(int i = 0; i < l.n; i++) {
                     float v = GlobalVars.getFloatWeight();
                     l.rollingMean.put(i,v);
-                    //GlobalVars.logStream.write(String.format("%f\n",v));
                 }
 
                 for(int i = 0; i < l.n; i++) {
                     float v = GlobalVars.getFloatWeight();
                     l.rollingVariance.put(i,v);
-                    //GlobalVars.logStream.write(String.format("%f\n",v));
                 }
             }
 
             for(int i = 0; i < num; i++) {
                 float v = GlobalVars.getFloatWeight();
                 l.weights.put(i,v);
-                //GlobalVars.logStream.write(String.format("%f\n",v));
             }
 
             if (l.flipped != 0) {
@@ -1430,32 +1404,22 @@ public abstract class Parser {
 
             GlobalVars.loadWeights(filename);
 
-//            FileInputStream inputStream = new FileInputStream(new File(filename));
-//            BufferedInputStream stream = new BufferedInputStream(inputStream);
-
             int major;
             int minor;
             int revision;
 
             major = GlobalVars.getIntWeight();
-            //GlobalVars.logStream.write(String.format("%d\n",major));
-
             minor = GlobalVars.getIntWeight();
-            //GlobalVars.logStream.write(String.format("%d\n",minor));
-
             revision = GlobalVars.getIntWeight();
-            //GlobalVars.logStream.write(String.format("%d\n",revision));
 
             if ((major*10 + minor) >= 2 && major < 1000 && minor < 1000){
 
                 long v = GlobalVars.getLongWeight();
                 net.seen.put(0, v);
-                //GlobalVars.logStream.write(String.format("%d\n",v));
             }
             else {
                 int v = GlobalVars.getIntWeight();
                 net.seen.put(0,v);
-                //GlobalVars.logStream.write(String.format("%d\n",v));
             }
 
             int transpose = ((major > 1000) || (minor > 1000)) ? 1 : 0;
@@ -1513,13 +1477,11 @@ public abstract class Parser {
                     for(int z = 0; z < l.outputs; z++) {
                         float v = GlobalVars.getFloatWeight();
                         l.biases.put(z,v);
-                        //GlobalVars.logStream.write(String.format("%f\n",v));
                     }
 
                     for(int z = 0; z < size; z++) {
                         float v = GlobalVars.getFloatWeight();
                         l.weights.put(z,v);
-                        //GlobalVars.logStream.write(String.format("%f\n",v));
                     }
                 }
             }
@@ -1533,16 +1495,7 @@ public abstract class Parser {
 
     public static void loadWeights(Network net, String filename) {
 
-        //GlobalVars.setupLog("C:/darknetaws/logWeightJava.txt");
-        
         loadWeightsUpto(net, filename, 0, net.n);
-        
-//        try {
-//            GlobalVars.logStream.close();
-//        }
-//        catch (Exception e) {
-//            e.printStackTrace();
-//        }
     }
 
 }

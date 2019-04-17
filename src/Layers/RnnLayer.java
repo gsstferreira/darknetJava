@@ -79,7 +79,7 @@ public class RnnLayer extends Layer {
 
             ((ConnectedLayer)selfLayer).forward(s);
 
-            var old_state = this.state;
+            FloatBuffer old_state = this.state;
 
             if(net.train != 0) {
 
@@ -142,7 +142,7 @@ public class RnnLayer extends Layer {
             Blas.copyCpu(this.outputs*this.batch, selfLayer.delta, 1, inputLayer.delta, 1);
             if (i > 0 && this.shortcut != 0) {
 
-                var fb = selfLayer.delta.offsetNew(-outputs*batch);
+                FloatBuffer fb = selfLayer.delta.offsetNew(-outputs*batch);
                 Blas.axpyCpu(this.outputs*this.batch, 1, selfLayer.delta, 1, fb, 1);
             }
 

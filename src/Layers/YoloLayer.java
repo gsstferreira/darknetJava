@@ -175,7 +175,7 @@ public class YoloLayer extends Layer {
                         int best_t = 0;
                         for(t = 0; t < this.maxBoxes; ++t){
 
-                            var fb = net.truth.offsetNew(t*(4 + 1) + b*this.truths);
+                            FloatBuffer fb = net.truth.offsetNew(t*(4 + 1) + b*this.truths);
 
                             Box truth = Box.floatToBox(fb, 1);
 
@@ -212,7 +212,7 @@ public class YoloLayer extends Layer {
                             int class_index = entryIndex(b, n*this.w*this.h + j*this.w + i, 4 + 1);
                             deltaYoloClass(this.output, this.delta, class_index, clas, this.classes, this.w*this.h, null);
 
-                            var fb = net.truth.offsetNew(best_t*(4 + 1) + b*this.truths);
+                            FloatBuffer fb = net.truth.offsetNew(best_t*(4 + 1) + b*this.truths);
                             Box truth = Box.floatToBox(fb, 1);
 
                             deltaYoloBox(truth, output, biases, mask.get(n), Box_index, i, j, w, h, net.w, net.h, delta, (2-truth.w*truth.h), w*h);
@@ -223,7 +223,7 @@ public class YoloLayer extends Layer {
 
             for(t = 0; t < this.maxBoxes; ++t){
 
-                var fb = net.truth.offsetNew(t*(4 + 1) + b*this.truths);
+                FloatBuffer fb = net.truth.offsetNew(t*(4 + 1) + b*this.truths);
                 Box truth = Box.floatToBox(fb, 1);
 
                 if(truth.x == 0) {
@@ -267,7 +267,7 @@ public class YoloLayer extends Layer {
 
                     int class_index = entryIndex(b, mask_n*this.w*this.h + j*this.w + i, 4 + 1);
 
-                    var avg = new FloatBuffer(1);
+                    FloatBuffer avg = new FloatBuffer(1);
                     avg.put(0,avg_cat);
 
                     deltaYoloClass(this.output, this.delta, class_index, clas, this.classes, this.w*this.h, avg);
@@ -348,7 +348,7 @@ public class YoloLayer extends Layer {
     public void avgFlippedYolo() {
 
         int i,j,n,z;
-        var flip = this.output.offsetNew(this.outputs);
+        FloatBuffer flip = this.output.offsetNew(this.outputs);
         for (j = 0; j < this.h; ++j) {
             for (i = 0; i < this.w/2; ++i) {
                 for (n = 0; n < this.n; ++n) {

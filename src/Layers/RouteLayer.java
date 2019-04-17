@@ -71,13 +71,13 @@ public class RouteLayer extends Layer {
         int offset = 0;
         for(i = 0; i < this.n; ++i){
             int index = this.inputLayers.get(i);
-            var input = net.layers[index].output;
+            FloatBuffer input = net.layers[index].output;
             int input_size = this.inputSizes.get(i);
 
             for(j = 0; j < this.batch; ++j){
 
-                var fb1 = input.offsetNew(j*input_size);
-                var fb2 = this.output.offsetNew(offset + j*this.outputs);
+                FloatBuffer fb1 = input.offsetNew(j*input_size);
+                FloatBuffer fb2 = this.output.offsetNew(offset + j*this.outputs);
 
                 Blas.copyCpu(input_size, fb1, 1, fb2, 1);
             }
@@ -91,14 +91,14 @@ public class RouteLayer extends Layer {
         int offset = 0;
         for(i = 0; i < this.n; ++i){
             int index = this.inputLayers.get(i);
-            var delta = net.layers[index].delta;
+            FloatBuffer delta = net.layers[index].delta;
 
             int input_size = this.inputSizes.get(i);
 
             for(j = 0; j < this.batch; ++j){
 
-                var fb1 = this.delta.offsetNew(offset + j*this.outputs);
-                var fb2 = delta.offsetNew(j*input_size);
+                FloatBuffer fb1 = this.delta.offsetNew(offset + j*this.outputs);
+                FloatBuffer fb2 = delta.offsetNew(j*input_size);
 
                 Blas.axpyCpu(input_size, 1, fb1, 1, fb2, 1);
             }

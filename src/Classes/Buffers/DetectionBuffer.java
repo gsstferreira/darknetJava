@@ -29,7 +29,7 @@ public class DetectionBuffer {
 
     public DetectionBuffer offsetNew(int off) {
 
-        var dec = new DetectionBuffer(this.array);
+        DetectionBuffer dec = new DetectionBuffer(this.array);
 
         dec.offset = off + this.offset;
 
@@ -55,7 +55,7 @@ public class DetectionBuffer {
      */
     public DetectionBuffer shallowClone() {
 
-        var buff = new DetectionBuffer(this.array);
+        DetectionBuffer buff = new DetectionBuffer(this.array);
         buff.offset(this.offset);
 
         return buff;

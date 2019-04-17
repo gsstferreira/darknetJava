@@ -4,16 +4,21 @@ import Classes.Buffers.FloatBuffer;
 import Classes.Buffers.IntBuffer;
 import Enums.ImType;
 import Tools.Blas;
+import Tools.GlobalVars;
 import Tools.Rand;
 import Tools.Util;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.stb.STBImageWrite;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class Image {
 
@@ -22,7 +27,6 @@ public class Image {
     public int c;
     public FloatBuffer data;
 
-    private static int windows = 0;
     private static float[][] colors = {{1,0,1},{0,0,1},{0,1,1},{0,1,0},{1,1,0},{1,0,0}};
 
     private static final int alphabetNsize = 8;
@@ -115,8 +119,6 @@ public class Image {
         if(x >= w || y >= h || c >= this.c || x < 0 || y < 0 || c < 0){
             return;
         }
-
-        assert(x < this.w && y < this.h && c < this.c);
 
         this.data.put(c*h*w + y*w + x,val);
     }
@@ -369,13 +371,28 @@ public class Image {
         int[] _channel = new int[1];
 
         try {
-            ByteBuffer bb = STBImage.stbi_load(filename,_width,_height,_channel,channels);
+            ByteBuffer bb;
+
+            try {
+                InputStream inputStream = Image.class.getResourceAsStream(filename);
+                byte[] b = inputStream.readAllBytes();
+                inputStream.close();
+                ByteBuffer _BB = BufferUtils.createByteBuffer(b.length);
+                _BB.put(b);
+                _BB.position(0);
+                bb = STBImage.stbi_load_from_memory(_BB,_width,_height,_channel,channels);
+
+            }
+            catch (Exception e){
+                bb = STBImage.stbi_load(filename,_width,_height,_channel,channels);
+            }
 
             int width = _width[0];
             int height = _height[0];
             int channel = (channels != 0) ? channels : _channel[0];
 
             Image im = new Image(width, height, channels,false);
+
             for(int k = 0; k < channel; ++k){
                 for(int j = 0; j < height; ++j){
                     for(int i = 0; i < width; ++i){
@@ -387,8 +404,6 @@ public class Image {
                     }
                 }
             }
-            bb = null;
-            System.gc();
             return im;
         }
         catch (Exception e) {
@@ -466,12 +481,12 @@ public class Image {
 
         Image[][] alphabets = new Image[alphabetNsize][128];
 
-        for(int j = 0; j < alphabetNsize; ++j){
+        IntStream.range(0,alphabetNsize).parallel().forEach(j -> {
             for(int i = 32; i < 127; ++i){
-                String s = String.format("Res/labels/%d_%d.png",i,j);
+                String s = String.format("/Res/labels/%d_%d.png",i,j);
                 alphabets[j][i] = loadImageColor(s, 0, 0);
             }
-        }
+        });
         return alphabets;
     }
 
@@ -1367,7 +1382,7 @@ public class Image {
         int i,j;
         List<Result> list = new ArrayList<>();
 
-        System.out.print("[");
+        //System.out.print("[");
 
         for(i = 0; i < num; ++i){
 
@@ -1390,7 +1405,7 @@ public class Image {
                     }
                     currentName = names.get(j);
                     currentConfidence = dets[i].prob[j] * 100.0f;
-                    System.out.print(String.format("(%s:%.0f)",currentName,currentConfidence));
+                    //System.out.print(String.format("(%s:%.0f)",currentName,currentConfidence));
                 }
             }
 
@@ -1449,7 +1464,7 @@ public class Image {
                 }
             }
         }
-        System.out.println("]");
+        //System.out.println("]");
         return list;
     }
 

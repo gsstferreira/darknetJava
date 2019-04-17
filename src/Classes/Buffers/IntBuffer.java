@@ -31,7 +31,7 @@ public class IntBuffer {
 
     public IntBuffer offsetNew(int off) {
 
-        var dec = new IntBuffer(this.array);
+        IntBuffer dec = new IntBuffer(this.array);
 
         dec.offset = off + this.offset;
 
@@ -57,7 +57,7 @@ public class IntBuffer {
      */
     public IntBuffer shallowClone() {
 
-        var buff = new IntBuffer(this.array);
+        IntBuffer buff = new IntBuffer(this.array);
         buff.offset(this.offset);
 
         return buff;
