@@ -1,35 +1,36 @@
 package Classes;
 
 import Classes.Buffers.FloatBuffer;
+import Tools.Util;
 
 import java.util.*;
 
 
 public class Box {
     
-    private static class DBox {
-        
-        float dx;
-        float dy;
-        float dw;
-        float dh;
-
-        public DBox(){}
-        public DBox(float X, float Y, float W, float H) {
-
-            this.dx = X;
-            this.dy = Y;
-            this.dw = W;
-            this.dh = H;
-        }
-    }
+//    private static class DBox {
+//
+//        float dx;
+//        float dy;
+//        float dw;
+//        float dh;
+//
+//        public DBox(){}
+//        public DBox(float X, float Y, float W, float H) {
+//
+//            this.dx = X;
+//            this.dy = Y;
+//            this.dw = W;
+//            this.dh = H;
+//        }
+//    }
     
     public float x;
     public float y;
     public float w;
     public float h;
 
-    private static final double log2 = Math.log(2);
+
 
     public Box(){}
     public Box(float X, float Y, float W, float H) {
@@ -167,56 +168,56 @@ public class Box {
         }
     }
 
-    private static DBox derivative(Box a, Box b) {
-        
-        DBox d = new DBox();
-        d.dx = 0;
-        d.dw = 0;
-        float l1 = a.x - a.w/2;
-        float l2 = b.x - b.w/2;
-        if (l1 > l2){
-            d.dx -= 1;
-            d.dw += .5;
-        }
-        float r1 = a.x + a.w/2;
-        float r2 = b.x + b.w/2;
-        if(r1 < r2){
-            d.dx += 1;
-            d.dw += .5;
-        }
-        if (l1 > r2) {
-            d.dx = -1;
-            d.dw = 0;
-        }
-        if (r1 < l2){
-            d.dx = 1;
-            d.dw = 0;
-        }
-
-        d.dy = 0;
-        d.dh = 0;
-        float t1 = a.y - a.h/2;
-        float t2 = b.y - b.h/2;
-        if (t1 > t2){
-            d.dy -= 1;
-            d.dh += .5;
-        }
-        float b1 = a.y + a.h/2;
-        float b2 = b.y + b.h/2;
-        if(b1 < b2){
-            d.dy += 1;
-            d.dh += .5;
-        }
-        if (t1 > b2) {
-            d.dy = -1;
-            d.dh = 0;
-        }
-        if (b1 < t2){
-            d.dy = 1;
-            d.dh = 0;
-        }
-        return d;
-    }
+//    private static DBox derivative(Box a, Box b) {
+//
+//        DBox d = new DBox();
+//        d.dx = 0;
+//        d.dw = 0;
+//        float l1 = a.x - a.w/2;
+//        float l2 = b.x - b.w/2;
+//        if (l1 > l2){
+//            d.dx -= 1;
+//            d.dw += .5;
+//        }
+//        float r1 = a.x + a.w/2;
+//        float r2 = b.x + b.w/2;
+//        if(r1 < r2){
+//            d.dx += 1;
+//            d.dw += .5;
+//        }
+//        if (l1 > r2) {
+//            d.dx = -1;
+//            d.dw = 0;
+//        }
+//        if (r1 < l2){
+//            d.dx = 1;
+//            d.dw = 0;
+//        }
+//
+//        d.dy = 0;
+//        d.dh = 0;
+//        float t1 = a.y - a.h/2;
+//        float t2 = b.y - b.h/2;
+//        if (t1 > t2){
+//            d.dy -= 1;
+//            d.dh += .5;
+//        }
+//        float b1 = a.y + a.h/2;
+//        float b2 = b.y + b.h/2;
+//        if(b1 < b2){
+//            d.dy += 1;
+//            d.dh += .5;
+//        }
+//        if (t1 > b2) {
+//            d.dy = -1;
+//            d.dh = 0;
+//        }
+//        if (b1 < t2){
+//            d.dy = 1;
+//            d.dh = 0;
+//        }
+//        return d;
+//    }
 
     private static float overlap(float x1, float w1, float x2, float w2) {
         
@@ -256,33 +257,33 @@ public class Box {
         return (float) Math.sqrt(Math.pow(a.x-b.x, 2) + Math.pow(a.y-b.y, 2) + Math.pow(a.w-b.w, 2) + Math.pow(a.h-b.h, 2));
     }
 
-    private static DBox dintersect(Box a, Box b) {
-        
-        float w = overlap(a.x, a.w, b.x, b.w);
-        float h = overlap(a.y, a.h, b.y, b.h);
-        DBox dover = derivative(a, b);
-        DBox di = new DBox();
-
-        di.dw = dover.dw*h;
-        di.dx = dover.dx*h;
-        di.dh = dover.dh*w;
-        di.dy = dover.dy*w;
-
-        return di;
-    }
-
-    private static DBox dunion(Box a, Box b) {
-
-        DBox du = new DBox();
-
-        DBox di = dintersect(a, b);
-        du.dw = a.h - di.dw;
-        du.dh = a.w - di.dh;
-        du.dx = -di.dx;
-        du.dy = -di.dy;
-
-        return du;
-    }
+//    private static DBox dintersect(Box a, Box b) {
+//
+//        float w = overlap(a.x, a.w, b.x, b.w);
+//        float h = overlap(a.y, a.h, b.y, b.h);
+//        DBox dover = derivative(a, b);
+//        DBox di = new DBox();
+//
+//        di.dw = dover.dw*h;
+//        di.dx = dover.dx*h;
+//        di.dh = dover.dh*w;
+//        di.dy = dover.dy*w;
+//
+//        return di;
+//    }
+//
+//    private static DBox dunion(Box a, Box b) {
+//
+//        DBox du = new DBox();
+//
+//        DBox di = dintersect(a, b);
+//        du.dw = a.h - di.dw;
+//        du.dh = a.w - di.dh;
+//        du.dx = -di.dx;
+//        du.dy = -di.dy;
+//
+//        return du;
+//    }
 
     private void testDunion() {
 
@@ -312,7 +313,7 @@ public class Box {
 
         Box b = new Box(.5f, .5f, .2f, .2f);
 
-        DBox di = dintersect(a,b);
+        //DBox di = dintersect(a,b);
 
         float inter =  boxIntersection(a, b);
         float xinter = boxIntersection(dxa, b);
@@ -343,7 +344,7 @@ public class Box {
         float iou = boxIou(a,b);
         iou = (1-iou)*(1-iou);
 
-        DBox d = diou(a, b);
+        //DBox d = diou(a, b);
 
         float xiou = boxIou(dxa, b);
         float yiou = boxIou(dya, b);
@@ -355,28 +356,28 @@ public class Box {
         hiou = ((1-hiou)*(1-hiou) - iou)/(.00001f);
     }
 
-    public static DBox diou(Box a, Box b) {
-
-        float u = boxUnion(a,b);
-        float i = boxIntersection(a,b);
-        DBox di = dintersect(a,b);
-        DBox du = dunion(a,b);
-        DBox dd = new DBox(0,0,0,0);
-
-        if(i <= 0) {
-            dd.dx = b.x - a.x;
-            dd.dy = b.y - a.y;
-            dd.dw = b.w - a.w;
-            dd.dh = b.h - a.h;
-            return dd;
-        }
-
-        dd.dx = 2*(float)Math.pow((1-(i/u)),1)*(di.dx*u - du.dx*i)/(u*u);
-        dd.dy = 2*(float)Math.pow((1-(i/u)),1)*(di.dy*u - du.dy*i)/(u*u);
-        dd.dw = 2*(float)Math.pow((1-(i/u)),1)*(di.dw*u - du.dw*i)/(u*u);
-        dd.dh = 2*(float)Math.pow((1-(i/u)),1)*(di.dh*u - du.dh*i)/(u*u);
-        return dd;
-    }
+//    public static DBox diou(Box a, Box b) {
+//
+//        float u = boxUnion(a,b);
+//        float i = boxIntersection(a,b);
+//        DBox di = dintersect(a,b);
+//        DBox du = dunion(a,b);
+//        DBox dd = new DBox(0,0,0,0);
+//
+//        if(i <= 0) {
+//            dd.dx = b.x - a.x;
+//            dd.dy = b.y - a.y;
+//            dd.dw = b.w - a.w;
+//            dd.dh = b.h - a.h;
+//            return dd;
+//        }
+//
+//        dd.dx = 2*(float)Math.pow((1-(i/u)),1)*(di.dx*u - du.dx*i)/(u*u);
+//        dd.dy = 2*(float)Math.pow((1-(i/u)),1)*(di.dy*u - du.dy*i)/(u*u);
+//        dd.dw = 2*(float)Math.pow((1-(i/u)),1)*(di.dw*u - du.dw*i)/(u*u);
+//        dd.dh = 2*(float)Math.pow((1-(i/u)),1)*(di.dh*u - du.dh*i)/(u*u);
+//        return dd;
+//    }
 
     public  static void doNms(Box[] Boxes, float[][] probs, int total, int classes, float thresh) {
 
@@ -405,8 +406,8 @@ public class Box {
         Box encode = new Box();
         encode.x = (b.x - anchor.x) / anchor.w;
         encode.y = (b.y - anchor.y) / anchor.h;
-        encode.w = (float)(Math.log(b.w / anchor.w)/log2);
-        encode.h = (float)(Math.log(b.h / anchor.h)/log2);
+        encode.w = (float)(Math.log(b.w / anchor.w)/ Util.log2);
+        encode.h = (float)(Math.log(b.h / anchor.h)/Util.log2);
         return encode;
     }
 

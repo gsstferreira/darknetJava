@@ -39,6 +39,7 @@ public class RegionLayer extends Layer {
 
             this.biases.put(i,0.5f);
         }
+        System.out.printf("detection\n");
     }
 
     public void resize(int w, int h) {

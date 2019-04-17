@@ -61,6 +61,7 @@ public abstract class ImCol {
         int width_col = (width + 2*pad - ksize) / stride + 1;
 
         int channels_col = channels * ksize * ksize;
+
         for (c = 0; c < channels_col; ++c) {
             int w_offset = c % ksize;
             int h_offset = (c / ksize) % ksize;

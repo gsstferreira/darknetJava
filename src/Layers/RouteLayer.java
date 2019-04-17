@@ -12,24 +12,27 @@ import Tools.Buffers;
 
 public class RouteLayer extends Layer {
 
-    public RouteLayer(int batch, int n, IntBuffer input_Layers, IntBuffer input_sizes) {
+    public RouteLayer(int batch, int n, IntBuffer input_layers, IntBuffer input_sizes) {
+
+        System.out.print("route ");
 
         this.type = LayerType.ROUTE;
         this.batch = batch;
         this.n = n;
-        this.inputLayers = input_Layers;
+        this.inputLayers = input_layers;
         this.inputSizes = input_sizes;
         int i;
         int outputs = 0;
         for(i = 0; i < n; ++i){
-
+            System.out.printf(" %d", this.inputLayers.get(i));
             outputs += input_sizes.get(i);
         }
+        System.out.println();
 
         this.outputs = outputs;
         this.inputs = outputs;
         this.delta = new FloatBuffer(outputs * batch);
-        this.output = new FloatBuffer(outputs*batch);
+        this.output = new FloatBuffer(outputs * batch);
     }
 
     public void resize(Network net) {
@@ -60,7 +63,6 @@ public class RouteLayer extends Layer {
         this.inputs = this.outputs;
         this.delta =  Buffers.realloc(this.delta, this.outputs*this.batch);
         this.output = Buffers.realloc(this.output, this.outputs*this.batch);
-
     }
 
     public void forward(Network net) {

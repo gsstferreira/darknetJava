@@ -23,6 +23,8 @@ public class SoftmaxLayer extends Layer {
         this.output = new FloatBuffer(inputs*batch);
         this.delta = new FloatBuffer(inputs*batch);
         this.cost = new FloatBuffer(1);
+
+        System.out.printf("softmax                                        %4d\n",  inputs);
     }
 
     public void forward(Network net) {

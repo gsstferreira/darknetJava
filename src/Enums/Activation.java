@@ -38,7 +38,7 @@ public enum Activation {
         return a.name().toLowerCase();
     }
 
-    public static void activateArray(FloatBuffer x, int n, Activation a) {
+    public static void activateArray(FloatBuffer x,final int n, Activation a) {
 
         for(int i = 0; i < n; ++i){
 
@@ -75,7 +75,7 @@ public enum Activation {
             case RAMP:
                 return rampActivate(x);
             case LEAKY:
-                return leakyActiavte(x);
+                return leakyActivate(x);
             case TANH:
                 return tanhActivate(x);
             case PLSE:
@@ -202,8 +202,13 @@ public enum Activation {
         return val;
     }
 
-    private static float leakyActiavte(float x){
-        return (x>0) ? x : 0.1f*x;
+    private static float leakyActivate(float x){
+
+        if(x  <= 0) {
+            x = x* 0.1f;
+        }
+
+        return x;
     }
 
     private static float tanhActivate(float x){

@@ -4,6 +4,7 @@ import Classes.*;
 import Classes.Buffers.DetectionBuffer;
 import Classes.Buffers.FloatBuffer;
 import Classes.Buffers.IntBuffer;
+import Enums.Activation;
 import Enums.LayerType;
 import Tools.Blas;
 import Tools.Buffers;
@@ -51,6 +52,8 @@ public class YoloLayer extends Layer {
 
             this.biases.put(i,0.5f);
         }
+
+        System.out.printf("yolo\n");
     }
 
     public void resize(int w, int h) {
@@ -134,6 +137,18 @@ public class YoloLayer extends Layer {
 
         Buffers.copy(net.input,this.output, this.outputs*this.batch);
         Buffers.setValue(this.delta,0,this.outputs * this.batch);
+
+        for (b = 0; b < this.batch; ++b){
+            for(n = 0; n < this.n; ++n){
+                int index = entryIndex(b, n*w*h, 0);
+
+                FloatBuffer fb = this.output.offsetNew(index);
+                Activation.activateArray(fb,2*w*h, Activation.LOGISTIC);
+                int index2 = entryIndex(b, n*w*h, 4);
+                fb.offset(index2 - index);
+                Activation.activateArray(fb, (1+this.classes)*w*h, Activation.LOGISTIC);
+            }
+        }
 
         if(net.train == 0) {
             return;
@@ -282,8 +297,8 @@ public class YoloLayer extends Layer {
     public void correctYoloBoxes(DetectionBuffer dets, int n, int w, int h, int netw, int neth, int relative) {
 
         int i;
-        int new_w;
-        int new_h;
+        int new_w = 0;
+        int new_h = 0;
 
         if (((float)netw/w) < ((float)neth/h)) {
             new_w = netw;
@@ -302,7 +317,7 @@ public class YoloLayer extends Layer {
             b.w *= (float)netw/new_w;
             b.h *= (float)neth/new_h;
 
-            if(relative != 0){
+            if(relative == 0){
                 b.x *= w;
                 b.w *= w;
                 b.y *= h;
@@ -319,7 +334,10 @@ public class YoloLayer extends Layer {
         for (i = 0; i < this.w*this.h; ++i){
             for(n = 0; n < this.n; ++n){
                 int obj_index  = entryIndex(0, n*this.w*this.h + i, 4);
-                if(this.output.get(obj_index) > thresh){
+
+                float conf = this.output.get(obj_index);
+
+                if(conf > thresh){
                     ++count;
                 }
             }
@@ -358,10 +376,6 @@ public class YoloLayer extends Layer {
     }
 
     public int getYoloDetections(int w, int h, int netw, int neth, float thresh, IntBuffer map, int relative, DetectionBuffer dets) {
-
-        if(dets.size() < 1) {
-            return 0;
-        }
 
         int i,j,n;
         FloatBuffer predictions = this.output;

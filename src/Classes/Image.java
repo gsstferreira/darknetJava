@@ -11,6 +11,8 @@ import org.lwjgl.stb.STBImage;
 import org.lwjgl.stb.STBImageWrite;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Image {
@@ -47,11 +49,8 @@ public class Image {
         this.h = height;
         this.c = c;
 
-        this.data = new FloatBuffer(width*height*c);
+        this.data = data;
 
-        for(int i = 0; i < this.data.size(); i++) {
-                this.data.put(i,data.get(i));
-        }
     }
 
     public static float getColor(int c, int x, int max) {
@@ -92,44 +91,34 @@ public class Image {
 
     public float getPixel(int x, int y, int c) {
 
-        try {
-            if(x >= w || y >= h || c >= this.c || x < 0 || y < 0) {
-                throw new Exception();
-            }
+        assert(x < this.w && y < this.h && c < this.c);
 
-            return this.data.get(c*h*w + y*w + x);
-        }
-        catch (Exception e) {
-            System.out.println("Image.getPixel() coords ou of bounds.");
-            return Float.NaN;
-        }
+        return this.data.get(c*h*w + y*w + x);
     }
 
     public float getPixelExtended(int x, int y, int c) {
 
-        float val = this.getPixel(x,y,c);
+        if(x < 0 || x >= this.w || y < 0 || y >= this.h) {
+            return 0;
+        }
 
-        if(Float.isNaN(val)) {
+        else if(c < 0 || c >= this.c) {
             return 0;
         }
         else {
-            return val;
+            return getPixel(x, y, c);
         }
     }
 
     public void setPixel(int x, int y, int c, float val) {
 
-        try {
-
-            if(x >= w || y >= h || c >= this.c || x < 0 || y < 0){
-                return;
-            }
-
-            this.data.put(c*h*w + y*w + x,val);
+        if(x >= w || y >= h || c >= this.c || x < 0 || y < 0 || c < 0){
+            return;
         }
-        catch (Exception e) {
-            System.out.println("Image.setPixel() coords ou of bounds.");
-        }
+
+        assert(x < this.w && y < this.h && c < this.c);
+
+        this.data.put(c*h*w + y*w + x,val);
     }
 
     public void addToPixel(int x, int y, int c, float val) {
@@ -176,7 +165,7 @@ public class Image {
             for(y = 0; y < b.h; ++y){
                 for(x = 0; x < b.w; ++x){
                     float val = this.getPixelExtended(x - border, y - border, k);
-                    if(x - border < 0 || x - border >= w || y - border < 0 || y - border >= h) {
+                    if((x - border) < 0 || (x - border) >= w || (y - border) < 0 || (y - border) >= h) {
                         val = 1;
                     }
                     b.setPixel(x, y, k, val);
@@ -206,13 +195,12 @@ public class Image {
         if(size > 7) size = 7;
         Image label = new Image(0,0,0,false);
 
-
         for (int i = 0; i < string.length(); i++) {
 
-            Image l = characters[size][string.charAt(i)];
+            Image l = characters[size][(0x0000FFFF & string.charAt(i))];
             label = label.tileImages(l,-size - 1 + (size + 1)/2);
         }
-        return label.borderImage(label.h/4);
+        return label.borderImage((int) (label.h*0.25f));
     }
 
     public void embedImage(Image dest, int dx, int dy) {
@@ -285,14 +273,16 @@ public class Image {
 
         int _w = label.w;
         int _h = label.h;
-        if (r - _h >= 0) r = r - _h;
+        if ((r - _h) >= 0) {
+            r -= _h;
+        }
 
         int i, j, k;
-        for(j = 0; j < _h && j + r < h; ++j){
-            for(i = 0; i < _w && i + c < w; ++i){
+        for(j = 0; (j < _h) && ((j + r) < h); ++j){
+            for(i = 0; (i < _w) && ((i + c) < w); ++i){
                 for(k = 0; k < label.c; ++k){
-                    float val = getPixel(i, j, k);
-                    this.setPixel(i+c, j+r, k, rgb.get(k) * val);
+                    float val = label.getPixel(i, j, k);
+                    setPixel(i+c, j+r, k, rgb.get(k) * val);
                 }
             }
         }
@@ -302,36 +292,36 @@ public class Image {
 
         int i;
         if(x1 < 0) x1 = 0;
-        if(x1 >= w) x1 = w-1;
+        else if(x1 >= w) x1 = w-1;
         if(x2 < 0) x2 = 0;
-        if(x2 >= w) x2 = w-1;
+        else if(x2 >= w) x2 = w-1;
 
         if(y1 < 0) y1 = 0;
-        if(y1 >= h) y1 = h-1;
+        else if(y1 >= h) y1 = h-1;
         if(y2 < 0) y2 = 0;
-        if(y2 >= h) y2 = h-1;
+        else if(y2 >= h) y2 = h-1;
 
         for(i = x1; i <= x2; ++i) {
 
-            data.put(i + y1*w,r);
-            data.put(i + y2*w,r);
+            this.data.put(i + y1*w,r);
+            this.data.put(i + y2*w,r);
 
-            data.put(i + (y1 + h)*w,g);
-            data.put(i + (y2 + h)*w,g);
+            this.data.put(i + y1*w + w*h,g);
+            this.data.put(i + y2*w + w*h,g);
 
-            data.put(i + (y1 + 2*h)*w,b);
-            data.put(i + (y2 + 2*h)*w,b);
+            this.data.put(i + y1*w + 2*h*w,b);
+            this.data.put(i + y2*w + 2*h*w,b);
         }
         for(i = y1; i <= y2; ++i) {
 
-            data.put(x1 + i*w,r);
-            data.put(x2 + i*w,r);
+            this.data.put(x1 + i*w,r);
+            this.data.put(x2 + i*w,r);
 
-            data.put(x1 + i*w + w*h,g);
-            data.put(x2 + i*w + w*h,g);
+            this.data.put(x1 + i*w + w*h,g);
+            this.data.put(x2 + i*w + w*h,g);
 
-            data.put(x1 + i*w + 2*w*h,b);
-            data.put(x2 + i*w + 2*w*h,b);
+            this.data.put(x1 + i*w + 2*w*h,b);
+            this.data.put(x2 + i*w + 2*w*h,b);
         }
     }
 
@@ -379,7 +369,6 @@ public class Image {
         int[] _channel = new int[1];
 
         try {
-
             ByteBuffer bb = STBImage.stbi_load(filename,_width,_height,_channel,channels);
 
             int width = _width[0];
@@ -434,7 +423,7 @@ public class Image {
         int i,k;
         for(k = 0; k < c; ++k){
             for(i = 0; i < w*h; ++i){
-                data[i*c+k] = (byte) (255*this.data.get(i+k*w*h));
+                data[i*c+k] = (byte)(255.0f*this.data.get(i+k*w*h));
             }
         }
 
@@ -466,6 +455,11 @@ public class Image {
     public void saveToDisk(String path, ImType f, int quality) {
 
         this.saveImageOptions(path,f,quality);
+    }
+
+    public void saveToDisk(String path, ImType f) {
+
+        this.saveImageOptions(path,f,100);
     }
 
     public static Image[][] loadAlphabet() {
@@ -1368,15 +1362,18 @@ public class Image {
         constrain();
     }
 
-    public void drawDetections(Detection[] dets, int num, float thresh, List<String> names, Image[][] alphabet, int classes) {
+    public List<Result> drawDetections(Detection[] dets, int num, float thresh, List<String> names, Image[][] alphabet, int classes) {
 
         int i,j;
+        List<Result> list = new ArrayList<>();
 
-        System.out.print("\n[");
+        System.out.print("[");
 
         for(i = 0; i < num; ++i){
 
             String labelString = "";
+            String currentName = "";
+            float currentConfidence = 0;
 
             int _class = -1;
             for(j = 0; j < classes; ++j){
@@ -1391,7 +1388,9 @@ public class Image {
                         labelString = labelString.concat(", ");
                         labelString = labelString.concat(names.get(j));
                     }
-                    System.out.println(String.format("(%s:%.0f)",names.get(j),dets[i].prob[j]*100));
+                    currentName = names.get(j);
+                    currentConfidence = dets[i].prob[j] * 100.0f;
+                    System.out.print(String.format("(%s:%.0f)",currentName,currentConfidence));
                 }
             }
 
@@ -1405,17 +1404,16 @@ public class Image {
                 float blue = getColor(0,offset,classes);
                 float[] rgb = new float[3];
 
-
                 rgb[0] = red;
                 rgb[1] = green;
                 rgb[2] = blue;
 
                 Box b = dets[i].bBox;
 
-                int left  = (int) (b.x-b.w/2.)*w;
-                int right = (int) (b.x+b.w/2.)*w;
-                int top   = (int) (b.y-b.h/2.)*h;
-                int bot   = (int) (b.y+b.h/2.)*h;
+                int left  = (int)((b.x-b.w/2.)*w);
+                int right = (int)((b.x+b.w/2.)*w);
+                int top   = (int)((b.y-b.h/2.)*h);
+                int bot   = (int)((b.y+b.h/2.)*h);
 
                 if(left < 0) {
                     left = 0;
@@ -1430,13 +1428,16 @@ public class Image {
                     bot = h - 1;
                 }
 
+                Result r = new Result(currentName,currentConfidence,left,top,right-left,bot-top);
+                list.add(r);
+
                 drawBoxWidth(left, top, right, bot, width, red, green, blue);
 
                 if (alphabet != null) {
-                    Image label = getLabel(alphabet, labelString, (int) (h*.03));
+                    Image label = getLabel(alphabet, labelString, (int)(h*.03f));
                     drawLabel(top + width, left, label, new FloatBuffer(rgb));
                 }
-                
+
                 if (dets[i].mask != null) {
 
                     Image mask = new Image(14, 14, 1, new FloatBuffer(dets[i].mask));
@@ -1449,6 +1450,7 @@ public class Image {
             }
         }
         System.out.println("]");
+        return list;
     }
 
 }

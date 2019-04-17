@@ -21,7 +21,7 @@ public class UpsampleLayer extends Layer {
         this.outC = c;
         if(stride < 0){
             stride = -stride;
-            this.reverse=1;
+            this.reverse = 1;
             this.outW = w/stride;
             this.outH = h/stride;
         }
@@ -30,6 +30,14 @@ public class UpsampleLayer extends Layer {
         this.inputs = this.w*this.h*this.c;
         this.delta =  new FloatBuffer(this.outputs*batch);
         this.output = new FloatBuffer(this.outputs*batch);
+
+        if(this.reverse != 0) {
+            System.out.printf("downsample         %2dx  %4d x%4d x%4d   ->  %4d x%4d x%4d\n", stride, w, h, c, this.outW, this.outH, this.outC);
+        }
+        else {
+            System.out.printf("upsample           %2dx  %4d x%4d x%4d   ->  %4d x%4d x%4d\n", stride, w, h, c, this.outW, this.outH, this.outC);
+        }
+
     }
 
     public void resize(int w, int h) {

@@ -1,20 +1,26 @@
 
 import Tools.Detector;
-
-import java.io.*;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import Tools.GlobalVars;
+import com.google.gson.Gson;
 
 public class Main {
 
+    private static final String networkCfgPath = "Res/network.cfg";
+    private static final String namesCfgPath = "Res/names.cfg";
+    private static final String weightsPath = "Res/weight.weights";
+
     public static void main(String[] args) {
 
-        String cfgFile = "C:/darknetaws/cfg/yolov3-tiny.cfg";
-        String weightFile = "C:/darknetaws/backup/yolov3-tiny_20000.weights";
-        String dataFile = "C:/darknetaws/cfg/myYolo2.data";
-        String imgPath = "C:/darknetaws/data/dual6.jpg";
+        String imgPath = "C:/Yolo/darknet/data/trio2.jpg";
 
-        Detector.runDetector(dataFile,cfgFile,weightFile,imgPath);
+        GlobalVars.loadAlphabet();
+        GlobalVars.loadNetwork(networkCfgPath,weightsPath,namesCfgPath);
+
+        var x = Detector.runDetector(namesCfgPath,networkCfgPath,weightsPath,imgPath);
+
+        String s = new Gson().toJson(x);
+
+        System.out.println(s);
+
     }
 }

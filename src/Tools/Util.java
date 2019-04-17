@@ -12,6 +12,7 @@ import java.util.List;
 public abstract class Util {
 
     public static final int SECRET_NUMBER = -1234;
+    public static final double log2 = Math.log(2);
 
     public static void topK(FloatBuffer a, int n, int k, IntBuffer index) {
 

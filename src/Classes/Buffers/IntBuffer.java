@@ -51,6 +51,19 @@ public class IntBuffer {
         return this.array[index + offset];
     }
 
+    /**
+     * Creates a new IntBuffer object which is a shallow copy of the original object
+     * @return IntBuffer object, with reference to the same array
+     */
+    public IntBuffer shallowClone() {
+
+        var buff = new IntBuffer(this.array);
+        buff.offset(this.offset);
+
+        return buff;
+    }
+
+
     public void put(int index,int d) {
 
         this.array[index + offset] = d;

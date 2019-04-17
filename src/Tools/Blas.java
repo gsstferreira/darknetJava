@@ -3,6 +3,8 @@ package Tools;
 
 import Classes.Buffers.FloatBuffer;
 
+import java.util.stream.IntStream;
+
 // Completo
 public abstract class Blas {
 
@@ -54,20 +56,15 @@ public abstract class Blas {
                 }
             }
         }
-        Buffers.copy(swap,x,swap.size());
+        Buffers.copy(swap,x,size*layers*batch);
     } //
 
     public static void weightedSumCpu(FloatBuffer a, FloatBuffer b, FloatBuffer s, int n, FloatBuffer c) {
 
         for(int i = 0; i < n; ++i){
 
-            c.put(i,s.get(i)*a.get(i));
-
-            if(b != null) {
-
-                float val = c.get(i) + (1 - s.get(i))*b.get(i);
-                c.put(i,val);
-            }
+            float val = s.get(i)*a.get(i) + (1 - s.get(i))*(b != null ? b.get(i) : 0);
+            c.put(i,val);
         }
     } //
 
@@ -171,7 +168,7 @@ public abstract class Blas {
                     int index = b*filters*spatial + f*spatial + i;
 
                     x.put(index,x.get(index)/sum);
-                    dx.put(index,(1 - x.get(index)/sum));
+                    dx.put(index,(1 - x.get(index))/sum);
                 }
             }
         }
@@ -184,8 +181,8 @@ public abstract class Blas {
                 for(int i = 0; i < spatial; ++i){
                     int index = b*filters*spatial + f*spatial + i;
 
-                    float val = (x.get(index) - mean.get(f))/(float)(Math.sqrt(variance.get(f) +0.000001));
-                    x.put(index,val);
+                    double  val = (x.get(index) - mean.get(f))/(Math.sqrt(variance.get(f)) + 0.000001);
+                    x.put(index,(float)val);
                 }
             }
         }
@@ -216,26 +213,24 @@ public abstract class Blas {
 
     public static void axpyCpu(int N, float ALPHA, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
 
-        for(int i = 0; i < N; ++i) {
-
+        IntStream.range(0,N).parallel().forEach(i -> {
             float val = Y.get(i*INCY) + ALPHA * X.get(i*INCX);
             Y.put(i*INCY,val);
-        }
+        });
     } //
 
     public static void scalCpu(int N, float ALPHA, FloatBuffer X, int INCX) {
 
-        for(int i = 0; i < N; ++i) {
-
+        IntStream.range(0,N).parallel().forEach(i -> {
             X.put(i*INCX, X.get(i*INCX) * ALPHA);
-        }
+        });
     } //
 
     public static void fillCpu(int N, float ALPHA, FloatBuffer X, int INCX) {
 
-        for(int i = 0; i < N; ++i) {
+        IntStream.range(0,N).parallel().forEach(i -> {
             X.put(i*INCX,ALPHA);
-        }
+        });
     } //
 
     public static void deinterCpu(int NX, FloatBuffer X, int NY, FloatBuffer Y, int B, FloatBuffer OUT) {
@@ -267,11 +262,13 @@ public abstract class Blas {
 
         for(int j = 0; j < B; ++j) {
             for(int i = 0; i < NX; ++i){
-                OUT.put(index++,X.get(j*NX + i));
+                OUT.put(index,X.get(j*NX + i));
+                index++;
             }
 
             for(int i = 0; i < NY; ++i){
-                OUT.put(index++,Y.get(j*NY + i));
+                OUT.put(index,Y.get(j*NY + i));
+                index++;
             }
         }
     } //
@@ -334,7 +331,9 @@ public abstract class Blas {
             float t = truth.get(i);
             float p = pred.get(i);
 
-            error.put(i,-1*(float)(t*Math.log(p) + (1-t)*Math.log(1-p)));
+            double val = -t*Math.log(p) - (1-t)*Math.log(1-p);
+
+            error.put(i,(float) val);
             delta.put(i,t - p);
         }
     } //
@@ -407,7 +406,7 @@ public abstract class Blas {
                             out.put(out_index,scale*in.get(in_index));
                         }
                         else {
-                            out.put(in_index,scale*in.get(out_index));
+                            in.put(in_index, in.get(in_index) + scale*out.get(out_index));
                         }
                     }
                 }

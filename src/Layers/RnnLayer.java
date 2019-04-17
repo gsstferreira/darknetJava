@@ -21,7 +21,8 @@ public class RnnLayer extends Layer {
     }
 
     public RnnLayer(int batch, int inputs, int outputs, int steps, Activation activation, int batch_normalize, int adam) {
-        
+
+        System.out.printf("RNN Layer: %d inputs, %d outputs\n", inputs, outputs);
         batch = batch / steps;
         this.batch = batch;
         this.type = LayerType.RNN;
@@ -32,12 +33,15 @@ public class RnnLayer extends Layer {
         this.prevState = new FloatBuffer(batch*outputs);
 
         this.inputLayer = new ConnectedLayer(batch*steps, inputs, outputs, activation, batch_normalize, adam);
+        System.out.printf("\t\t");
         this.inputLayer.batch = batch;
 
         this.selfLayer = new ConnectedLayer(batch*steps, outputs, outputs, activation, batch_normalize, adam);
+        System.out.printf("\t\t");
         this.selfLayer.batch = batch;
 
         this.outputLayer = new ConnectedLayer(batch*steps, outputs, outputs, activation, batch_normalize, adam);
+        System.out.printf("\t\t");
         this.outputLayer.batch = batch;
 
         this.outputs = outputs;

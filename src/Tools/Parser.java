@@ -212,7 +212,7 @@ public abstract class Parser {
         net.exposure = optionFindFloat(options, "exposure", 1);
         net.hue = optionFindFloat(options, "hue", 0);
 
-        if(net.inputs == 0 && net.h == 0 || net.w == 0 || net.c == 0)  {
+        if(net.inputs == 0 && (net.h == 0 || net.w == 0 || net.c == 0))  {
             ExceptionThrower.InvalidParams("No input parameters supplied");
         }
 
@@ -332,18 +332,18 @@ public abstract class Parser {
         h = params.h;
         w = params.w;
         c = params.c;
-        batch=params.batch;
+        batch = params.batch;
 
         if(h == 0 || w == 0 || c == 0) ExceptionThrower.InvalidParams("Layer before convolutional Layer must output image.");
         int batch_normalize = optionFindInt(options, "batch_normalize", 0);
         int binary = optionFindInt(options, "binary", 0);
         int xnor = optionFindInt(options, "xnor", 0);
 
-        var Layer = new ConvolutionalLayer(batch,h,w,c,n,groups,size,stride,padding,activation, batch_normalize, binary, xnor, params.net.adam);
-        Layer.flipped = optionFindInt(options, "flipped", 0);
-        Layer.dot = optionFindFloat(options, "dot", 0);
+        var layer = new ConvolutionalLayer(batch,h,w,c,n,groups,size,stride,padding,activation, batch_normalize, binary, xnor, params.net.adam);
+        layer.flipped = optionFindInt(options, "flipped", 0);
+        layer.dot = optionFindFloat(options, "dot", 0);
 
-        return Layer;
+        return layer;
     }
 
     public static CrnnLayer parseCrnn(List<KeyValuePair> options, SizeParams params) {
@@ -747,7 +747,7 @@ public abstract class Parser {
 
         String[] sp = l.strip().split(",");
 
-        IntBuffer Layers = new IntBuffer(sp.length);
+        IntBuffer layers = new IntBuffer(sp.length);
         IntBuffer sizes = new IntBuffer(sp.length);
 
         for(int i = 0; i < sp.length; i++) {
@@ -756,28 +756,30 @@ public abstract class Parser {
             if(index < 0) {
                 index += params.index;
             }
-            Layers.put(i,index);
+            layers.put(i,index);
             sizes.put(i,net.layers[index].outputs);
         }
 
         int batch = params.batch;
-        var layer = new RouteLayer(batch, sp.length, Layers, sizes);
+        var layer = new RouteLayer(batch, sp.length, layers, sizes);
 
-        Layer first = net.layers[Layers.get(0)];
+        Layer first = net.layers[layers.get(0)];
         layer.outW = first.outW;
         layer.outH = first.outH;
         layer.outC = first.outC;
 
         for(int i = 1; i < sp.length; ++i){
 
-            int index = Layers.get(i);
+            int index = layers.get(i);
             Layer next = net.layers[index];
 
             if(next.outW == first.outW && next.outH == first.outH){
                 layer.outC += next.outC;
             }
             else{
-                layer.outH = layer.outW = layer.outC = 0;
+                layer.outH = 0;
+                layer.outW = 0;
+                layer.outC = 0;
             }
         }
         return layer;
@@ -1379,8 +1381,6 @@ public abstract class Parser {
 
         int num = l.c/l.groups*l.n*l.size*l.size;
 
-        byte[] value;
-
         try {
             for(int i = 0; i < l.n; i++) {
                 float v = GlobalVars.getFloatWeight();
@@ -1425,8 +1425,6 @@ public abstract class Parser {
     }
 
     public static void loadWeightsUpto(Network net, String filename, int start, int cutoff) {
-
-        byte[] value;
 
         try {
 

@@ -12,6 +12,8 @@ public class NormalizationLayer extends Layer {
 
     public NormalizationLayer(int batch, int w, int h, int c, int size, float alpha, float beta, float kappa) {
 
+        System.out.printf("Local Response Normalization Layer: %d x %d x %d image, %d size\n", w,h,c,size);
+
         this.type = LayerType.NORMALIZATION;
         this.batch = batch;
         this.h = this.outH = h;

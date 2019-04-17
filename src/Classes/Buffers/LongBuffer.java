@@ -51,6 +51,18 @@ public class LongBuffer {
         return this.array[index + offset];
     }
 
+    /**
+     * Creates a new LongBuffer object which is a shallow copy of the original object
+     * @return LongBuffer object, with reference to the same array
+     */
+    public LongBuffer shallowClone() {
+
+        var buff = new LongBuffer(this.array);
+        buff.offset(this.offset);
+
+        return buff;
+    }
+
     public void put(int index,long d) {
 
         this.array[index + offset] = d;

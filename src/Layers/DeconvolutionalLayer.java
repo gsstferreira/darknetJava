@@ -115,6 +115,9 @@ public class DeconvolutionalLayer extends Layer {
         
         this.activation = activation;
         this.workspaceSize = getWorkspaceSize();
+
+        System.out.printf("deconv%5d %2d x%2d /%2d  %4d x%4d x%4d   ->  %4d x%4d x%4d\n", n, size, size, stride, w, h, c, outW, outH, outC);
+
     }
 
     public void denormalize() {

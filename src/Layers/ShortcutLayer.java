@@ -27,6 +27,8 @@ public class ShortcutLayer extends Layer {
 
         this.delta = new FloatBuffer(this.outputs*batch);
         this.output = new FloatBuffer(this.outputs*batch);
+
+        System.out.printf("res  %3d                %4d x%4d x%4d   ->  %4d x%4d x%4d\n",index, w2,h2,c2, w,h,c);
     }
 
     public void resize(int w, int h) {

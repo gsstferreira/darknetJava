@@ -10,6 +10,8 @@ import Enums.LayerType;
 import Tools.*;
 import org.lwjgl.BufferUtils;
 
+import java.sql.SQLSyntaxErrorException;
+
 
 public class ConvolutionalLayer extends Layer {
 
@@ -80,9 +82,9 @@ public class ConvolutionalLayer extends Layer {
         return new Image(outW,outH,outC,delta);
     }
     
-    public static int getWorkspaceSize(Layer l){
+    public long getWorkspaceSize(){
 
-        return l.outH*l.outW*l.size*l.size*l.c/l.groups;
+        return outH*outW*size*size*c/groups;
     }
     
     public ConvolutionalLayer(int batch, int h, int w, int c, int n, int groups, int size, int stride, int padding,
@@ -103,16 +105,16 @@ public class ConvolutionalLayer extends Layer {
         this.pad = padding;
         this.batchNormalize = batchNormalize;
 
-        weights = new FloatBuffer(c/groups*n*size*size);
-        weightUpdates = new FloatBuffer(c/groups*n*size*size);
+        this.weights = new FloatBuffer(c/groups*n*size*size);
+        this.weightUpdates = new FloatBuffer(c/groups*n*size*size);
 
-        biases = new FloatBuffer(n);
-        biasUpdates = new FloatBuffer(n);
+        this.biases = new FloatBuffer(n);
+        this.biasUpdates = new FloatBuffer(n);
 
-        nweights = c/groups*n*size*size;
-        nbiases = n;
+        this.nweights = c/groups*n*size*size;
+        this.nbiases = n;
 
-        float scale = (float) Math.sqrt(2./(float)(size*size*c/groups));
+        float scale = (float) Math.sqrt(2./(size*size*c/this.groups));
 
         for(i = 0; i < nweights; ++i) {
             weights.put(i,scale* Rand.randNormal());
@@ -165,8 +167,11 @@ public class ConvolutionalLayer extends Layer {
             scaleV = new FloatBuffer(n);
         }
 
-        this.workspaceSize = getWorkspaceSize(this);
+        this.workspaceSize = getWorkspaceSize();
         this.activation = activation;
+
+        System.out.printf("conv  %5d %2d x%2d /%2d  %4d x%4d x%4d   ->  %4d x%4d x%4d  %5.3f BFLOPs\n", n, size, size, stride, w, h, c,
+                outW, outH, outC, 2.0f*(this.n * this.size*this.size*this.c/this.groups * this.outH*this.outW)/1000000000.0f);
     }
 
     public void denormalize() {
@@ -212,7 +217,7 @@ public class ConvolutionalLayer extends Layer {
             
         }
         
-        workspaceSize = getWorkspaceSize(this);
+        workspaceSize = getWorkspaceSize();
     }
 
     public static void addBias(FloatBuffer output, FloatBuffer biases, int batch, int n, int size) {
@@ -270,24 +275,32 @@ public class ConvolutionalLayer extends Layer {
             net.input = binaryInput;
         }
 
+        FloatBuffer _a = weights.shallowClone();
+        FloatBuffer _b = net.workspace.shallowClone();
+        FloatBuffer _c = output.shallowClone();
+        FloatBuffer im = net.input.shallowClone();
+
         int m = n/groups;
         int k = size*size*c/groups;
         int n = outW*outH;
+
+        int var1 = nweights/groups;
+        int var2 = c/groups*h*w;
+
         for(i = 0; i < batch; ++i){
             for(j = 0; j < groups; ++j){
 
-                FloatBuffer _a = weights.offsetNew(j*nweights/groups);
-                FloatBuffer _b = net.workspace;
-                FloatBuffer _c = output.offsetNew((i*groups + j)*n*m);
-                FloatBuffer im = net.input.offsetNew((i*groups + j)*c/groups*h*w);
+                _a.offset(j*var1);
+                _c.offset((i*groups + j)*n*m);
+                im.offset((i*groups + j)*var2);
 
                 if (size == 1) {
-                    _b = im;
+                    Gemm.gemm(0,0,m,n,k,1,_a,k,im,n,1,_c,n);
                 }
                 else {
                     ImCol.im2ColCpu(im, c/groups, h, w, size, stride, pad, _b);
+                    Gemm.gemm(0,0,m,n,k,1,_a,k,_b,n,1,_c,n);
                 }
-                Gemm.gemm(0,0,m,n,k,1,_a,k,_b,n,1,_c,n);
             }
         }
 
@@ -427,7 +440,7 @@ public class ConvolutionalLayer extends Layer {
         return imWeights;
     }
 
-    public Image[] visualizeConvolutionalLayer(char[] window, Image[] prevWeights)
+    public Image[] visualizeConvolutionalLayer(byte[] window, Image[] prevWeights)
     {
         return getWeights();
     }

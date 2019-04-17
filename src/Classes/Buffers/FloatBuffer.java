@@ -51,6 +51,20 @@ public class FloatBuffer {
         return this.array[index + offset];
     }
 
+
+    /**
+     * Creates a new FloatBuffer object which is a shallow copy of the original object
+     * @return FloatBuffer object, with reference to the same array
+     */
+    public FloatBuffer shallowClone() {
+
+        var buff = new FloatBuffer(this.array);
+        buff.offset(this.offset);
+
+        return buff;
+    }
+
+
     public void put(int index,float d) {
 
         this.array[index + offset] = d;

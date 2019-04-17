@@ -9,16 +9,17 @@ public class DetectionResult {
     public int TotalDetections;
     public List<Result> Detections;
 
-    public DetectionResult(float procTime,int total, List<Result> detections) {
+    public DetectionResult(float procTime, List<Result> detections) {
 
         this.ProcessTimeSecs = procTime;
-        this.TotalDetections = total;
 
         if(detections == null) {
             this.Detections = new ArrayList<>();
+            this.TotalDetections = 0;
         }
         else {
             this.Detections = detections;
+            this.TotalDetections = detections.size();
         }
     }
 }

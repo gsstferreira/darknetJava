@@ -5,22 +5,19 @@ import Classes.Buffers.IntBuffer;
 import Classes.Buffers.LongBuffer;
 
 import java.nio.ByteBuffer;
+import java.util.stream.IntStream;
 
 
 public abstract class Buffers {
 
     public static void copy(FloatBuffer src, FloatBuffer dest, int size) {
 
-        for(int i = 0; i < size; i++) {
-            dest.put(i,src.get(i));
-        }
+        IntStream.range(0,size).parallel().forEach(i -> dest.put(i,src.get(i)));
     }
 
     public static void copy(IntBuffer src, IntBuffer dest, int size) {
 
-        for(int i = 0; i < size; i++) {
-            dest.put(i,src.get(i));
-        }
+        IntStream.range(0,size).parallel().forEach(i -> dest.put(i,src.get(i)));
     }
 
     public static FloatBuffer copyNew(FloatBuffer src, int size) {

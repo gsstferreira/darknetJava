@@ -38,6 +38,13 @@ public class ReorgLayer extends Layer {
             this.outputs = this.inputs + this.extra;
         }
 
+        if(extra != 0){
+            System.out.printf("reorg              %4d   ->  %4d\n",  this.inputs, this.outputs);
+        }
+        else {
+            System.out.printf("reorg              /%2d  %4d x%4d x%4d   ->  %4d x%4d x%4d\n",  stride, w, h, c, this.outW, this.outH, this.outC);
+        }
+
         int output_size = this.outputs * batch;
         this.output = new FloatBuffer(output_size);
         this.delta = new FloatBuffer(output_size);

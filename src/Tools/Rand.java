@@ -6,7 +6,6 @@ public abstract class Rand {
 
     public static final int MAX_INT = Integer.MAX_VALUE;
     public static final float MAX_FLOAT = Float.MAX_VALUE;
-    public static final double MAX_DOUBLE = Double.MAX_VALUE;
 
     private static Random rand = new Random();
 
@@ -57,7 +56,8 @@ public abstract class Rand {
             retVal = Math.sqrt(rand1) * Math.sin(rand2);
         }
         else {
-            rand1 =  -2 * Math.log(Math.min(1e-100,rand.nextDouble()));
+
+            rand1 =  -2 * Math.log(Math.max(1e-100,rand.nextDouble()));
             rand2 = 2 * Math.PI * rand.nextDouble();
 
             retVal = Math.sqrt(rand1) * Math.cos(rand2);

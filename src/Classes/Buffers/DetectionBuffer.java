@@ -49,6 +49,18 @@ public class DetectionBuffer {
         return this.array[index + offset];
     }
 
+    /**
+     * Creates a new DetectionBuffer object which is a shallow copy of the original object
+     * @return DetectionBuffer object, with reference to the same array
+     */
+    public DetectionBuffer shallowClone() {
+
+        var buff = new DetectionBuffer(this.array);
+        buff.offset(this.offset);
+
+        return buff;
+    }
+
     public void put(int index,Detection d) {
 
         this.array[index + offset] = d;

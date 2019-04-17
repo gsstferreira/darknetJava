@@ -47,6 +47,8 @@ public class MaxpoolLayer extends Layer {
         indexes = new IntBuffer(output_size);
         output = new FloatBuffer(output_size);
         delta =  new FloatBuffer(output_size);
+
+        System.out.printf("max          %d x %d / %d  %4d x%4d x%4d   ->  %4d x%4d x%4d\n", size, size, stride, w, h, c, outW, outH, outC);
     }
 
     public void resize(int width, int height) {
@@ -86,10 +88,10 @@ public class MaxpoolLayer extends Layer {
                             for(m = 0; m < size; ++m){
                                 int cur_h = h_offset + i*stride + n;
                                 int cur_w = w_offset + j*stride + m;
-                                int index = cur_w + w*(cur_h + h*(k + b*this.c));
-                                int valid = (cur_h >= 0 && cur_h < h && cur_w >= 0 && cur_w < w) ? 1 : 0;
+                                int index = cur_w + this.w*(cur_h + this.h*(k + b*this.c));
+                                boolean valid = (cur_h >= 0 && cur_h < this.h && cur_w >= 0 && cur_w < this.w);
 
-                                float val = (valid != 0) ? net.input.get(index) : -Rand.MAX_FLOAT;
+                                float val = (valid) ? net.input.get(index) : -Rand.MAX_FLOAT;
 
                                 max_i = (val > max) ? index : max_i;
                                 max   = (val > max) ? val   : max;
