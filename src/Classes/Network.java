@@ -4,14 +4,14 @@ import Classes.Buffers.DetectionBuffer;
 import Classes.Buffers.FloatBuffer;
 import Classes.Buffers.IntBuffer;
 import Classes.Buffers.LongBuffer;
-import Enums.LayerType;
-import Enums.LearningRatePolicy;
-import Layers.DetectionLayer;
-import Layers.RegionLayer;
-import Layers.YoloLayer;
+import Yolo.Enums.LayerType;
+import Yolo.Enums.LearningRatePolicy;
+import Yolo.Layers.DetectionLayer;
+import Yolo.Layers.RegionLayer;
+import Yolo.Layers.YoloLayer;
 import Tools.Blas;
 import Tools.Buffers;
-import Tools.Parser;
+import Yolo.Parser;
 
 public class Network implements Cloneable {
 

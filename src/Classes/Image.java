@@ -1,22 +1,17 @@
 package Classes;
 
 import Classes.Buffers.FloatBuffer;
-import Classes.Buffers.IntBuffer;
-import Enums.ImType;
+import Yolo.Enums.ImType;
 import Tools.Blas;
-import Tools.GlobalVars;
 import Tools.Rand;
 import Tools.Util;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.stb.STBImageWrite;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -1382,8 +1377,6 @@ public class Image {
         int i,j;
         List<Result> list = new ArrayList<>();
 
-        //System.out.print("[");
-
         for(i = 0; i < num; ++i){
 
             String labelString = "";
@@ -1393,23 +1386,24 @@ public class Image {
             int _class = -1;
             for(j = 0; j < classes; ++j){
                 if (dets[i].prob[j] > thresh){
+                    currentName = names.get(j);
+                    currentConfidence = dets[i].prob[j] * 100.0f;
                     if (_class < 0) {
 
-                        labelString = labelString.concat(names.get(j));
+                        labelString = labelString.concat(String.format("%s: %.0f%%",currentName,currentConfidence));
                         _class = j;
                     }
                     else {
 
                         labelString = labelString.concat(", ");
-                        labelString = labelString.concat(names.get(j));
+                        labelString = labelString.concat(String.format("%s: %.0f%%",currentName,currentConfidence));
                     }
-                    currentName = names.get(j);
-                    currentConfidence = dets[i].prob[j] * 100.0f;
-                    //System.out.print(String.format("(%s:%.0f)",currentName,currentConfidence));
                 }
             }
 
             if(_class >= 0){
+
+                System.out.printf("\tDetection #%02d: '%s' with confidence %.2f%%\n",i,currentName,currentConfidence);
 
                 int width = (int) (h * 0.006f);
                 
@@ -1449,7 +1443,7 @@ public class Image {
                 drawBoxWidth(left, top, right, bot, width, red, green, blue);
 
                 if (alphabet != null) {
-                    Image label = getLabel(alphabet, labelString, (int)(h*.03f));
+                    Image label = getLabel(alphabet, labelString, (int)(h*.02f));
                     drawLabel(top + width, left, label, new FloatBuffer(rgb));
                 }
 
@@ -1464,7 +1458,10 @@ public class Image {
                 }
             }
         }
-        //System.out.println("]");
+
+        if(num == 0) {
+            System.out.printf("\t No detections found for 'thresh' > %f\n",thresh);
+        }
         return list;
     }
 

@@ -2,10 +2,10 @@ package Classes;
 
 import Classes.Buffers.FloatBuffer;
 import Classes.Buffers.IntBuffer;
-import Enums.Activation;
-import Enums.CostType;
-import Enums.LayerType;
-import Layers.*;
+import Yolo.Enums.Activation;
+import Yolo.Enums.CostType;
+import Yolo.Enums.LayerType;
+import Yolo.Layers.*;
 
 import java.nio.ByteBuffer;
 

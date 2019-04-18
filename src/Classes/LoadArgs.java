@@ -1,6 +1,6 @@
 package Classes;
 
-import Enums.DataType;
+import Yolo.Enums.DataType;
 
 public class LoadArgs {
 
