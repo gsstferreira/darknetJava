@@ -67,8 +67,8 @@ public class Layer {
     public int coords;
     public int background;
     public int rescore;
-    public int objectness;
-    public int joint;
+//    public int objectness;
+//    public int joint;
     public int noAdjust;
     public int reorg;
     public int log;
@@ -90,7 +90,7 @@ public class Layer {
     public float ignoreThresh;
     public float truthThresh;
     public float thresh;
-    public float focus;
+//    public float focus;
     public int classfix;
     public int absolute;
 
@@ -118,12 +118,12 @@ public class Layer {
     public FloatBuffer prevState;
     public FloatBuffer forgotState;
     public FloatBuffer forgotDelta;
-    public FloatBuffer stateDelta;
-    public FloatBuffer combineCpu;
-    public FloatBuffer combineDeltaCpu;
-
-    public FloatBuffer concat;
-    public FloatBuffer concatDelta;
+//    public FloatBuffer stateDelta;
+//    public FloatBuffer combineCpu;
+//    public FloatBuffer combineDeltaCpu;
+//
+//    public FloatBuffer concat;
+//    public FloatBuffer concatDelta;
 
     public FloatBuffer binaryWeights;
 
@@ -142,7 +142,7 @@ public class Layer {
     public FloatBuffer squared;
     public FloatBuffer norms;
 
-    public FloatBuffer spatialMean;
+//    public FloatBuffer spatialMean;
     public FloatBuffer mean;
     public FloatBuffer variance;
 
@@ -174,7 +174,7 @@ public class Layer {
     public FloatBuffer temp3Cpu;
 
     public FloatBuffer dhCpu;
-    public FloatBuffer hhCpu;
+//    public FloatBuffer hhCpu;
     public FloatBuffer prevCellCpu;
     public FloatBuffer cellCpu;
     public FloatBuffer fCpu;
@@ -190,25 +190,25 @@ public class Layer {
     public Layer selfLayer;
     public Layer outputLayer;
 
-    public Layer resetLayer;
-    public Layer updateLayer;
-    public Layer stateLayer;
-
-    public Layer inputGateLayer;
-    public Layer stateGateLayer;
-    public Layer inputSaveLayer;
-    public Layer stateSaveLayer;
-    public Layer inputStateLayer;
-    public Layer stateStateLayer;
-
-    public Layer inputZLayer;
-    public Layer stateZLayer;
-
-    public Layer inputRLayer;
-    public Layer stateRLayer;
-
-    public Layer inputHLayer;
-    public Layer stateHLayer;
+//    public Layer resetLayer;
+//    public Layer updateLayer;
+//    public Layer stateLayer;
+//
+//    public Layer inputGateLayer;
+//    public Layer stateGateLayer;
+//    public Layer inputSaveLayer;
+//    public Layer stateSaveLayer;
+//    public Layer inputStateLayer;
+//    public Layer stateStateLayer;
+//
+//    public Layer inputZLayer;
+//    public Layer stateZLayer;
+//
+//    public Layer inputRLayer;
+//    public Layer stateRLayer;
+//
+//    public Layer inputHLayer;
+//    public Layer stateHLayer;
 
     public Layer wz;
     public Layer uz;

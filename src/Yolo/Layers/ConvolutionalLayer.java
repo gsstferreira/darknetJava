@@ -45,20 +45,20 @@ public class ConvolutionalLayer extends Layer {
         }
     }
 
-    private void binarizeInput(FloatBuffer input, int n, int size, FloatBuffer binary) {
-        int i, s;
-        for(s = 0; s < size; ++s){
-            float mean = 0;
-            for(i = 0; i < n; ++i){
-                mean += Math.abs(input.get(i*size + s));
-            }
-            mean = mean / n;
-            for(i = 0; i < n; ++i){
-                
-                binary.put(i*size + s, (input.get(i*size +s) > 0) ? mean : -mean);
-            }
-        }
-    }
+//    private void binarizeInput(FloatBuffer input, int n, int size, FloatBuffer binary) {
+//        int i, s;
+//        for(s = 0; s < size; ++s){
+//            float mean = 0;
+//            for(i = 0; i < n; ++i){
+//                mean += Math.abs(input.get(i*size + s));
+//            }
+//            mean = mean / n;
+//            for(i = 0; i < n; ++i){
+//
+//                binary.put(i*size + s, (input.get(i*size +s) > 0) ? mean : -mean);
+//            }
+//        }
+//    }
 
     public int convolutionalOutHeight() {
         
@@ -70,15 +70,15 @@ public class ConvolutionalLayer extends Layer {
         return (w + 2*pad - size) / stride + 1;
     }
 
-    public Image getConvolutionalImage() {
-        
-        return new Image(outW,outH,outC,output);
-    }
-
-    public Image getConvolutionalDelta() {
-        
-        return new Image(outW,outH,outC,delta);
-    }
+//    public Image getConvolutionalImage() {
+//
+//        return new Image(outW,outH,outC,output);
+//    }
+//
+//    public Image getConvolutionalDelta() {
+//
+//        return new Image(outW,outH,outC,delta);
+//    }
     
     public long getWorkspaceSize(){
 
@@ -172,24 +172,24 @@ public class ConvolutionalLayer extends Layer {
                 outW, outH, outC, 2.0f*(this.n * this.size*this.size*this.c/this.groups * this.outH*this.outW)/1000000000.0f);
     }
 
-    public void denormalize() {
-
-        int i, j;
-        for(i = 0; i < n; ++i){
-
-            float scale = scales.get(i)/(float)Math.sqrt(rollingVariance.get(i) + 0.00001f);
-
-            for(j = 0; j < c/groups*size*size; ++j){
-
-                weights.put(i*c/groups*size*size + j,weights.get(i*c/groups*size*size + j) * scale);
-            }
-
-            biases.put(i,biases.get(i) - rollingMean.get(i)*scale);
-            scales.put(i,1);
-            rollingMean.put(i,0);
-            rollingVariance.put(i,1);
-        }
-    }
+//    public void denormalize() {
+//
+//        int i, j;
+//        for(i = 0; i < n; ++i){
+//
+//            float scale = scales.get(i)/(float)Math.sqrt(rollingVariance.get(i) + 0.00001f);
+//
+//            for(j = 0; j < c/groups*size*size; ++j){
+//
+//                weights.put(i*c/groups*size*size + j,weights.get(i*c/groups*size*size + j) * scale);
+//            }
+//
+//            biases.put(i,biases.get(i) - rollingMean.get(i)*scale);
+//            scales.put(i,1);
+//            rollingMean.put(i,0);
+//            rollingVariance.put(i,1);
+//        }
+//    }
 
     public void resize(int width, int height) {
         
@@ -390,56 +390,56 @@ public class ConvolutionalLayer extends Layer {
         Blas.scalCpu(nweights, momentum, weightUpdates, 1);
     }
 
-    public Image getConvolutionalWeight(int i) {
+//    public Image getConvolutionalWeight(int i) {
+//
+//        int h = size;
+//        int w = size;
+//        int _c = c/groups;
+//
+//        FloatBuffer fb = weights.offsetNew(i*h*w*_c);
+//        return new Image(w,h,_c,fb);
+//    }
 
-        int h = size;
-        int w = size;
-        int _c = c/groups;
+//    public void rgbgrWeights() {
+//
+//        int i;
+//        for(i = 0; i < n; ++i){
+//            Image im = getConvolutionalWeight(i);
+//            if (im.c == 3) {
+//                im.rgbgr();
+//            }
+//        }
+//    }
+//
+//    public void rescaleWeights(float scale, float trans) {
+//
+//        int i;
+//        for(i = 0; i < n; ++i){
+//            Image im = getConvolutionalWeight(i);
+//            if (im.c == 3) {
+//
+//                im.scale(scale);
+//                float sum = Util.sumArray(im.data, im.w*im.h*im.c);
+//                biases.put(i,biases.get(i) + sum*trans);
+//            }
+//        }
+//    }
+//
+//    public Image[] getWeights() {
+//
+//        Image[] imWeights = new Image[n];
+//
+//        int i;
+//        for(i = 0; i < n; ++i){
+//
+//            imWeights[i] = getConvolutionalWeight(i).copyImage();
+//            imWeights[i].normalize();
+//        }
+//        return imWeights;
+//    }
 
-        FloatBuffer fb = weights.offsetNew(i*h*w*_c);
-        return new Image(w,h,_c,fb);
-    }
-
-    public void rgbgrWeights() {
-
-        int i;
-        for(i = 0; i < n; ++i){
-            Image im = getConvolutionalWeight(i);
-            if (im.c == 3) {
-                im.rgbgr();
-            }
-        }
-    }
-
-    public void rescaleWeights(float scale, float trans) {
-
-        int i;
-        for(i = 0; i < n; ++i){
-            Image im = getConvolutionalWeight(i);
-            if (im.c == 3) {
-
-                im.scale(scale);
-                float sum = Util.sumArray(im.data, im.w*im.h*im.c);
-                biases.put(i,biases.get(i) + sum*trans);
-            }
-        }
-    }
-
-    public Image[] getWeights() {
-
-        Image[] imWeights = new Image[n];
-
-        int i;
-        for(i = 0; i < n; ++i){
-
-            imWeights[i] = getConvolutionalWeight(i).copyImage();
-            imWeights[i].normalize();
-        }
-        return imWeights;
-    }
-
-    public Image[] visualizeConvolutionalLayer(byte[] window, Image[] prevWeights)
-    {
-        return getWeights();
-    }
+//    public Image[] visualizeConvolutionalLayer(byte[] window, Image[] prevWeights)
+//    {
+//        return getWeights();
+//    }
 }

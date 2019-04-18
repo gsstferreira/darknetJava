@@ -4,7 +4,6 @@ import java.util.Random;
 
 public abstract class Rand {
 
-    public static final int MAX_INT = Integer.MAX_VALUE;
     public static final float MAX_FLOAT = Float.MAX_VALUE;
 
     private static Random rand = new Random();

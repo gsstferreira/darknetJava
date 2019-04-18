@@ -61,8 +61,7 @@ public class RequestHandler implements Runnable {
             }
         }
         catch (IOException e) {
-            System.err.println("Error processing request:");
-            e.printStackTrace();
+            System.err.println("Error processing request: " + e.getMessage());
         }
         finally {
             try {

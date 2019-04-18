@@ -1,9 +1,12 @@
 
 import Server.Handlers.RequestHandler;
 import Yolo.Setup;
+import org.lwjgl.system.CallbackI;
 
 import java.io.*;
 import java.net.ServerSocket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
 
@@ -12,10 +15,12 @@ public class Main {
     public static void main(String[] args) {
 
         Setup.initYolo();
+        System.gc();
 
         try {
+            System.out.printf("Setting up server at port %d...\n",port);
             ServerSocket serverConnect = new ServerSocket(port);
-            System.out.printf("Server ready, listening port %d.\n",port);
+            System.out.printf("Server ready, listening to port %d.\n",port);
 
             while(true) {
 
@@ -23,7 +28,7 @@ public class Main {
             }
 
         } catch (IOException e) {
-            System.err.println("Server Connection error : " + e.getMessage());
+            System.err.println("Server setup error : " + e.getMessage());
         }
     }
 }

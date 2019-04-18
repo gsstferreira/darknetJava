@@ -52,7 +52,7 @@ public class Network implements Cloneable {
 
     public LongBuffer seen;
     public IntBuffer t;
-    public float epoch;
+//    public float epoch;
     public int subdivisions;
     public Layer[] layers;
     public FloatBuffer output;
@@ -134,24 +134,24 @@ public class Network implements Cloneable {
         return net;
     }
 
-    public LoadArgs getbaseArgs() {
-
-        LoadArgs args = new LoadArgs();
-        args.w = this.w;
-        args.h = this.h;
-        args.size = this.w;
-
-        args.min = this.minCrop;
-        args.max = this.maxCrop;
-        args.angle = this.angle;
-        args.aspect = this.aspect;
-        args.exposure = this.exposure;
-        args.center = this.center;
-        args.saturation = this.saturation;
-        args.hue = this.hue;
-
-        return args;
-    }
+//    public LoadArgs getbaseArgs() {
+//
+//        LoadArgs args = new LoadArgs();
+//        args.w = this.w;
+//        args.h = this.h;
+//        args.size = this.w;
+//
+//        args.min = this.minCrop;
+//        args.max = this.maxCrop;
+//        args.angle = this.angle;
+//        args.aspect = this.aspect;
+//        args.exposure = this.exposure;
+//        args.center = this.center;
+//        args.saturation = this.saturation;
+//        args.hue = this.hue;
+//
+//        return args;
+//    }
     
     public Layer getNetworkOutputLayer() {
 
@@ -180,12 +180,12 @@ public class Network implements Cloneable {
         return dets;
     }
 
-    FloatBuffer predictImage(Image im) {
-
-        Image imr = im.letterbox(this.w, this.h);
-        this.setBatchNetwork(1);
-        return this.predict(imr.data);
-    }
+//    FloatBuffer predictImage(Image im) {
+//
+//        Image imr = im.letterbox(this.w, this.h);
+//        this.setBatchNetwork(1);
+//        return this.predict(imr.data);
+//    }
 
     public FloatBuffer predict(FloatBuffer input) {
 

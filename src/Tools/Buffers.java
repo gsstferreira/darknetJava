@@ -116,7 +116,6 @@ public abstract class Buffers {
         }
         return fb;
     }
-    
 
     public static ByteBuffer reverse(ByteBuffer buffer) {
 

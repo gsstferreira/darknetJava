@@ -113,7 +113,7 @@ public class BatchnormLayer extends Layer {
 
     public void resize(int w, int h) {
         
-        System.out.println("Resize batchnor, Layer - not implemented");
+        System.out.println("Resize batchnorm, Layer - not implemented");
     }
 
     public void forward(Network net) {

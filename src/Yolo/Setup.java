@@ -17,7 +17,6 @@ public abstract class Setup {
             GlobalVars.isJar = Setup.class.getResourceAsStream("/" + networkCfgPath) != null;
             GlobalVars.loadAlphabet();
             GlobalVars.loadNetwork(networkCfgPath,weightsPath,namesCfgPath);
-            System.gc();
 
             isInit = true;
         }

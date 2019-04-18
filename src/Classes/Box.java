@@ -33,13 +33,15 @@ public class Box {
 
 
     public Box(){}
-    public Box(float X, float Y, float W, float H) {
 
-        this.x = X;
-        this.y = Y;
-        this.h = H;
-        this.w = W;
-    }
+//    public Box(float X, float Y, float W, float H) {
+//
+//        this.x = X;
+//        this.y = Y;
+//        this.h = H;
+//        this.w = W;
+//    }
+
     public Box(Box b) {
         x = b.x;
         y = b.y;
@@ -58,16 +60,16 @@ public class Box {
         return b;
     }
 
-    public static Box floatToBox(float[] f, int stride) {
-
-        Box b = new Box();
-        b.x = f[0];
-        b.y = f[stride];
-        b.w = f[2*stride];
-        b.h = f[3*stride];
-
-        return b;
-    }
+//    public static Box floatToBox(float[] f, int stride) {
+//
+//        Box b = new Box();
+//        b.x = f[0];
+//        b.y = f[stride];
+//        b.w = f[2*stride];
+//        b.h = f[3*stride];
+//
+//        return b;
+//    }
 
     private static void sortNms(Detection[] detections, int size) {
 
@@ -90,46 +92,46 @@ public class Box {
         });
     }
     
-    public static void doNmsObj(Detection[] dets, int total, int classes, float thresh) {
-
-        int i, j, k;
-        k = total-1;
-        for(i = 0; i <= k; ++i){
-            if(dets[i].objectness == 0){
-                Detection swap = dets[i];
-                dets[i] = dets[k];
-                dets[k] = swap;
-                --k;
-                --i;
-            }
-        }
-        total = k+1;
-
-        for(i = 0; i < total; ++i){
-            dets[i].sortClass = -1;
-        }
-
-        sortNms(dets,total);
-
-        for(i = 0; i < total; ++i){
-            if(dets[i].objectness == 0) {
-                continue;
-            }
-            Box a = dets[i].bBox;
-            for(j = i+1; j < total; ++j){
-                if(dets[j].objectness == 0) {
-                    continue;
-                }
-                Box b = dets[j].bBox;
-                if (boxIou(a,b) > thresh){
-                    dets[j].objectness = 0;
-                    for(k = 0; k < classes; ++k){
-                        dets[j].prob[k] = 0;
-                    }
-                }
-            }
-        }
-    }
+//    public static void doNmsObj(Detection[] dets, int total, int classes, float thresh) {
+//
+//        int i, j, k;
+//        k = total-1;
+//        for(i = 0; i <= k; ++i){
+//            if(dets[i].objectness == 0){
+//                Detection swap = dets[i];
+//                dets[i] = dets[k];
+//                dets[k] = swap;
+//                --k;
+//                --i;
+//            }
+//        }
+//        total = k+1;
+//
+//        for(i = 0; i < total; ++i){
+//            dets[i].sortClass = -1;
+//        }
+//
+//        sortNms(dets,total);
+//
+//        for(i = 0; i < total; ++i){
+//            if(dets[i].objectness == 0) {
+//                continue;
+//            }
+//            Box a = dets[i].bBox;
+//            for(j = i+1; j < total; ++j){
+//                if(dets[j].objectness == 0) {
+//                    continue;
+//                }
+//                Box b = dets[j].bBox;
+//                if (boxIou(a,b) > thresh){
+//                    dets[j].objectness = 0;
+//                    for(k = 0; k < classes; ++k){
+//                        dets[j].prob[k] = 0;
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     public static void doNmsSort(Detection[] dets, int total, int classes, float thresh) {
 
@@ -285,76 +287,76 @@ public class Box {
 //        return du;
 //    }
 
-    private void testDunion() {
+//    private void testDunion() {
+//
+//        Box a = new Box(0, 0, 1, 1);
+//        Box dxa = new Box(0+.0001f, 0, 1, 1);
+//        Box dya = new Box(0, 0+.0001f, 1, 1);
+//        Box dwa = new Box(0, 0, 1+.0001f, 1);
+//        Box dha = new Box(0, 0, 1, 1+.0001f);
+//
+//        Box b = new Box(.5f, .5f, .2f, .2f);
+//
+//        float inter =  boxUnion(a, b);
+//        float xinter = boxUnion(dxa, b);
+//        float yinter = boxUnion(dya, b);
+//        float winter = boxUnion(dwa, b);
+//        float hinter = boxUnion(dha, b);
+//
+//    }
+//
+//    private void testDintersect() {
+//
+//        Box a = new Box(0, 0, 1, 1);
+//        Box dxa = new Box(0+.0001f, 0, 1, 1);
+//        Box dya = new Box(0, 0+.0001f, 1, 1);
+//        Box dwa = new Box(0, 0, 1+.0001f, 1);
+//        Box dha = new Box(0, 0, 1, 1+.0001f);
+//
+//        Box b = new Box(.5f, .5f, .2f, .2f);
+//
+//        //DBox di = dintersect(a,b);
+//
+//        float inter =  boxIntersection(a, b);
+//        float xinter = boxIntersection(dxa, b);
+//        float yinter = boxIntersection(dya, b);
+//        float winter = boxIntersection(dwa, b);
+//        float hinter = boxIntersection(dha, b);
+//        xinter = (xinter - inter)/(.0001f);
+//        yinter = (yinter - inter)/(.0001f);
+//        winter = (winter - inter)/(.0001f);
+//        hinter = (hinter - inter)/(.0001f);
+//
+//    }
 
-        Box a = new Box(0, 0, 1, 1);
-        Box dxa = new Box(0+.0001f, 0, 1, 1);
-        Box dya = new Box(0, 0+.0001f, 1, 1);
-        Box dwa = new Box(0, 0, 1+.0001f, 1);
-        Box dha = new Box(0, 0, 1, 1+.0001f);
-
-        Box b = new Box(.5f, .5f, .2f, .2f);
-
-        float inter =  boxUnion(a, b);
-        float xinter = boxUnion(dxa, b);
-        float yinter = boxUnion(dya, b);
-        float winter = boxUnion(dwa, b);
-        float hinter = boxUnion(dha, b);
-
-    }
-
-    private void testDintersect() {
-
-        Box a = new Box(0, 0, 1, 1);
-        Box dxa = new Box(0+.0001f, 0, 1, 1);
-        Box dya = new Box(0, 0+.0001f, 1, 1);
-        Box dwa = new Box(0, 0, 1+.0001f, 1);
-        Box dha = new Box(0, 0, 1, 1+.0001f);
-
-        Box b = new Box(.5f, .5f, .2f, .2f);
-
-        //DBox di = dintersect(a,b);
-
-        float inter =  boxIntersection(a, b);
-        float xinter = boxIntersection(dxa, b);
-        float yinter = boxIntersection(dya, b);
-        float winter = boxIntersection(dwa, b);
-        float hinter = boxIntersection(dha, b);
-        xinter = (xinter - inter)/(.0001f);
-        yinter = (yinter - inter)/(.0001f);
-        winter = (winter - inter)/(.0001f);
-        hinter = (hinter - inter)/(.0001f);
-
-    }
-
-    public void testBox() {
-
-        testDintersect();
-        testDunion();
-
-        Box a = new Box(0, 0, 1, 1);
-        Box dxa = new Box(0+.00001f, 0, 1, 1);
-        Box dya = new Box(0, 0+.00001f, 1, 1);
-        Box dwa = new Box(0, 0, 1+.00001f, 1);
-        Box dha = new Box(0, 0, 1, 1+.00001f);
-
-        Box b = new Box(.5f, 0, .2f, .2f);
-
-
-        float iou = boxIou(a,b);
-        iou = (1-iou)*(1-iou);
-
-        //DBox d = diou(a, b);
-
-        float xiou = boxIou(dxa, b);
-        float yiou = boxIou(dya, b);
-        float wiou = boxIou(dwa, b);
-        float hiou = boxIou(dha, b);
-        xiou = ((1-xiou)*(1-xiou) - iou)/(.00001f);
-        yiou = ((1-yiou)*(1-yiou) - iou)/(.00001f);
-        wiou = ((1-wiou)*(1-wiou) - iou)/(.00001f);
-        hiou = ((1-hiou)*(1-hiou) - iou)/(.00001f);
-    }
+//    public void testBox() {
+//
+//        testDintersect();
+//        testDunion();
+//
+//        Box a = new Box(0, 0, 1, 1);
+//        Box dxa = new Box(0+.00001f, 0, 1, 1);
+//        Box dya = new Box(0, 0+.00001f, 1, 1);
+//        Box dwa = new Box(0, 0, 1+.00001f, 1);
+//        Box dha = new Box(0, 0, 1, 1+.00001f);
+//
+//        Box b = new Box(.5f, 0, .2f, .2f);
+//
+//
+//        float iou = boxIou(a,b);
+//        iou = (1-iou)*(1-iou);
+//
+//        //DBox d = diou(a, b);
+//
+//        float xiou = boxIou(dxa, b);
+//        float yiou = boxIou(dya, b);
+//        float wiou = boxIou(dwa, b);
+//        float hiou = boxIou(dha, b);
+//        xiou = ((1-xiou)*(1-xiou) - iou)/(.00001f);
+//        yiou = ((1-yiou)*(1-yiou) - iou)/(.00001f);
+//        wiou = ((1-wiou)*(1-wiou) - iou)/(.00001f);
+//        hiou = ((1-hiou)*(1-hiou) - iou)/(.00001f);
+//    }
 
 //    public static DBox diou(Box a, Box b) {
 //
@@ -379,46 +381,46 @@ public class Box {
 //        return dd;
 //    }
 
-    public  static void doNms(Box[] Boxes, float[][] probs, int total, int classes, float thresh) {
-
-        int i, j, k;
-        for(i = 0; i < total; ++i){
-            int any = 0;
-            for(k = 0; k < classes; ++k) {
-                any = (any != 0 || (probs[i][k] > 0)) ? 1 : 0;
-            }
-            if(any == 0) {
-                continue;
-            }
-            for(j = i+1; j < total; ++j){
-                if (boxIou(Boxes[i], Boxes[j]) > thresh){
-                    for(k = 0; k < classes; ++k){
-                        if (probs[i][k] < probs[j][k]) probs[i][k] = 0;
-                        else probs[j][k] = 0;
-                    }
-                }
-            }
-        }
-    }
-
-    public static Box encodeBox(Box b, Box anchor) {
-
-        Box encode = new Box();
-        encode.x = (b.x - anchor.x) / anchor.w;
-        encode.y = (b.y - anchor.y) / anchor.h;
-        encode.w = (float)(Math.log(b.w / anchor.w)/ Util.log2);
-        encode.h = (float)(Math.log(b.h / anchor.h)/Util.log2);
-        return encode;
-    }
-
-    public static Box decodeBox(Box b, Box anchor) {
-
-        Box decode = new Box();
-        decode.x = b.x * anchor.w + anchor.x;
-        decode.y = b.y * anchor.h + anchor.y;
-        decode.w = (float)Math.pow(2., b.w) * anchor.w;
-        decode.h = (float)Math.pow(2., b.h) * anchor.h;
-        return decode;
-    }
+//    public  static void doNms(Box[] Boxes, float[][] probs, int total, int classes, float thresh) {
+//
+//        int i, j, k;
+//        for(i = 0; i < total; ++i){
+//            int any = 0;
+//            for(k = 0; k < classes; ++k) {
+//                any = (any != 0 || (probs[i][k] > 0)) ? 1 : 0;
+//            }
+//            if(any == 0) {
+//                continue;
+//            }
+//            for(j = i+1; j < total; ++j){
+//                if (boxIou(Boxes[i], Boxes[j]) > thresh){
+//                    for(k = 0; k < classes; ++k){
+//                        if (probs[i][k] < probs[j][k]) probs[i][k] = 0;
+//                        else probs[j][k] = 0;
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    public static Box encodeBox(Box b, Box anchor) {
+//
+//        Box encode = new Box();
+//        encode.x = (b.x - anchor.x) / anchor.w;
+//        encode.y = (b.y - anchor.y) / anchor.h;
+//        encode.w = (float)(Math.log(b.w / anchor.w)/ Util.log2);
+//        encode.h = (float)(Math.log(b.h / anchor.h)/Util.log2);
+//        return encode;
+//    }
+//
+//    public static Box decodeBox(Box b, Box anchor) {
+//
+//        Box decode = new Box();
+//        decode.x = b.x * anchor.w + anchor.x;
+//        decode.y = b.y * anchor.h + anchor.y;
+//        decode.w = (float)Math.pow(2., b.w) * anchor.w;
+//        decode.h = (float)Math.pow(2., b.h) * anchor.h;
+//        return decode;
+//    }
         
 }

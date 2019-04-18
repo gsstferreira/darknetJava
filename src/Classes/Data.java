@@ -13,11 +13,11 @@ public class Data {
 
     public int w;
     public int h;
-    public Matrix X;
-    public Matrix Y;
-    public int shallow;
-    public int[] numBoxes;
-    public Box[][] boxes;
+//    public Matrix X;
+//    public Matrix Y;
+//    public int shallow;
+//    public int[] numBoxes;
+//    public Box[][] boxes;
 
     public static List<String> getPaths(String fileName) {
 
@@ -47,10 +47,10 @@ public class Data {
         }
     }
 
-    public static List<String> getLabels(String filename) {
-
-        List<String> list = getPaths(filename);
-
-        return list;
-    }
+//    public static List<String> getLabels(String filename) {
+//
+//        List<String> list = getPaths(filename);
+//
+//        return list;
+//    }
 }

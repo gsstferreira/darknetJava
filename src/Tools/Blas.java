@@ -68,20 +68,20 @@ public abstract class Blas {
         }
     } //
 
-    public static void weightedDeltaCpu(FloatBuffer a, FloatBuffer b, FloatBuffer s, FloatBuffer da, FloatBuffer db, FloatBuffer ds, int n, FloatBuffer dc) {
-
-        for(int i = 0; i < n; ++i){
-
-            if(da != null) {
-                da.put(i,da.get(i) + dc.get(i)*s.get(i));
-            }
-
-            if(db != null) {
-                db.put(i,db.get(i) + dc.get(i)*(1 - s.get(i)));
-            }
-            ds.put(i,ds.get(i) + dc.get(i)*(a.get(i) - b.get(i)));
-        }
-    } //
+//    public static void weightedDeltaCpu(FloatBuffer a, FloatBuffer b, FloatBuffer s, FloatBuffer da, FloatBuffer db, FloatBuffer ds, int n, FloatBuffer dc) {
+//
+//        for(int i = 0; i < n; ++i){
+//
+//            if(da != null) {
+//                da.put(i,da.get(i) + dc.get(i)*s.get(i));
+//            }
+//
+//            if(db != null) {
+//                db.put(i,db.get(i) + dc.get(i)*(1 - s.get(i)));
+//            }
+//            ds.put(i,ds.get(i) + dc.get(i)*(a.get(i) - b.get(i)));
+//        }
+//    } //
 
     public static void shortcutCpu(int batch, int w1, int h1, int c1, FloatBuffer add, int w2, int h2, int c2, float s1, float s2, FloatBuffer out) {
 
@@ -233,45 +233,45 @@ public abstract class Blas {
         });
     } //
 
-    public static void deinterCpu(int NX, FloatBuffer X, int NY, FloatBuffer Y, int B, FloatBuffer OUT) {
-
-        int index = 0;
-
-        for(int j = 0; j < B; ++j) {
-            for(int i = 0; i < NX; ++i){
-
-                if(X != null) {
-                    X.put(j*NX + i,X.get(j*NX + i) + OUT.get(index));
-                }
-                ++index;
-            }
-
-            for(int i = 0; i < NY; ++i){
-
-                if(Y != null) {
-                    Y.put(j*NY +i, Y.get(j*NY + i) + OUT.get(index));
-                }
-                ++index;
-            }
-        }
-    } //
-
-    public static void interCpu(int NX, FloatBuffer X, int NY, FloatBuffer Y, int B, FloatBuffer OUT) {
-
-        int index = 0;
-
-        for(int j = 0; j < B; ++j) {
-            for(int i = 0; i < NX; ++i){
-                OUT.put(index,X.get(j*NX + i));
-                index++;
-            }
-
-            for(int i = 0; i < NY; ++i){
-                OUT.put(index,Y.get(j*NY + i));
-                index++;
-            }
-        }
-    } //
+//    public static void deinterCpu(int NX, FloatBuffer X, int NY, FloatBuffer Y, int B, FloatBuffer OUT) {
+//
+//        int index = 0;
+//
+//        for(int j = 0; j < B; ++j) {
+//            for(int i = 0; i < NX; ++i){
+//
+//                if(X != null) {
+//                    X.put(j*NX + i,X.get(j*NX + i) + OUT.get(index));
+//                }
+//                ++index;
+//            }
+//
+//            for(int i = 0; i < NY; ++i){
+//
+//                if(Y != null) {
+//                    Y.put(j*NY +i, Y.get(j*NY + i) + OUT.get(index));
+//                }
+//                ++index;
+//            }
+//        }
+//    } //
+//
+//    public static void interCpu(int NX, FloatBuffer X, int NY, FloatBuffer Y, int B, FloatBuffer OUT) {
+//
+//        int index = 0;
+//
+//        for(int j = 0; j < B; ++j) {
+//            for(int i = 0; i < NX; ++i){
+//                OUT.put(index,X.get(j*NX + i));
+//                index++;
+//            }
+//
+//            for(int i = 0; i < NY; ++i){
+//                OUT.put(index,Y.get(j*NY + i));
+//                index++;
+//            }
+//        }
+//    } //
 
     public static void copyCpu(int N, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
 
@@ -280,13 +280,13 @@ public abstract class Blas {
         }
     } //
 
-    public static void multAddIntoCpu(int N, FloatBuffer X, FloatBuffer Y, FloatBuffer Z) {
-
-        for(int i = 0; i < N; ++i) {
-            float val = Z.get(i) + X.get(i) * Y.get(i);
-            Z.put(i,val);
-        }
-    } //
+//    public static void multAddIntoCpu(int N, FloatBuffer X, FloatBuffer Y, FloatBuffer Z) {
+//
+//        for(int i = 0; i < N; ++i) {
+//            float val = Z.get(i) + X.get(i) * Y.get(i);
+//            Z.put(i,val);
+//        }
+//    } //
 
     public static void smoothL1Cpu(int n, FloatBuffer pred, FloatBuffer truth, FloatBuffer delta, FloatBuffer error) {
 
@@ -347,16 +347,16 @@ public abstract class Blas {
         }
     } //
 
-    public static float dotCpu(int N, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
-
-        float dot = 0;
-
-        for(int i = 0; i < N; ++i) {
-
-            dot += X.get(i*INCX) * Y.get(i*INCY);
-        }
-        return dot;
-    } //
+//    public static float dotCpu(int N, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
+//
+//        float dot = 0;
+//
+//        for(int i = 0; i < N; ++i) {
+//
+//            dot += X.get(i*INCX) * Y.get(i*INCY);
+//        }
+//        return dot;
+//    } //
 
     public static void softmax(FloatBuffer input, int n, float temp, int stride, FloatBuffer output) {
 

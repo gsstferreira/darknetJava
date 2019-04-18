@@ -159,26 +159,26 @@ public class ConnectedLayer extends Layer {
         }
     }
 
-    public void denormalize() {
-
-        int i, j;
-        for(i = 0; i < this.outputs; ++i){
-
-            float scale = scales.get(i)/(float)Math.sqrt(rollingVariance.get(i) + 0.000001);
-
-            for(j = 0; j < this.inputs; ++j){
-
-                weights.put(i*inputs + j,weights.get(i*inputs + j) * scale);
-            }
-
-            float val = biases.get(i) - rollingMean.get(i) * scale;
-            biases.put(i,val);
-
-            scales.put(i,1);
-
-            rollingMean.put(i,0);
-            rollingVariance.put(i,1);
-        }
-    }
+//    public void denormalize() {
+//
+//        int i, j;
+//        for(i = 0; i < this.outputs; ++i){
+//
+//            float scale = scales.get(i)/(float)Math.sqrt(rollingVariance.get(i) + 0.000001);
+//
+//            for(j = 0; j < this.inputs; ++j){
+//
+//                weights.put(i*inputs + j,weights.get(i*inputs + j) * scale);
+//            }
+//
+//            float val = biases.get(i) - rollingMean.get(i) * scale;
+//            biases.put(i,val);
+//
+//            scales.put(i,1);
+//
+//            rollingMean.put(i,0);
+//            rollingVariance.put(i,1);
+//        }
+//    }
     
 }
