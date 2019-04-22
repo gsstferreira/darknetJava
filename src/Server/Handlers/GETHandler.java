@@ -1,6 +1,6 @@
 package Server.Handlers;
 
-import Server.Methods.GET.Method_Detect;
+import Server.Methods.GET.GetDetect;
 
 import java.io.BufferedOutputStream;
 import java.io.PrintWriter;
@@ -15,7 +15,7 @@ public abstract class GETHandler {
         switch(pathAndParams[0]) {
 
             case "/Detect":
-                Method_Detect.detect(responseOutput,responseData,pathAndParams[1]);
+                GetDetect.detect(responseOutput,responseData,pathAndParams[1]);
                 break;
             default:
                 String response = "No GET request for given URL.";

@@ -3,10 +3,10 @@ package Yolo.Layers;
 import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
-import Yolo.Enums.Activation;
-import Yolo.Enums.LayerType;
 import Tools.Blas;
 import Tools.Buffers;
+import Yolo.Enums.Activation;
+import Yolo.Enums.LayerType;
 
 public class ShortcutLayer extends Layer {
 

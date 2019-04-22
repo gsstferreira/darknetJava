@@ -3,9 +3,9 @@ package Yolo.Layers;
 import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
-import Yolo.Enums.LayerType;
 import Tools.Blas;
 import Tools.Util;
+import Yolo.Enums.LayerType;
 
 public class SoftmaxLayer extends Layer {
 

@@ -1,13 +1,15 @@
 package Yolo.Layers;
 
-import Classes.*;
+import Classes.Box;
 import Classes.Buffers.DetectionBuffer;
 import Classes.Buffers.FloatBuffer;
-import Yolo.Enums.LayerType;
+import Classes.Layer;
+import Classes.Network;
 import Tools.Blas;
 import Tools.Buffers;
 import Tools.Rand;
 import Tools.Util;
+import Yolo.Enums.LayerType;
 
 
 public class DetectionLayer extends Layer {

@@ -1,13 +1,12 @@
 package Yolo.Layers;
 
 import Classes.Buffers.FloatBuffer;
-import Classes.Image;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
+import Tools.*;
 import Yolo.Enums.Activation;
 import Yolo.Enums.LayerType;
-import Tools.*;
 import org.lwjgl.BufferUtils;
 
 
@@ -80,13 +79,15 @@ public class ConvolutionalLayer extends Layer {
 //        return new Image(outW,outH,outC,delta);
 //    }
     
-    public long getWorkspaceSize(){
+    private long getWorkspaceSize(){
 
         return outH*outW*size*size*c/groups;
     }
     
     public ConvolutionalLayer(int batch, int h, int w, int c, int n, int groups, int size, int stride, int padding,
                               Activation activation, int batchNormalize, int binary, int xnor, int adam) {
+
+        int sscg = size*size*c/groups;
         int i;
         type = LayerType.CONVOLUTIONAL;
 
@@ -103,19 +104,20 @@ public class ConvolutionalLayer extends Layer {
         this.pad = padding;
         this.batchNormalize = batchNormalize;
 
-        this.weights = new FloatBuffer(c/groups*n*size*size);
-        this.weightUpdates = new FloatBuffer(c/groups*n*size*size);
+        this.nweights = sscg*n;
+
+        this.weights = new FloatBuffer(this.nweights);
+        this.weightUpdates = new FloatBuffer(this.nweights);
 
         this.biases = new FloatBuffer(n);
         this.biasUpdates = new FloatBuffer(n);
 
-        this.nweights = c/groups*n*size*size;
         this.nbiases = n;
 
-        float scale = (float) Math.sqrt(2./(size*size*c/this.groups));
+        float scale = (float) Math.sqrt(2./sscg);
 
         for(i = 0; i < nweights; ++i) {
-            weights.put(i,scale* Rand.randNormal());
+            weights.put(i,scale * Rand.randNormal());
         }
 
         this.outH = convolutionalOutHeight();
@@ -124,52 +126,52 @@ public class ConvolutionalLayer extends Layer {
         this.outputs = outH * outW * outC;
         this.inputs = this.w * this.h * this.c;
 
-        output = new FloatBuffer(this.batch*outputs);
-        delta  = new FloatBuffer(this.batch*outputs);
+        this.output = new FloatBuffer(this.batch*outputs);
+        this.delta  = new FloatBuffer(this.batch*outputs);
 
         if(binary != 0){
-            binaryWeights = new FloatBuffer(this.nweights);
-            cweights = BufferUtils.createByteBuffer(this.nweights);
-            scales = new FloatBuffer(n);
+            this.binaryWeights = new FloatBuffer(this.nweights);
+            this.cweights = BufferUtils.createByteBuffer(this.nweights);
+            this.scales = new FloatBuffer(n);
         }
         if(xnor != 0){
-            binaryWeights = new FloatBuffer(this.nweights);
-            binaryInput = new FloatBuffer(this.batch*inputs);
+            this.binaryWeights = new FloatBuffer(this.nweights);
+            this.binaryInput = new FloatBuffer(this.batch*inputs);
         }
         if(batchNormalize != 0){
 
-            scales = new FloatBuffer(n);
-            scaleUpdates = new FloatBuffer(n);
+            this.scales = new FloatBuffer(n);
+            this.scaleUpdates = new FloatBuffer(n);
 
             for(i = 0; i < n; ++i){
-                scales.put(i,1);
+                this.scales.put(i,1);
             }
 
-            mean = new FloatBuffer(n);
-            variance = new FloatBuffer(n);
+            this.mean = new FloatBuffer(n);
+            this.variance = new FloatBuffer(n);
 
-            meanDelta = new FloatBuffer(n);
-            varianceDelta = new FloatBuffer(n);
+            this.meanDelta = new FloatBuffer(n);
+            this.varianceDelta = new FloatBuffer(n);
 
-            rollingMean = new FloatBuffer(n);
-            rollingVariance = new FloatBuffer(n);
-            x = new FloatBuffer(this.batch*outputs);
-            xNorm = new FloatBuffer(this.batch*outputs);
+            this.rollingMean = new FloatBuffer(n);
+            this.rollingVariance = new FloatBuffer(n);
+            this.x = new FloatBuffer(this.batch*outputs);
+            this.xNorm = new FloatBuffer(this.batch*outputs);
         }
         if(adam != 0){
-            m = new FloatBuffer(this.nweights);
-            v = new FloatBuffer(this.nweights);
-            biasM = new FloatBuffer(n);
-            scaleM = new FloatBuffer(n);
-            biasV = new FloatBuffer(n);
-            scaleV = new FloatBuffer(n);
+            this.m = new FloatBuffer(this.nweights);
+            this.v = new FloatBuffer(this.nweights);
+            this.biasM = new FloatBuffer(n);
+            this.scaleM = new FloatBuffer(n);
+            this.biasV = new FloatBuffer(n);
+            this.scaleV = new FloatBuffer(n);
         }
 
         this.workspaceSize = getWorkspaceSize();
         this.activation = activation;
 
-        System.out.printf("conv  %5d %2d x%2d /%2d  %4d x%4d x%4d   ->  %4d x%4d x%4d  %5.3f BFLOPs\n", n, size, size, stride, w, h, c,
-                outW, outH, outC, 2.0f*(this.n * this.size*this.size*this.c/this.groups * this.outH*this.outW)/1000000000.0f);
+        float flops = (this.nweights * this.outH*this.outW)/500000000.0f;
+        System.out.printf("Conv %5d %2d x%2d /%2d  %4d x%4d x%4d   ->  %4d x%4d x%4d  %5.3f BFLOPs\n", n, size, size, stride, w, h, c, outW, outH, outC, flops);
     }
 
 //    public void denormalize() {

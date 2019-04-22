@@ -4,10 +4,10 @@ import Classes.Buffers.FloatBuffer;
 import Classes.Buffers.IntBuffer;
 import Classes.Layer;
 import Classes.Network;
-import Yolo.Enums.LayerType;
 import Tools.Blas;
 import Tools.Buffers;
 import Tools.Util;
+import Yolo.Enums.LayerType;
 
 
 

@@ -1,21 +1,24 @@
 package Yolo;
 
-import Classes.*;
 import Classes.Buffers.FloatBuffer;
 import Classes.Buffers.IntBuffer;
+import Classes.*;
+import Classes.Lists.KeyValuePairElement;
+import Classes.Lists.KeyValuePairList;
+import Classes.Lists.SectionList;
+import Tools.Buffers;
+import Tools.ExceptionThrower;
+import Tools.GlobalVars;
+import Tools.Util;
 import Yolo.Enums.Activation;
 import Yolo.Enums.CostType;
 import Yolo.Enums.LayerType;
 import Yolo.Enums.LearningRatePolicy;
 import Yolo.Layers.*;
-import Tools.Buffers;
-import Tools.ExceptionThrower;
-import Tools.GlobalVars;
-import Tools.Util;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.InputStreamReader;
 
 import static Yolo.Enums.LayerType.*;
 
@@ -27,19 +30,22 @@ public abstract class Parser {
 //        return LayerType.getLayerType(ss);
 //    }
 
-    private static String optionFind(List<KeyValuePair> l, String key) {
+    private static String optionFind(KeyValuePairList l, String key) {
 
-        for (KeyValuePair kvp:l) {
+        KeyValuePairElement current = l.getHead();
+
+        while((current = current.next) != null) {
+            KeyValuePair kvp = current.kvp;
             if(kvp.key.equals(key)) {
                 kvp.used = true;
-                l.remove(kvp);
+                l.remove(current);
                 return kvp.value;
             }
         }
         return null;
     }
 
-    private static String optionFindString(List<KeyValuePair> l, String key, String def) {
+    private static String optionFindString(KeyValuePairList l, String key, String def) {
 
         String v = optionFind(l, key);
         if(v != null) {
@@ -50,7 +56,7 @@ public abstract class Parser {
         }
     }
 
-    private static int optionFindInt(List<KeyValuePair> l, String key, int def) {
+    private static int optionFindInt(KeyValuePairList l, String key, int def) {
 
         String v = optionFind(l, key);
         if(v != null) {
@@ -61,7 +67,7 @@ public abstract class Parser {
         }
     }
 
-    private static float optionFindFloat(List<KeyValuePair> l, String key, float def) {
+    private static float optionFindFloat(KeyValuePairList l, String key, float def) {
 
         String v = optionFind(l, key);
         if(v != null) {
@@ -75,7 +81,7 @@ public abstract class Parser {
         }
     }
 
-    private static List<Section> readCfg(String fileName) {
+    private static SectionList readCfg(String fileName) {
 
         try {
             BufferedReader reader;
@@ -88,7 +94,7 @@ public abstract class Parser {
 
             String s;
 
-            List<Section> list = new ArrayList<>();
+            SectionList list = new SectionList();
             Section current = new Section();
 
             String[] sArr;
@@ -100,7 +106,7 @@ public abstract class Parser {
                     switch (s.charAt(0)) {
                         case '[':
                             current = new Section();
-                            current.options = new ArrayList<>();
+                            current.options = new KeyValuePairList();
                             current.type = s;
                             list.add(current);
                             break;
@@ -129,14 +135,14 @@ public abstract class Parser {
 
     }
 
-//    public static List<KeyValuePair> readDataCfg(String fileName) {
+//    public static KeyValuePairList readDataCfg(String fileName) {
 //
 //        try {
 //            BufferedReader reader = new BufferedReader(new FileReader(fileName));
 //
 //            String s;
 //
-//            List<KeyValuePair> list = new ArrayList<>();
+//            KeyValuePairList list = new ArrayList<>();
 //
 //            while((s = reader.readLine()) != null) {
 //                s = s.strip();
@@ -182,7 +188,7 @@ public abstract class Parser {
 //        }
 //    }
 
-    private static void parseNetOptions(List<KeyValuePair> options, Network net) {
+    private static void parseNetOptions(KeyValuePairList options, Network net) {
         
         net.batch = optionFindInt(options, "batch",1);
         net.learningRate = optionFindFloat(options, "learning_rate", 0.001f);
@@ -272,7 +278,7 @@ public abstract class Parser {
         return s.type.equals("[net]") || s.type.equals("[network]");
     }
 
-    private static LocalLayer parseLocal(List<KeyValuePair> options, SizeParams params) {
+    private static LocalLayer parseLocal(KeyValuePairList options, SizeParams params) {
 
         int n = optionFindInt(options, "filters",1);
         int size = optionFindInt(options, "size",1);
@@ -294,7 +300,7 @@ public abstract class Parser {
         return new LocalLayer(batch,h,w,c,n,size,stride,pad,activation);
     }
 
-    private static DeconvolutionalLayer parseDeconvolutional(List<KeyValuePair> options, SizeParams params) {
+    private static DeconvolutionalLayer parseDeconvolutional(KeyValuePairList options, SizeParams params) {
 
         int n = optionFindInt(options, "filters",1);
         int size = optionFindInt(options, "size",1);
@@ -321,7 +327,7 @@ public abstract class Parser {
         return new DeconvolutionalLayer(batch,h,w,c,n,size,stride,padding, activation, batch_normalize, params.net.adam);
     }
 
-    private static ConvolutionalLayer parseConvolutional(List<KeyValuePair> options, SizeParams params) {
+    private static ConvolutionalLayer parseConvolutional(KeyValuePairList options, SizeParams params) {
 
         int n = optionFindInt(options, "filters",1);
         int size = optionFindInt(options, "size",1);
@@ -354,7 +360,7 @@ public abstract class Parser {
         return layer;
     }
 
-    private static CrnnLayer parseCrnn(List<KeyValuePair> options, SizeParams params) {
+    private static CrnnLayer parseCrnn(KeyValuePairList options, SizeParams params) {
 
         int output_filters = optionFindInt(options, "output_filters",1);
         int hidden_filters = optionFindInt(options, "hidden_filters",1);
@@ -368,7 +374,7 @@ public abstract class Parser {
         return Layer;
     }
 
-    private static RnnLayer parseRnn(List<KeyValuePair> options, SizeParams params) {
+    private static RnnLayer parseRnn(KeyValuePairList options, SizeParams params) {
 
         int output = optionFindInt(options, "output",1);
         String activation_s = optionFindString(options, "activation", "logistic");
@@ -381,7 +387,7 @@ public abstract class Parser {
         return l;
     }
 
-    private static GruLayer parseGru(List<KeyValuePair> options, SizeParams params) {
+    private static GruLayer parseGru(KeyValuePairList options, SizeParams params) {
 
         int output = optionFindInt(options, "output",1);
         int batch_normalize = optionFindInt(options, "batch_normalize", 0);
@@ -392,7 +398,7 @@ public abstract class Parser {
         return l;
     }
 
-    private static LstmLayer parseLstm(List<KeyValuePair> options, SizeParams params) {
+    private static LstmLayer parseLstm(KeyValuePairList options, SizeParams params) {
 
         int output = optionFindInt(options, "output", 1);
         int batch_normalize = optionFindInt(options, "batch_normalize", 0);
@@ -400,7 +406,7 @@ public abstract class Parser {
         return new LstmLayer(params.batch, params.inputs, output, params.time_steps, batch_normalize, params.net.adam);
     }
 
-    private static ConnectedLayer parseConnected(List<KeyValuePair> options, SizeParams params) {
+    private static ConnectedLayer parseConnected(KeyValuePairList options, SizeParams params) {
 
         int output = optionFindInt(options, "output",1);
         String activation_s = optionFindString(options, "activation", "logistic");
@@ -410,7 +416,7 @@ public abstract class Parser {
         return new ConnectedLayer(params.batch, params.inputs, output, activation, batch_normalize, params.net.adam);
     }
 
-    private static SoftmaxLayer parseSoftmax(List<KeyValuePair> options, SizeParams params) {
+    private static SoftmaxLayer parseSoftmax(KeyValuePairList options, SizeParams params) {
 
         int groups = optionFindInt(options, "groups",1);
         SoftmaxLayer l = new SoftmaxLayer(params.batch, params.inputs, groups);
@@ -445,7 +451,7 @@ public abstract class Parser {
         return mask;
     }
 
-    private static YoloLayer parseYolo(List<KeyValuePair> options, SizeParams params) {
+    private static YoloLayer parseYolo(KeyValuePairList options, SizeParams params) {
 
         int classes = optionFindInt(options, "classes", 20);
         int total = optionFindInt(options, "num", 1);
@@ -486,7 +492,7 @@ public abstract class Parser {
         return l;
     }
 
-    private static IsegLayer parseIseg(List<KeyValuePair> options, SizeParams params) {
+    private static IsegLayer parseIseg(KeyValuePairList options, SizeParams params) {
         
         int classes = optionFindInt(options, "classes", 20);
         int ids = optionFindInt(options, "ids", 32);
@@ -495,7 +501,7 @@ public abstract class Parser {
         return l;
     }
 
-    private static RegionLayer parseRegion(List<KeyValuePair> options, SizeParams params) {
+    private static RegionLayer parseRegion(KeyValuePairList options, SizeParams params) {
         
         int coords = optionFindInt(options, "coords", 4);
         int classes = optionFindInt(options, "classes", 20);
@@ -547,7 +553,7 @@ public abstract class Parser {
         return l;
     }
 
-    private static DetectionLayer parseDetection(List<KeyValuePair> options, SizeParams params) {
+    private static DetectionLayer parseDetection(KeyValuePairList options, SizeParams params) {
         
         int coords = optionFindInt(options, "coords", 1);
         int classes = optionFindInt(options, "classes", 1);
@@ -571,7 +577,7 @@ public abstract class Parser {
         return Layer;
     }
 
-    private static CostLayer parseCost(List<KeyValuePair> options, SizeParams params) {
+    private static CostLayer parseCost(KeyValuePairList options, SizeParams params) {
 
         String type_s = optionFindString(options, "type", "sse");
         CostType type = CostType.getCostType(type_s);
@@ -583,7 +589,7 @@ public abstract class Parser {
         return Layer;
     }
 
-    private static CropLayer parseCrop(List<KeyValuePair> options, SizeParams params) {
+    private static CropLayer parseCrop(KeyValuePairList options, SizeParams params) {
         
         int crop_height = optionFindInt(options, "crop_height",1);
         int crop_width = optionFindInt(options, "crop_width",1);
@@ -607,7 +613,7 @@ public abstract class Parser {
         return l;
     }
 
-    private static ReorgLayer parseReorg(List<KeyValuePair> options, SizeParams params) {
+    private static ReorgLayer parseReorg(KeyValuePairList options, SizeParams params) {
         
         int stride = optionFindInt(options, "stride",1);
         int reverse = optionFindInt(options, "reverse",0);
@@ -626,7 +632,7 @@ public abstract class Parser {
         return new ReorgLayer(batch,w,h,c,stride,reverse, flatten, extra);
     }
 
-    private static MaxpoolLayer parseMaxpool(List<KeyValuePair> options, SizeParams params) {
+    private static MaxpoolLayer parseMaxpool(KeyValuePairList options, SizeParams params) {
         
         int stride = optionFindInt(options, "stride",1);
         int size = optionFindInt(options, "size",stride);
@@ -644,7 +650,7 @@ public abstract class Parser {
         return new MaxpoolLayer(batch,h,w,c,size,stride,padding);
     }
 
-    private static AvgPoolLayer parseAvgpool(List<KeyValuePair> options, SizeParams params) {
+    private static AvgPoolLayer parseAvgpool(KeyValuePairList options, SizeParams params) {
         
         int batch,w,h,c;
         w = params.w;
@@ -658,7 +664,7 @@ public abstract class Parser {
         return new AvgPoolLayer(batch,w,h,c);
     }
 
-    private static DropoutLayer parse_dropout(List<KeyValuePair> options, SizeParams params) {
+    private static DropoutLayer parse_dropout(KeyValuePairList options, SizeParams params) {
         
         float probability = optionFindFloat(options, "probability", .5f);
         DropoutLayer Layer = new DropoutLayer(params.batch, params.inputs, probability);
@@ -668,7 +674,7 @@ public abstract class Parser {
         return Layer;
     }
 
-    private static NormalizationLayer parseNormalization(List<KeyValuePair> options, SizeParams params) {
+    private static NormalizationLayer parseNormalization(KeyValuePairList options, SizeParams params) {
         
         float alpha = optionFindFloat(options, "alpha", .0001f);
         float beta =  optionFindFloat(options, "beta" , .75f);
@@ -678,12 +684,12 @@ public abstract class Parser {
         return new NormalizationLayer(params.batch, params.w, params.h, params.c, size, alpha, beta, kappa);
     }
 
-    private static BatchnormLayer parseBatchnorm(List<KeyValuePair> options, SizeParams params) {
+    private static BatchnormLayer parseBatchnorm(KeyValuePairList options, SizeParams params) {
         
         return new BatchnormLayer(params.batch, params.w, params.h, params.c);
     }
 
-    private static ShortcutLayer parseShortcut(List<KeyValuePair> options, SizeParams params, Network net) {
+    private static ShortcutLayer parseShortcut(KeyValuePairList options, SizeParams params, Network net) {
         
         String l = optionFind(options, "from");
         assert l != null;
@@ -704,7 +710,7 @@ public abstract class Parser {
         return s;
     }
 
-    private static L2NormLayer parseL2Norm(List<KeyValuePair> options, SizeParams params) {
+    private static L2NormLayer parseL2Norm(KeyValuePairList options, SizeParams params) {
 
         L2NormLayer l = new L2NormLayer(params.batch, params.inputs);
         l.h = l.outH = params.h;
@@ -713,7 +719,7 @@ public abstract class Parser {
         return l;
     }
 
-    private static LogisticLayer parseLogistic(List<KeyValuePair> options, SizeParams params) {
+    private static LogisticLayer parseLogistic(KeyValuePairList options, SizeParams params) {
 
         LogisticLayer l = new LogisticLayer(params.batch, params.inputs);
         l.h = l.outH = params.h;
@@ -722,7 +728,7 @@ public abstract class Parser {
         return l;
     }
 
-    private static ActivationLayer parseActivation(List<KeyValuePair> options, SizeParams params) {
+    private static ActivationLayer parseActivation(KeyValuePairList options, SizeParams params) {
 
         String activation_s = optionFindString(options, "activation", "linear");
         Activation activation = Activation.getActivation(activation_s);
@@ -736,7 +742,7 @@ public abstract class Parser {
         return l;
     }
 
-    private static UpsampleLayer parseUpsample(List<KeyValuePair> options, SizeParams params, Network net) {
+    private static UpsampleLayer parseUpsample(KeyValuePairList options, SizeParams params, Network net) {
 
         int stride = optionFindInt(options, "stride",2);
         UpsampleLayer l = new UpsampleLayer(params.batch, params.w, params.h, params.c, stride);
@@ -744,7 +750,7 @@ public abstract class Parser {
         return l;
     }
 
-    private static RouteLayer parseRoute(List<KeyValuePair> options, SizeParams params, Network net) {
+    private static RouteLayer parseRoute(KeyValuePairList options, SizeParams params, Network net) {
 
         String l = optionFind(options, "layers");
 
@@ -794,12 +800,11 @@ public abstract class Parser {
 
     public static Network parseNetworkCfg(String filename) {
 
-        List<Section> listSections = readCfg(filename);
+        SectionList listSections = readCfg(filename);
         
         assert listSections != null;
         int netSize = listSections.size() - 1;
-        Section section = listSections.get(0);
-        listSections.remove(0);
+        Section section = listSections.pop().section;
 
         if(section == null) {
             ExceptionThrower.InvalidParams("Config file has no sections");
@@ -808,7 +813,7 @@ public abstract class Parser {
         Network net = new Network(netSize);
         SizeParams params = new SizeParams();
 
-        List<KeyValuePair> options = section.options;
+        KeyValuePairList options = section.options;
 
         if(!isNetwork(section)){
             ExceptionThrower.InvalidParams("First section must be [net] or [network]");
@@ -828,15 +833,16 @@ public abstract class Parser {
 
         int i = 0;
         while(listSections.size() > 0) {
-            section = listSections.get(0);
-            listSections.remove(0);
+            section = listSections.pop().section;
 
             params.index = i;
             options = section.options;
 
             Layer l = new Layer();
             LayerType lt = LayerType.getLayerType(section.type);
-            
+
+            System.out.printf("%02d: ",i+1);
+
             if(lt == CONVOLUTIONAL){
                 l = parseConvolutional(options, params);
             }else if(lt == DECONVOLUTIONAL){
@@ -920,6 +926,7 @@ public abstract class Parser {
             params.c = l.outC;
             params.inputs = l.outputs;
             i++;
+            System.gc();
         }
 
 

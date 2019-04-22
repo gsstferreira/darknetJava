@@ -1,18 +1,17 @@
-
 import Server.Handlers.RequestHandler;
-import Yolo.Setup;
-import org.lwjgl.system.CallbackI;
 
-import java.io.*;
+import Yolo.Setup;
+import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Locale;
 
 public class Main {
 
     private static final int port = 8080;
 
     public static void main(String[] args) {
+
+        Locale.setDefault(Locale.ENGLISH);
 
         Setup.initYolo();
         System.gc();
@@ -27,7 +26,8 @@ public class Main {
                 new RequestHandler(serverConnect.accept());
             }
 
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             System.err.println("Server setup error : " + e.getMessage());
         }
     }

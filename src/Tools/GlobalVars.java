@@ -1,11 +1,11 @@
 package Tools;
 
 import Classes.Data;
-import Classes.DetectionResult;
 import Classes.Image;
 import Classes.Network;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -28,7 +28,7 @@ public abstract class GlobalVars {
             System.out.print("Loading labeling alphabet...\t");
             alphabet = Image.loadAlphabet();
             long time2 = System.currentTimeMillis();
-            System.out.printf("done in %f seconds.\n",(time2 - time1)/1000.0f);
+            System.out.printf("done in %.3f seconds.\n",(time2 - time1)/1000.0f);
         }
         else {
             System.out.println("Alphabet already loaded!");
@@ -40,14 +40,14 @@ public abstract class GlobalVars {
         if(network == null || names == null) {
 
             long time1 = System.currentTimeMillis();
-            System.out.print("Loading network...\n");
+            System.out.print("Loading network...\n\n");
 
             names = Data.getPaths(namesFile);
 
             network = Network.loadNetwork(cfgFile,weightFile,0);
             network.setBatchNetwork(1);
             long time2 = System.currentTimeMillis();
-            System.out.printf("done in %f seconds.\n",(time2 - time1)/1000.0f);
+            System.out.printf("\nDone in %.3f seconds.\n",(time2 - time1)/1000.0f);
             Rand.setRandSeed(2222222);
         }
         else {

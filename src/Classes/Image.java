@@ -1,10 +1,9 @@
 package Classes;
 
 import Classes.Buffers.FloatBuffer;
-import Yolo.Enums.ImType;
 import Tools.Blas;
 import Tools.Rand;
-import Tools.Util;
+import Yolo.Enums.ImType;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.stb.STBImageWrite;
@@ -358,6 +357,21 @@ public class Image {
         return out;
     }
 
+    public static Image loadImageColorMemory(byte[] bytes,int w, int h) {
+        return loadImageMemory(bytes,w,h,3);
+    }
+
+    public static Image loadImageMemory(byte[] bytes, int w, int h, int c) {
+
+        Image out = loadImageStbMemory(bytes, c);
+
+        if((h != 0 && w != 0) && (h != out.h || w != out.w)){
+
+            out = out.resizeImage(w, h);
+        }
+        return out;
+    }
+
     public static Image loadImageStb(String filename, int channels) {
 
         //Emulando ponteiros
@@ -402,12 +416,52 @@ public class Image {
             return im;
         }
         catch (Exception e) {
-            System.out.println(String.format("Cannot load Image '%s'",filename));
-            e.printStackTrace();
-            System.exit(-1);
+            System.err.println(String.format("Cannot load Image '%s'",filename));
             return null;
         }
     }
+
+    public static Image loadImageStbMemory(byte[] imageBytes, int channels) {
+
+        //Emulando ponteiros
+        int[] _width = new int[1];
+        int[] _height = new int[1];
+        int[] _channel = new int[1];
+
+        ByteBuffer bb;
+
+        try {
+            ByteBuffer _BB = BufferUtils.createByteBuffer(imageBytes.length);
+            _BB.put(imageBytes);
+            _BB.position(0);
+            bb = STBImage.stbi_load_from_memory(_BB,_width,_height,_channel,channels);
+
+            int width = _width[0];
+            int height = _height[0];
+            int channel = (channels != 0) ? channels : _channel[0];
+
+            Image im = new Image(width, height, channels,false);
+
+            for(int k = 0; k < channel; ++k){
+                for(int j = 0; j < height; ++j){
+                    for(int i = 0; i < width; ++i){
+                        int dst_index = i + width*j + width*height*k;
+                        int src_index = k + channel*i + channel*width*j;
+
+                        float val = (bb.get(src_index) & 0x000000FF)/255.0f;
+                        im.data.put(dst_index,val);
+                    }
+                }
+            }
+            return im;
+
+        }
+        catch (Exception e){
+            System.err.println("Cannot load Image from POST request");
+            return null;
+        }
+    }
+
 
     private void saveImageOptions(String name, ImType f, int quality) {
 

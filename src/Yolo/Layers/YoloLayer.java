@@ -1,14 +1,16 @@
 package Yolo.Layers;
 
-import Classes.*;
+import Classes.Box;
 import Classes.Buffers.DetectionBuffer;
 import Classes.Buffers.FloatBuffer;
 import Classes.Buffers.IntBuffer;
-import Yolo.Enums.Activation;
-import Yolo.Enums.LayerType;
+import Classes.Layer;
+import Classes.Network;
 import Tools.Blas;
 import Tools.Buffers;
 import Tools.Util;
+import Yolo.Enums.Activation;
+import Yolo.Enums.LayerType;
 
 
 public class YoloLayer extends Layer {
@@ -53,7 +55,7 @@ public class YoloLayer extends Layer {
             this.biases.put(i,0.5f);
         }
 
-        System.out.printf("yolo\n");
+        System.out.printf("Yolo\n");
     }
 
     public void resize(int w, int h) {

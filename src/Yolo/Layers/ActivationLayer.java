@@ -3,9 +3,9 @@ package Yolo.Layers;
 import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
+import Tools.Blas;
 import Yolo.Enums.Activation;
 import Yolo.Enums.LayerType;
-import Tools.Blas;
 
 public class ActivationLayer extends Layer {
 

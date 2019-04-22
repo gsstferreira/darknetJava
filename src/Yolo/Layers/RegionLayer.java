@@ -1,12 +1,15 @@
 package Yolo.Layers;
 
-import Classes.*;
+import Classes.Box;
 import Classes.Buffers.DetectionBuffer;
 import Classes.Buffers.FloatBuffer;
 import Classes.Buffers.IntBuffer;
-import Yolo.Enums.LayerType;
+import Classes.Layer;
+import Classes.Network;
+import Classes.Tree;
 import Tools.Buffers;
 import Tools.Util;
+import Yolo.Enums.LayerType;
 
 
 public class RegionLayer extends Layer {

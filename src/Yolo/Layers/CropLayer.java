@@ -4,9 +4,9 @@ import Classes.Buffers.FloatBuffer;
 import Classes.Image;
 import Classes.Layer;
 import Classes.Network;
-import Yolo.Enums.LayerType;
 import Tools.Buffers;
 import Tools.Rand;
+import Yolo.Enums.LayerType;
 
 public class CropLayer extends Layer {
 

@@ -4,9 +4,9 @@ import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
+import Tools.Blas;
 import Yolo.Enums.Activation;
 import Yolo.Enums.LayerType;
-import Tools.Blas;
 
 public class CrnnLayer extends Layer {
 

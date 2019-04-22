@@ -4,9 +4,12 @@ import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
+import Tools.Blas;
+import Tools.Gemm;
+import Tools.ImCol;
+import Tools.Rand;
 import Yolo.Enums.Activation;
 import Yolo.Enums.LayerType;
-import Tools.*;
 
 
 public class LocalLayer extends Layer {

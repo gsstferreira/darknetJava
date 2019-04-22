@@ -3,9 +3,9 @@ package Yolo.Layers;
 import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
-import Yolo.Enums.LayerType;
 import Tools.Blas;
 import Tools.Buffers;
+import Yolo.Enums.LayerType;
 
 
 public class NormalizationLayer extends Layer {
@@ -59,7 +59,7 @@ public class NormalizationLayer extends Layer {
 
         for(b = 0; b < this.batch; ++b){
             FloatBuffer squared = this.squared.offsetNew(w*h*c*b);
-            FloatBuffer norms   = this.norms.offsetNew(w*h*c*b);;
+            FloatBuffer norms   = this.norms.offsetNew(w*h*c*b);
             FloatBuffer input   = net.input.offsetNew(w*h*c*b);
 
             Blas.powCpu(w*h*c, 2, input, 1, squared, 1);

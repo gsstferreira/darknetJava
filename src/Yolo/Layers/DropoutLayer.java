@@ -3,9 +3,9 @@ package Yolo.Layers;
 import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
-import Yolo.Enums.LayerType;
 import Tools.Buffers;
 import Tools.Rand;
+import Yolo.Enums.LayerType;
 
 public class DropoutLayer extends Layer {
 

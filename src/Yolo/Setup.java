@@ -2,6 +2,8 @@ package Yolo;
 
 import Tools.GlobalVars;
 
+import java.io.File;
+
 public abstract class Setup {
 
     private static boolean isInit = false;
@@ -17,6 +19,8 @@ public abstract class Setup {
             GlobalVars.isJar = Setup.class.getResourceAsStream("/" + networkCfgPath) != null;
             GlobalVars.loadAlphabet();
             GlobalVars.loadNetwork(networkCfgPath,weightsPath,namesCfgPath);
+
+            new File("Predictions/").mkdir();
 
             isInit = true;
         }

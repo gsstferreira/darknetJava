@@ -3,11 +3,11 @@ package Yolo.Layers;
 import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
-import Yolo.Enums.CostType;
-import Yolo.Enums.LayerType;
 import Tools.Blas;
 import Tools.Buffers;
 import Tools.Util;
+import Yolo.Enums.CostType;
+import Yolo.Enums.LayerType;
 
 public class CostLayer extends Layer {
 

@@ -5,9 +5,9 @@ import Classes.Buffers.IntBuffer;
 import Classes.Image;
 import Classes.Layer;
 import Classes.Network;
-import Yolo.Enums.LayerType;
 import Tools.Buffers;
 import Tools.Rand;
+import Yolo.Enums.LayerType;
 
 
 public class MaxpoolLayer extends Layer {
@@ -48,7 +48,7 @@ public class MaxpoolLayer extends Layer {
         output = new FloatBuffer(output_size);
         delta =  new FloatBuffer(output_size);
 
-        System.out.printf("max          %d x %d / %d  %4d x%4d x%4d   ->  %4d x%4d x%4d\n", size, size, stride, w, h, c, outW, outH, outC);
+        System.out.printf("Max         %d x %d / %d  %4d x%4d x%4d   ->  %4d x%4d x%4d\n", size, size, stride, w, h, c, outW, outH, outC);
     }
 
     public void resize(int width, int height) {

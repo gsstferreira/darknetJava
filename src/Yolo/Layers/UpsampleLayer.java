@@ -3,9 +3,9 @@ package Yolo.Layers;
 import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
-import Yolo.Enums.LayerType;
 import Tools.Blas;
 import Tools.Buffers;
+import Yolo.Enums.LayerType;
 
 public class UpsampleLayer extends Layer {
 
@@ -32,10 +32,10 @@ public class UpsampleLayer extends Layer {
         this.output = new FloatBuffer(this.outputs*batch);
 
         if(this.reverse != 0) {
-            System.out.printf("downsample         %2dx  %4d x%4d x%4d   ->  %4d x%4d x%4d\n", stride, w, h, c, this.outW, this.outH, this.outC);
+            System.out.printf("Downs %3dX             %4d x%4d x%4d   ->  %4d x%4d x%4d\n", stride, w, h, c, this.outW, this.outH, this.outC);
         }
         else {
-            System.out.printf("upsample           %2dx  %4d x%4d x%4d   ->  %4d x%4d x%4d\n", stride, w, h, c, this.outW, this.outH, this.outC);
+            System.out.printf("Ups   %3dX             %4d x%4d x%4d   ->  %4d x%4d x%4d\n", stride, w, h, c, this.outW, this.outH, this.outC);
         }
 
     }

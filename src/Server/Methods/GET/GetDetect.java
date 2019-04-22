@@ -5,10 +5,12 @@ import Server.Handlers.ResponseHandler;
 import Yolo.Detector;
 import com.google.gson.Gson;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.PrintWriter;
 import java.security.InvalidParameterException;
 
-public abstract class Method_Detect {
+public abstract class GetDetect {
 
     private static final Gson gson = new Gson();
     private static final String contentJson = "application/json";
@@ -59,7 +61,7 @@ public abstract class Method_Detect {
         else {
 
             if(new File(path).exists()) {
-                DetectionResult detections = Detector.runDetector(path,thresh);
+                DetectionResult detections = Detector.runDetector(path.replace("\\","/"),thresh);
                 String result = gson.toJson(detections);
 
                 ResponseHandler.responseOk(responseOutput, responseData, result,contentJson);

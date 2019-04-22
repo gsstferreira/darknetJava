@@ -4,9 +4,9 @@ import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
+import Tools.*;
 import Yolo.Enums.Activation;
 import Yolo.Enums.LayerType;
-import Tools.*;
 
 public class DeconvolutionalLayer extends Layer {
 

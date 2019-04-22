@@ -4,9 +4,9 @@ import Classes.Buffers.FloatBuffer;
 import Classes.Buffers.IntBuffer;
 import Classes.Layer;
 import Classes.Network;
-import Yolo.Enums.LayerType;
 import Tools.Blas;
 import Tools.Buffers;
+import Yolo.Enums.LayerType;
 
 
 
@@ -14,7 +14,7 @@ public class RouteLayer extends Layer {
 
     public RouteLayer(int batch, int n, IntBuffer input_layers, IntBuffer input_sizes) {
 
-        System.out.print("route ");
+        System.out.print("Route ");
 
         this.type = LayerType.ROUTE;
         this.batch = batch;
@@ -24,7 +24,7 @@ public class RouteLayer extends Layer {
         int i;
         int outputs = 0;
         for(i = 0; i < n; ++i){
-            System.out.printf(" %d", this.inputLayers.get(i));
+            System.out.printf("%4d ", this.inputLayers.get(i));
             outputs += input_sizes.get(i);
         }
         System.out.println();

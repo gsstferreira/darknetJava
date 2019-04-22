@@ -1,9 +1,10 @@
 package Classes;
 
-import java.util.List;
+import Classes.Lists.KeyValuePairList;
+
 
 public class Section {
 
     public String type;
-    public List<KeyValuePair> options;
+    public KeyValuePairList options;
 }

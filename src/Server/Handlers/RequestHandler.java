@@ -54,7 +54,7 @@ public class RequestHandler implements Runnable {
                         DELETEHandler.handleConnection(requestInput,responseOutput,responseData,tokenizer);
                         break;
                     default:
-                        String response = "Unrecognized HTTP method";
+                        String response = "Unsupported or unrecognized HTTP method";
                         ResponseHandler.responseBadRequest(responseOutput,responseData,response);
                         break;
                 }
