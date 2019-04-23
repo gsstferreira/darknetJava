@@ -4,7 +4,7 @@ import Classes.Detection;
 
 public class DetectionBuffer {
 
-    private Detection[] array;
+    private final Detection[] array;
     private int offset;
 
     public DetectionBuffer(Detection[] arr) {

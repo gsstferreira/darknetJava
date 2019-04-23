@@ -144,6 +144,7 @@ public class GruLayer extends Layer {
             }
     }
 
+    @SuppressWarnings("EmptyMethod")
     public void backward(Network net){}
 
 }

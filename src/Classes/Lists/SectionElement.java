@@ -4,7 +4,7 @@ import Classes.Section;
 
 public class SectionElement {
 
-    public Section section;
+    public final Section section;
     public SectionElement next;
 
     public SectionElement(Section s) {

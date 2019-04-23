@@ -5,7 +5,7 @@ import Classes.Section;
 public class SectionList {
 
     private int totalSize;
-    private SectionElement head;
+    private final SectionElement head;
     private SectionElement tail;
 
     public int size() {

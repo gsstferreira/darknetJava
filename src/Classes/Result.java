@@ -2,9 +2,9 @@ package Classes;
 
 public class Result {
 
-    public String Label;
-    public float Confidence;
-    public ResultBox BoundingBox;
+    public final String Label;
+    public final float Confidence;
+    public final ResultBox BoundingBox;
 
     public Result(String name, float conf, int X, int Y, int w, int h) {
 

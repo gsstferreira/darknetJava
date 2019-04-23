@@ -5,7 +5,7 @@ import Classes.KeyValuePair;
 public class KeyValuePairList {
 
     private int totalSize;
-    private KeyValuePairElement head;
+    private final KeyValuePairElement head;
     private KeyValuePairElement tail;
 
     public KeyValuePairList() {

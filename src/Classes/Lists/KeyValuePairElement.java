@@ -4,7 +4,7 @@ import Classes.KeyValuePair;
 
 public class KeyValuePairElement {
 
-    public KeyValuePair kvp;
+    public final KeyValuePair kvp;
     public KeyValuePairElement next;
     public KeyValuePairElement previous;
     public KeyValuePairList list;

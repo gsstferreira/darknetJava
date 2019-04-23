@@ -97,5 +97,6 @@ public class CropLayer extends Layer {
         }
     }
 
+    @SuppressWarnings("EmptyMethod")
     public void backward(Network net){}
 }

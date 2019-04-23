@@ -6,7 +6,7 @@ public abstract class Rand {
 
     public static final float MAX_FLOAT = Float.MAX_VALUE;
 
-    private static Random rand = new Random();
+    private static final Random rand = new Random();
 
     private static boolean haveSpare = false;
     private static double rand1;

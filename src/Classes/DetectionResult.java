@@ -5,11 +5,11 @@ import java.util.List;
 
 public class DetectionResult {
 
-    public float ProcessTimeSecs;
-    public int TotalDetections;
-    public int ImageWidth;
-    public int ImageHeight;
-    public List<Result> Detections;
+    public final float ProcessTimeSecs;
+    public final int TotalDetections;
+    public final int ImageWidth;
+    public final int ImageHeight;
+    public final List<Result> Detections;
 
     public DetectionResult(float procTime, List<Result> detections,int w, int h) {
 

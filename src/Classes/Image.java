@@ -2,6 +2,7 @@ package Classes;
 
 import Classes.Buffers.FloatBuffer;
 import Tools.Blas;
+import Tools.GlobalVars;
 import Tools.Rand;
 import Yolo.Enums.ImType;
 import org.lwjgl.BufferUtils;
@@ -16,13 +17,12 @@ import java.util.stream.IntStream;
 
 public class Image {
 
-    public int w;
-    public int h;
-    public int c;
-    public FloatBuffer data;
+    public final int w;
+    public final int h;
+    public final int c;
+    public final FloatBuffer data;
 
-    private static float[][] colors = {{1,0,1},{0,0,1},{0,1,1},{0,1,0},{1,1,0},{1,0,0}};
-
+    private static final float[][] colors = {{1,0,1},{0,0,1},{0,1,1},{0,1,0},{1,1,0},{1,0,0}};
     private static final int alphabetNsize = 8;
 
     public Image(int width, int height, int c, boolean random) {
@@ -57,8 +57,8 @@ public class Image {
         int i = (int) Math.floor(ratio);
         int j = (int) Math.ceil(ratio);
         ratio -= i;
-        float r = (1-ratio) * colors[i][c] + ratio*colors[j][c];
-        return r;
+
+        return (1-ratio) * colors[i][c] + ratio*colors[j][c];
     }
 
 //    public Image maskToRgb() {
@@ -233,7 +233,7 @@ public class Image {
         for(k = 0; k < this.c; ++k){
             for(r = 0; r < this.h; ++r){
                 for(c = 0; c < w; ++c){
-                    float val = 0;
+                    float val;
                     if(c == w-1 || this.w == 1){
                         val = getPixel(this.w-1, r, k);
                     } else {
@@ -349,6 +349,7 @@ public class Image {
     public static Image loadImage(String filename, int w, int h, int c) {
 
         Image out = loadImageStb(filename, c);
+        assert out != null;
 
         if((h != 0 && w != 0) && (h != out.h || w != out.w)){
 
@@ -363,7 +364,8 @@ public class Image {
 
     public static Image loadImageMemory(byte[] bytes, int w, int h, int c) {
 
-        Image out = loadImageStbMemory(bytes, c);
+        Image out = loadImageStb(bytes, c);
+        assert out != null;
 
         if((h != 0 && w != 0) && (h != out.h || w != out.w)){
 
@@ -382,7 +384,7 @@ public class Image {
         try {
             ByteBuffer bb;
 
-            try {
+            if(GlobalVars.isJar) {
                 InputStream inputStream = Image.class.getResourceAsStream(filename);
                 byte[] b = inputStream.readAllBytes();
                 inputStream.close();
@@ -390,11 +392,11 @@ public class Image {
                 _BB.put(b);
                 _BB.position(0);
                 bb = STBImage.stbi_load_from_memory(_BB,_width,_height,_channel,channels);
-
             }
-            catch (Exception e){
-                bb = STBImage.stbi_load(filename,_width,_height,_channel,channels);
+            else {
+                bb = STBImage.stbi_load(filename.substring(1),_width,_height,_channel,channels);
             }
+            assert bb != null;
 
             int width = _width[0];
             int height = _height[0];
@@ -421,20 +423,20 @@ public class Image {
         }
     }
 
-    public static Image loadImageStbMemory(byte[] imageBytes, int channels) {
+    public static Image loadImageStb(byte[] imageBytes, int channels) {
 
         //Emulando ponteiros
         int[] _width = new int[1];
         int[] _height = new int[1];
         int[] _channel = new int[1];
 
-        ByteBuffer bb;
-
         try {
             ByteBuffer _BB = BufferUtils.createByteBuffer(imageBytes.length);
             _BB.put(imageBytes);
             _BB.position(0);
-            bb = STBImage.stbi_load_from_memory(_BB,_width,_height,_channel,channels);
+
+            ByteBuffer bb = STBImage.stbi_load_from_memory(_BB,_width,_height,_channel,channels);
+            assert bb != null;
 
             int width = _width[0];
             int height = _height[0];

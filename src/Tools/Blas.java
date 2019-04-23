@@ -221,16 +221,12 @@ public abstract class Blas {
 
     public static void scalCpu(int N, float ALPHA, FloatBuffer X, int INCX) {
 
-        IntStream.range(0,N).parallel().forEach(i -> {
-            X.put(i*INCX, X.get(i*INCX) * ALPHA);
-        });
+        IntStream.range(0,N).parallel().forEach(i -> X.put(i*INCX, X.get(i*INCX) * ALPHA));
     } //
 
     public static void fillCpu(int N, float ALPHA, FloatBuffer X, int INCX) {
 
-        IntStream.range(0,N).parallel().forEach(i -> {
-            X.put(i*INCX,ALPHA);
-        });
+        IntStream.range(0,N).parallel().forEach(i -> X.put(i*INCX,ALPHA));
     } //
 
 //    public static void deinterCpu(int NX, FloatBuffer X, int NY, FloatBuffer Y, int B, FloatBuffer OUT) {

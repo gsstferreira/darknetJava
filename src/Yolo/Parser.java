@@ -72,9 +72,8 @@ public abstract class Parser {
         String v = optionFind(l, key);
         if(v != null) {
 
-            float f = Float.parseFloat(v.replace(",","."));
+            return Float.parseFloat(v.replace(",","."));
 
-            return f;
         }
         else {
             return def;

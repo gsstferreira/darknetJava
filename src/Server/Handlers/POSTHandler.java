@@ -8,17 +8,19 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
 
-public abstract class POSTHandler {
+abstract class POSTHandler {
 
-    public static void handleConnection(BufferedReader requestInput, PrintWriter responseOutput, BufferedOutputStream responseData, StringTokenizer tokenizer) {
+    static void handleConnection(BufferedReader requestInput, PrintWriter responseOutput, BufferedOutputStream responseData, StringTokenizer tokenizer) {
 
         String[] pathAndParams = tokenizer.nextToken().split("\\?");
 
         StringBuilder sb = new StringBuilder();
         String s;
+        //noinspection SwitchStatementWithTooFewBranches
         switch (pathAndParams[0]){
             case "/Detect":
                 try {
+                    //noinspection StatementWithEmptyBody
                     while((s = requestInput.readLine()).length() != 0) {
                         System.out.println(s.replace("\n","").replace("\r",""));
                     }

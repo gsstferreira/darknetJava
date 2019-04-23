@@ -2,11 +2,11 @@ package Classes;
 
 public class ResultBox {
 
-    public int topLeftX;
-    public int topLeftY;
+    public final int topLeftX;
+    public final int topLeftY;
 
-    public int width;
-    public int height;
+    public final int width;
+    public final int height;
 
 
     public ResultBox(int X, int Y, int w, int h) {

@@ -1,12 +1,12 @@
 package Tools;
 
+import Classes.Buffers.ByteBuffer;
 import Classes.Data;
 import Classes.Image;
 import Classes.Network;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 public abstract class GlobalVars {
@@ -17,8 +17,7 @@ public abstract class GlobalVars {
     private static Network network;
     private static List<String> names;
 
-    private static byte[] weightBytes;
-    private static int offset;
+    private static ByteBuffer weightBytes;
 
     public static void loadAlphabet() {
 
@@ -78,9 +77,8 @@ public abstract class GlobalVars {
             else {
                 stream = new BufferedInputStream(new FileInputStream(weightFile));
             }
-            weightBytes = stream.readAllBytes();
+            weightBytes = new ByteBuffer(stream.readAllBytes());
             stream.close();
-            offset = 0;
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -91,7 +89,6 @@ public abstract class GlobalVars {
 
         if(weightBytes != null) {
             weightBytes = null;
-            offset = 0;
         }
 
         System.gc();
@@ -99,26 +96,22 @@ public abstract class GlobalVars {
 
     public static int getIntWeight() {
 
-        return Buffers.reverse(ByteBuffer.wrap(getByteSection(4))).getInt(0);
+        int val = weightBytes.getNextInt(0);
+        weightBytes.offset(4);
+        return val;
     }
 
     public static float getFloatWeight() {
 
-        return Buffers.reverse(ByteBuffer.wrap(getByteSection(4))).getFloat(0);
+        float val = weightBytes.getNextFloat(0);
+        weightBytes.offset(4);
+        return val;
     }
 
     public static long getLongWeight() {
-        return Buffers.reverse(ByteBuffer.wrap(getByteSection(8))).getLong(0);
-    }
 
-    private static byte[] getByteSection(int size) {
-
-        byte[] b_arr = new byte[size];
-
-        for(int i = 0; i < size; i++) {
-            b_arr[i] = weightBytes[offset + i];
-        }
-        offset += size;
-        return b_arr;
+        long val = weightBytes.getNextLong(0);
+        weightBytes.offset(8);
+        return val;
     }
 }

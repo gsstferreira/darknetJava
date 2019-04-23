@@ -6,12 +6,13 @@ import java.io.BufferedOutputStream;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
 
-public abstract class GETHandler {
+abstract class GETHandler {
 
-    public static void handleConnection(PrintWriter responseOutput, BufferedOutputStream responseData, StringTokenizer tokenizer) {
+    static void handleConnection(PrintWriter responseOutput, BufferedOutputStream responseData, StringTokenizer tokenizer) {
 
         String[] pathAndParams = tokenizer.nextToken().split("\\?");
 
+        //noinspection SwitchStatementWithTooFewBranches
         switch(pathAndParams[0]) {
 
             case "/Detect":

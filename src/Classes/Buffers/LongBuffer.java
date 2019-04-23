@@ -2,7 +2,7 @@ package Classes.Buffers;
 
 public class LongBuffer {
 
-    private long[] array;
+    private final long[] array;
     private int offset;
 
     public LongBuffer(long[] arr) {

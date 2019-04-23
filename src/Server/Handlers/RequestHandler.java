@@ -11,7 +11,7 @@ public class RequestHandler implements Runnable {
     private PrintWriter responseOutput;
     private BufferedOutputStream responseData;
 
-    private Socket connection;
+    private final Socket connection;
 
     public RequestHandler(Socket conn) {
         this.connection = conn;
@@ -61,6 +61,7 @@ public class RequestHandler implements Runnable {
             }
         }
         catch (IOException e) {
+            e.printStackTrace();
             System.err.println("Error processing request: " + e.getMessage());
         }
         finally {

@@ -2,7 +2,7 @@ package Classes.Buffers;
 
 public class FloatBuffer {
 
-    private float[] array;
+    private final float[] array;
     private int offset;
 
     public FloatBuffer(float[] arr) {

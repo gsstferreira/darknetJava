@@ -33,15 +33,15 @@ public class RnnLayer extends Layer {
         this.prevState = new FloatBuffer(batch*outputs);
 
         this.inputLayer = new ConnectedLayer(batch*steps, inputs, outputs, activation, batch_normalize, adam);
-        System.out.printf("\t\t");
+        System.out.print("\t\t");
         this.inputLayer.batch = batch;
 
         this.selfLayer = new ConnectedLayer(batch*steps, outputs, outputs, activation, batch_normalize, adam);
-        System.out.printf("\t\t");
+        System.out.print("\t\t");
         this.selfLayer.batch = batch;
 
         this.outputLayer = new ConnectedLayer(batch*steps, outputs, outputs, activation, batch_normalize, adam);
-        System.out.printf("\t\t");
+        System.out.print("\t\t");
         this.outputLayer.batch = batch;
 
         this.outputs = outputs;

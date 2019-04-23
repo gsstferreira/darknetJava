@@ -2,7 +2,7 @@ package Classes.Buffers;
 
 public class IntBuffer {
 
-    private int[] array;
+    private final int[] array;
     private int offset;
 
     public IntBuffer(int[] arr) {

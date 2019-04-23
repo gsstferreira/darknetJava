@@ -12,7 +12,6 @@ import Tools.Util;
 import Yolo.Enums.Activation;
 import Yolo.Enums.LayerType;
 
-
 public class YoloLayer extends Layer {
 
     public YoloLayer(int batch, int w, int h, int n, int total, IntBuffer mask, int classes) {
@@ -55,7 +54,7 @@ public class YoloLayer extends Layer {
             this.biases.put(i,0.5f);
         }
 
-        System.out.printf("Yolo\n");
+        System.out.println("Yolo");
     }
 
     public void resize(int w, int h) {
@@ -299,8 +298,8 @@ public class YoloLayer extends Layer {
     public void correctYoloBoxes(DetectionBuffer dets, int n, int w, int h, int netw, int neth, int relative) {
 
         int i;
-        int new_w = 0;
-        int new_h = 0;
+        int new_w;
+        int new_h;
 
         if (((float)netw/w) < ((float)neth/h)) {
             new_w = netw;

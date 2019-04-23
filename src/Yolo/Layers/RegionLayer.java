@@ -42,7 +42,7 @@ public class RegionLayer extends Layer {
 
             this.biases.put(i,0.5f);
         }
-        System.out.printf("detection\n");
+        System.out.println("detection");
     }
 
     public void resize(int w, int h) {
@@ -63,7 +63,7 @@ public class RegionLayer extends Layer {
         Box b = new Box();
 
         b.x = (i + x.get(index)) / w;
-        b.y = (j + x.get(index + 1*stride)) / h;
+        b.y = (j + x.get(index + stride)) / h;
         b.w = (float) Math.exp(x.get(index + 2*stride)) * biases.get(2*n) / w;
         b.h = (float) Math.exp(x.get(index + 3*stride)) * biases.get(2*n+1) / h;
         return b;
@@ -364,6 +364,7 @@ public class RegionLayer extends Layer {
         System.out.print(s);
     }
 
+    @SuppressWarnings("EmptyMethod")
     public void backward(Network net) {
 
     }

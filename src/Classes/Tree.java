@@ -196,9 +196,8 @@ public class Tree {
 
             while((s = reader.readLine()) != null) {
 
-                int parent  = -1;
                 String[] ss = s.split(" ");
-                parent = Integer.parseInt(ss[1].strip());
+                int parent = Integer.parseInt(ss[1].strip());
                 _parent.add(parent);
                 _child.add(-1);
                 _name.add(ss[0]);

@@ -1,10 +1,10 @@
 package Tools;
 
+import Classes.Buffers.ByteBuffer;
 import Classes.Buffers.FloatBuffer;
 import Classes.Buffers.IntBuffer;
 import Classes.Buffers.LongBuffer;
 
-import java.nio.ByteBuffer;
 import java.util.stream.IntStream;
 
 
@@ -119,8 +119,8 @@ public abstract class Buffers {
 
     public static ByteBuffer reverse(ByteBuffer buffer) {
 
-        int cap = buffer.limit() - buffer.position();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(cap);
+        int cap = buffer.size();
+        ByteBuffer byteBuffer = new ByteBuffer(cap);
 
         for(int i = 0; i < cap; i++) {
 

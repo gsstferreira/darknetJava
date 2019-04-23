@@ -1,13 +1,12 @@
 package Classes;
 
+import Classes.Buffers.ByteBuffer;
 import Classes.Buffers.FloatBuffer;
 import Classes.Buffers.IntBuffer;
 import Yolo.Enums.Activation;
 import Yolo.Enums.CostType;
 import Yolo.Enums.LayerType;
 import Yolo.Layers.*;
-
-import java.nio.ByteBuffer;
 
 
 public class Layer {

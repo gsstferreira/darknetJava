@@ -187,6 +187,7 @@ public class Network implements Cloneable {
 //        return this.predict(imr.data);
 //    }
 
+    @SuppressWarnings("UnusedReturnValue")
     public FloatBuffer predict(FloatBuffer input) {
 
         Network clone = this.tryClone();
@@ -241,12 +242,14 @@ public class Network implements Cloneable {
 
             if(l.type == LayerType.REGION){
 
+                //noinspection ConstantConditions
                 ((RegionLayer)l).getRegionDetections( w, h, this.w, this.h, thresh, map, hier, relative, detBuffer);
                 detBuffer.offset(l.w*l.h*l.n);
             }
 
             if(l.type == LayerType.DETECTION){
 
+                //noinspection ConstantConditions
                 ((DetectionLayer)l).getDetectionDetections(w, h, thresh, detBuffer);
                 detBuffer.offset(l.w*l.h*l.n);
             }

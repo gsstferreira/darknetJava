@@ -261,6 +261,7 @@ public enum Activation {
         }
     }
 
+    @SuppressWarnings("SameReturnValue")
     private static float linearGradient(float x){
         return 1;
     }

@@ -152,9 +152,8 @@ public class LocalLayer extends Layer {
 
                     int m = size*size*c;
                     int n = 1;
-                    int k = n;
 
-                    Gemm.gemm(1,0,m,n,k,1,_a,m,_b,locations,0,_c,locations);
+                    Gemm.gemm(1,0,m,n, n,1,_a,m,_b,locations,0,_c,locations);
                 }
 
                 FloatBuffer fb = net.delta.offsetNew(i*c*h*w);

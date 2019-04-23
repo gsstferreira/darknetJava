@@ -1,5 +1,6 @@
 package Yolo.Layers;
 
+import Classes.Buffers.ByteBuffer;
 import Classes.Buffers.FloatBuffer;
 import Classes.Layer;
 import Classes.Network;
@@ -7,7 +8,6 @@ import Classes.UpdateArgs;
 import Tools.*;
 import Yolo.Enums.Activation;
 import Yolo.Enums.LayerType;
-import org.lwjgl.BufferUtils;
 
 
 public class ConvolutionalLayer extends Layer {
@@ -131,7 +131,7 @@ public class ConvolutionalLayer extends Layer {
 
         if(binary != 0){
             this.binaryWeights = new FloatBuffer(this.nweights);
-            this.cweights = BufferUtils.createByteBuffer(this.nweights);
+            this.cweights = new ByteBuffer(this.nweights);
             this.scales = new FloatBuffer(n);
         }
         if(xnor != 0){

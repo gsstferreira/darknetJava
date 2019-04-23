@@ -1,6 +1,6 @@
 import Server.Handlers.RequestHandler;
-
 import Yolo.Setup;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.Locale;
@@ -21,8 +21,8 @@ public class Main {
             ServerSocket serverConnect = new ServerSocket(port);
             System.out.printf("Server ready, listening to port %d.\n",port);
 
+            //noinspection InfiniteLoopStatement
             while(true) {
-
                 new RequestHandler(serverConnect.accept());
             }
 
