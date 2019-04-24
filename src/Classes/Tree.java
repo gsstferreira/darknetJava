@@ -1,6 +1,6 @@
 package Classes;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -50,7 +50,7 @@ public class Tree {
 //        return p;
 //    }
 
-    public float getHierarchyprobability(FloatBuffer x, int c, int stride) {
+    public float getHierarchyprobability(FloatArray x, int c, int stride) {
 
         float p = 1;
         while(c >= 0) {
@@ -79,7 +79,7 @@ public class Tree {
 //        }
 //    }
 
-    public void hierarchyPredictions(FloatBuffer predictions, int n, boolean onlyLeaves, int stride) {
+    public void hierarchyPredictions(FloatArray predictions, int n, boolean onlyLeaves, int stride) {
 
         for(int i = 0; i < n; i++) {
 
@@ -137,7 +137,7 @@ public class Tree {
 //        }
 //    }
 
-    public int hierarchyTopPredictions(FloatBuffer predictions, float thresh, int stride) {
+    public int hierarchyTopPredictions(FloatArray predictions, float thresh, int stride) {
 
         float p = 1;
         int group = 0;

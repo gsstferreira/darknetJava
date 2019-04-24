@@ -15,14 +15,14 @@ abstract class POSTHandler {
         String[] pathAndParams = tokenizer.nextToken().split("\\?");
 
         StringBuilder sb = new StringBuilder();
-        String s;
+
         //noinspection SwitchStatementWithTooFewBranches
         switch (pathAndParams[0]){
             case "/Detect":
                 try {
                     //noinspection StatementWithEmptyBody
-                    while((s = requestInput.readLine()).length() != 0) {
-                        System.out.println(s.replace("\n","").replace("\r",""));
+                    while((requestInput.readLine()).length() != 0) {
+                        //System.out.println(s.replace("\n","").replace("\r",""));
                     }
                     while (requestInput.ready()) {
                         sb.append((char)requestInput.read());

@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
@@ -52,16 +52,16 @@ public class GruLayer extends Layer {
         this.batchNormalize = batch_normalize;
         
         this.outputs = outputs;
-        this.output = new FloatBuffer(outputs*batch*steps);
-        this.delta = new FloatBuffer(outputs*batch*steps);
-        this.state = new FloatBuffer(outputs*batch);
-        this.prevState = new FloatBuffer(outputs*batch);
-        this.forgotState = new FloatBuffer(outputs*batch);
-        this.forgotDelta = new FloatBuffer(outputs*batch);
+        this.output = new FloatArray(outputs*batch*steps);
+        this.delta = new FloatArray(outputs*batch*steps);
+        this.state = new FloatArray(outputs*batch);
+        this.prevState = new FloatArray(outputs*batch);
+        this.forgotState = new FloatArray(outputs*batch);
+        this.forgotDelta = new FloatArray(outputs*batch);
 
-        this.rCpu = new FloatBuffer(outputs*batch);
-        this.zCpu = new FloatBuffer(outputs*batch);
-        this.hCpu = new FloatBuffer(outputs*batch);
+        this.rCpu = new FloatArray(outputs*batch);
+        this.zCpu = new FloatArray(outputs*batch);
+        this.hCpu = new FloatArray(outputs*batch);
     }
 
     public void update(UpdateArgs a) {
@@ -90,7 +90,7 @@ public class GruLayer extends Layer {
 
             if(net.train != 0) {
                 Blas.fillCpu(outputs * batch * steps, 0, delta, 1);
-                Blas.copyCpu(outputs * batch, state, 1, prevState, 1);
+                state.copyInto(outputs*batch,prevState);
             }
 
             for (i = 0; i < steps; ++i) {
@@ -103,23 +103,23 @@ public class GruLayer extends Layer {
                 ((ConnectedLayer)ur).forward(s);
                 ((ConnectedLayer)uh).forward(s);
 
-                Blas.copyCpu(outputs*batch, uz.output, 1, zCpu, 1);
+                uz.output.copyInto(outputs*batch,zCpu);
                 Blas.axpyCpu(outputs*batch, 1, wz.output, 1, zCpu, 1);
 
-                Blas.copyCpu(outputs*batch, ur.output, 1, rCpu, 1);
+                ur.output.copyInto(outputs*batch,rCpu);
                 Blas.axpyCpu(outputs*batch, 1, wr.output, 1, rCpu, 1);
 
                 Activation.activateArray(zCpu, outputs*batch, LOGISTIC);
                 Activation.activateArray(rCpu, outputs*batch, LOGISTIC);
 
-                Blas.copyCpu(outputs*batch, state, 1, forgotState, 1);
+                state.copyInto(outputs*batch,forgotState);
                 Blas.mulCpu(outputs*batch, rCpu, 1, forgotState, 1);
 
                 s.input = forgotState;
 
                 ((ConnectedLayer)wh).forward(s);
 
-                Blas.copyCpu(outputs*batch, uh.output, 1, hCpu, 1);
+                uh.output.copyInto(outputs*batch,hCpu);
                 Blas.axpyCpu(outputs*batch, 1, wh.output, 1, hCpu, 1);
 
                 if(tanh != 0){
@@ -129,7 +129,7 @@ public class GruLayer extends Layer {
                 }
 
                 Blas.weightedSumCpu(state, hCpu, zCpu, outputs*batch, output);
-                Blas.copyCpu(outputs*batch, output, 1, state, 1);
+                output.copyInto(outputs*batch,state);
 
                 net.input.offset(inputs*batch);
                 output.offset(inputs*batch);

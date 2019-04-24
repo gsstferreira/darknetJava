@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Blas;
@@ -25,8 +25,8 @@ public class ShortcutLayer extends Layer {
 
         this.index = index;
 
-        this.delta = new FloatBuffer(this.outputs*batch);
-        this.output = new FloatBuffer(this.outputs*batch);
+        this.delta = new FloatArray(this.outputs*batch);
+        this.output = new FloatArray(this.outputs*batch);
 
         System.out.printf("res  %3d                %4d x%4d x%4d   ->  %4d x%4d x%4d\n",index, w2,h2,c2, w,h,c);
     }
@@ -47,7 +47,7 @@ public class ShortcutLayer extends Layer {
 
     public void forward(Network net) {
 
-        Blas.copyCpu(this.outputs*this.batch, net.input, 1, this.output, 1);
+        net.input.copyInto(outputs*batch,output);
         Blas.shortcutCpu(this.batch, this.w, this.h, this.c, net.layers[this.index].output, this.outW, this.outH, this.outC, this.alpha, this.beta, this.output);
         Activation.activateArray(this.output, this.outputs*this.batch, this.activation);
     }

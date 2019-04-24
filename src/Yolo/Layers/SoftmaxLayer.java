@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Blas;
@@ -18,10 +18,10 @@ public class SoftmaxLayer extends Layer {
         this.groups = groups;
         this.inputs = inputs;
         this.outputs = inputs;
-        this.loss = new FloatBuffer(inputs*batch);
-        this.output = new FloatBuffer(inputs*batch);
-        this.delta = new FloatBuffer(inputs*batch);
-        this.cost = new FloatBuffer(1);
+        this.loss = new FloatArray(inputs*batch);
+        this.output = new FloatArray(inputs*batch);
+        this.delta = new FloatArray(inputs*batch);
+        this.cost = new FloatArray(1);
 
         System.out.printf("softmax                                        %4d\n",  inputs);
     }
@@ -34,8 +34,8 @@ public class SoftmaxLayer extends Layer {
             for (i = 0; i < this.softmaxTree.groups; ++i) {
                 int group_size = this.softmaxTree.groupSize[i];
 
-                FloatBuffer fb1 = net.input.offsetNew(count);
-                FloatBuffer fb2 = net.output.offsetNew(count);
+                FloatArray fb1 = net.input.offsetNew(count);
+                FloatArray fb2 = net.output.offsetNew(count);
 
                 Blas.softmaxCpu(fb1, group_size, this.batch, this.inputs, 1, 0, 1, this.temperature, fb2);
                 count += group_size;
@@ -44,7 +44,7 @@ public class SoftmaxLayer extends Layer {
             Blas.softmaxCpu(net.input, this.inputs/this.groups, this.batch, this.inputs, this.groups, this.inputs/this.groups, 1, this.temperature, this.output);
         }
 
-        if(net.truth != null && this.noloss == 0){
+        if(net.truth != null && this.noLoss == 0){
             Blas.softmaxXEntCpu(this.batch*this.inputs, this.output, net.truth, this.delta, this.loss);
 
             this.cost.put(0,Util.sumArray(this.loss, this.batch * this.inputs));

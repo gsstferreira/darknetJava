@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
@@ -37,7 +37,7 @@ public class CrnnLayer extends Layer {
         this.hidden = h * w * hidden_filters;
         this.outputs = this.outH * this.outW * this.outC;
 
-        this.state = new FloatBuffer(this.hidden*batch*(steps + 1));
+        this.state = new FloatArray(this.hidden*batch*(steps + 1));
 
         this.inputLayer = new ConvolutionalLayer(batch*steps, h, w, c, hidden_filters, 1, 3, 1, 1,  activation, batch_normalize, 0, 0, 0);
         this.inputLayer.batch = batch;
@@ -87,13 +87,14 @@ public class CrnnLayer extends Layer {
                 s.input = state;
                 ((ConvolutionalLayer)self_Layer).forward(s);
 
-                FloatBuffer old_state = state;
+                FloatArray oldState = state;
 
                 if(net.train != 0) {
                     state.offset(hidden*batch);
                 }
                 if(shortcut != 0){
-                    Blas.copyCpu(hidden * batch, old_state, 1, state, 1);
+
+                    oldState.copyInto(hidden*batch,state);
                 }
                 else{
                     Blas.fillCpu(hidden *batch, 0, state, 1);
@@ -121,45 +122,42 @@ public class CrnnLayer extends Layer {
     public void backward(Network net) {
 
         try {
-            Network s = (Network) net.clone();
+            Network s = net.clone();
             int i;
-            Layer input_Layer = inputLayer;
-            Layer self_Layer = selfLayer;
-            Layer output_Layer = outputLayer;
 
-            incrementLayer(input_Layer, steps-1);
-            incrementLayer(self_Layer, steps-1);
-            incrementLayer(output_Layer, steps-1);
+            incrementLayer(inputLayer, steps-1);
+            incrementLayer(selfLayer, steps-1);
+            incrementLayer(outputLayer, steps-1);
 
             state.offset(hidden*batch*steps);
 
             for (i = steps - 1; i >= 0; --i) {
 
-                Blas.copyCpu(hidden * batch, input_Layer.output, 1,state, 1);
-                Blas.axpyCpu(hidden * batch, 1, self_Layer.output, 1, state, 1);
+                inputLayer.output.copyInto(hidden*batch,state);
+                Blas.axpyCpu(hidden * batch, 1, selfLayer.output, 1, state, 1);
 
                 s.input = state;
-                s.delta = self_Layer.delta;
+                s.delta = selfLayer.delta;
 
-                ((ConvolutionalLayer)output_Layer).backward(s);
+                ((ConvolutionalLayer)outputLayer).backward(s);
 
                 state.offset(-hidden*batch);
 
                 s.input = state;
-                delta = self_Layer.delta.offsetNew(-hidden*batch);
+                delta = selfLayer.delta.offsetNew(-hidden*batch);
 
                 if (i == 0) {
                     s.delta = null;
                 }
 
-                ((ConvolutionalLayer)self_Layer).backward(s);
+                ((ConvolutionalLayer)selfLayer).backward(s);
 
-                Blas.copyCpu(hidden*batch, self_Layer.delta, 1, input_Layer.delta, 1);
+                selfLayer.delta.copyInto(hidden*batch,inputLayer.delta);
 
                 if (i > 0 && shortcut != 0) {
 
-                    FloatBuffer fb = self_Layer.delta.offsetNew(-hidden*batch);
-                    Blas.axpyCpu(hidden*batch, 1, self_Layer.delta, 1, fb, 1);
+                    FloatArray fb = selfLayer.delta.offsetNew(-hidden*batch);
+                    Blas.axpyCpu(hidden*batch, 1, selfLayer.delta, 1, fb, 1);
                 }
 
                 s.input = net.input.offsetNew(i*inputs*batch);
@@ -172,11 +170,11 @@ public class CrnnLayer extends Layer {
                     s.delta = null;
                 }
 
-                ((ConvolutionalLayer)input_Layer).backward(s);
+                ((ConvolutionalLayer)inputLayer).backward(s);
 
-                incrementLayer(input_Layer, -1);
-                incrementLayer(self_Layer, -1);
-                incrementLayer(output_Layer, -1);
+                incrementLayer(inputLayer, -1);
+                incrementLayer(selfLayer, -1);
+                incrementLayer(outputLayer, -1);
             }
         }
         catch (Exception e) {

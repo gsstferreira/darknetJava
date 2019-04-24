@@ -1,11 +1,10 @@
 package Classes;
 
-import Classes.Buffers.DetectionBuffer;
-import Classes.Buffers.FloatBuffer;
-import Classes.Buffers.IntBuffer;
-import Classes.Buffers.LongBuffer;
+import Classes.Arrays.DetectionArray;
+import Classes.Arrays.FloatArray;
+import Classes.Arrays.IntArray;
+import Classes.Arrays.LongArray;
 import Tools.Blas;
-import Tools.Buffers;
 import Yolo.Enums.LayerType;
 import Yolo.Enums.LearningRatePolicy;
 import Yolo.Layers.DetectionLayer;
@@ -16,29 +15,14 @@ import Yolo.Parser;
 public class Network implements Cloneable {
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
-        Network n = (Network) super.clone();
-
-        if(n.workspace != null){n.workspace = Buffers.copyNew(n.workspace,n.workspace.size());}
-        if(n.seen != null){n.seen = Buffers.copyNew(n.seen,n.seen.size());}
-        if(n.t != null){n.t = Buffers.copyNew(n.t,n.t.size());}
-        if(n.output != null){n.output = Buffers.copyNew(n.output,n.output.size());}
-        if(n.cost != null){n.cost = Buffers.copyNew(n.cost,n.cost.size());}
-
-        if(n.scales != null){n.scales = Buffers.copyNew(n.scales,n.scales.size());}
-        if(n.steps != null){n.steps = Buffers.copyNew(n.steps,n.steps.size());}
-
-        if(n.input != null){n.input = Buffers.copyNew(n.input,n.input.size());}
-        if(n.truth != null){n.truth = Buffers.copyNew(n.truth,n.truth.size());}
-        if(n.delta != null){n.delta = Buffers.copyNew(n.delta,n.delta.size());}
-
-        return n;
+    public Network clone() throws CloneNotSupportedException {
+        return (Network) super.clone();
     }
 
     public Network tryClone() {
 
         try {
-            return (Network) this.clone();
+            return this.clone();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -47,15 +31,17 @@ public class Network implements Cloneable {
         }
     }
 
+    public long nanoTime;
+
     public int n;
     public int batch;
 
-    public LongBuffer seen;
-    public IntBuffer t;
+    public LongArray seen;
+    public IntArray t;
 //    public float epoch;
     public int subdivisions;
     public Layer[] layers;
-    public FloatBuffer output;
+    public FloatArray output;
 
     public LearningRatePolicy policy;
 
@@ -68,8 +54,8 @@ public class Network implements Cloneable {
     public int timeSteps;
     public int step;
     public int maxBatches;
-    public FloatBuffer scales;
-    public IntBuffer steps;
+    public FloatArray scales;
+    public IntArray steps;
     public int numSteps;
     public int burnIn;
 
@@ -100,13 +86,13 @@ public class Network implements Cloneable {
     public int gpuIndex;
     public Tree hierarchy;
 
-    public FloatBuffer input;
-    public FloatBuffer truth;
-    public FloatBuffer delta;
-    public FloatBuffer workspace;
+    public FloatArray input;
+    public FloatArray truth;
+    public FloatArray delta;
+    public FloatArray workspace;
     public int train;
     public int index;
-    public FloatBuffer cost;
+    public FloatArray cost;
     public float clip;
 
     public Network(){}
@@ -115,9 +101,9 @@ public class Network implements Cloneable {
 
         this.n = n;
         this.layers = new Layer[n];
-        this.seen = new LongBuffer(1);
-        this.t    = new IntBuffer(1);
-        this.cost = new FloatBuffer(1);
+        this.seen = new LongArray(1);
+        this.t    = new IntArray(1);
+        this.cost = new FloatArray(1);
     }
 
     public static Network loadNetwork(String cfgFile, String weightsFile, int clear) {
@@ -173,14 +159,14 @@ public class Network implements Cloneable {
         }
     }
 
-    public Detection[] getBoxes(int w, int h, float thresh, float hier, IntBuffer map, int relative, IntBuffer num) {
+    public Detection[] getBoxes(int w, int h, float thresh, float hier, IntArray map, int relative, IntArray num) {
 
         Detection[] dets = makeBoxes(thresh, num);
         fillBoxes(w, h, thresh, hier, map, relative, dets);
         return dets;
     }
 
-//    FloatBuffer predictImage(Image im) {
+//    FloatArray predictImage(Image im) {
 //
 //        Image imr = im.letterbox(this.w, this.h);
 //        this.setBatchNetwork(1);
@@ -188,7 +174,7 @@ public class Network implements Cloneable {
 //    }
 
     @SuppressWarnings("UnusedReturnValue")
-    public FloatBuffer predict(FloatBuffer input) {
+    public FloatArray predict(FloatArray input) {
 
         Network clone = this.tryClone();
 
@@ -202,7 +188,7 @@ public class Network implements Cloneable {
         return clone.output;
     }
 
-    public Detection[] makeBoxes(float thresh, IntBuffer num) {
+    public Detection[] makeBoxes(float thresh, IntArray num) {
 
         Layer l = layers[n - 1];
         int i;
@@ -225,11 +211,11 @@ public class Network implements Cloneable {
         return dets;
     }
 
-    public void fillBoxes( int w, int h, float thresh, float hier, IntBuffer map, int relative, Detection[] dets) {
+    public void fillBoxes(int w, int h, float thresh, float hier, IntArray map, int relative, Detection[] dets) {
 
         int j;
 
-        DetectionBuffer detBuffer = new DetectionBuffer(dets);
+        DetectionArray detBuffer = new DetectionArray(dets);
 
         for(j = 0; j < n; ++j){
             Layer l = this.layers[j];

@@ -6,7 +6,7 @@ import java.io.File;
 
 public abstract class Setup {
 
-    private static boolean isInit = false;
+    public  static boolean initDone = false;
 
     private static final String networkCfgPath = "Res/network.cfg";
     private static final String namesCfgPath = "Res/names.cfg";
@@ -14,7 +14,7 @@ public abstract class Setup {
 
     public static void initYolo() {
 
-        if(!isInit) {
+        if(!initDone) {
 
             GlobalVars.isJar = Setup.class.getResourceAsStream("/" + networkCfgPath) != null;
             System.out.printf("Running from .JAR package: %b\n",GlobalVars.isJar);
@@ -28,7 +28,7 @@ public abstract class Setup {
                 predictions.mkdir();
             }
 
-            isInit = true;
+            initDone = true;
         }
     }
 }

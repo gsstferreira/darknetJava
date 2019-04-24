@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
@@ -30,14 +30,14 @@ public class ConnectedLayer extends Layer {
         this.outW = 1;
         this.outC = outputs;
 
-        this.output = new FloatBuffer(batch*outputs);
-        this.delta = new FloatBuffer(batch*outputs);
+        this.output = new FloatArray(batch*outputs);
+        this.delta = new FloatArray(batch*outputs);
 
-        this.weightUpdates = new FloatBuffer(inputs*outputs);
-        this.biasUpdates = new FloatBuffer(outputs);
+        this.weightUpdates = new FloatArray(inputs*outputs);
+        this.biasUpdates = new FloatArray(outputs);
 
-        this.weights = new FloatBuffer(inputs*outputs);
-        this.biases = new FloatBuffer(outputs);
+        this.weights = new FloatArray(inputs*outputs);
+        this.biases = new FloatArray(outputs);
 
         float scale = (float) Math.sqrt(2./inputs);
 
@@ -53,32 +53,32 @@ public class ConnectedLayer extends Layer {
 
         if(adam != 0){
             
-            this.m = new FloatBuffer(this.inputs*this.outputs);
-            this.v = new FloatBuffer(this.inputs*this.outputs);
-            this.biasM = new FloatBuffer(this.outputs);
-            this.scaleM = new FloatBuffer(this.outputs);
-            this.biasV = new FloatBuffer(this.outputs);
-            this.scaleV = new FloatBuffer(this.outputs);
+            this.m = new FloatArray(this.inputs*this.outputs);
+            this.v = new FloatArray(this.inputs*this.outputs);
+            this.biasM = new FloatArray(this.outputs);
+            this.scaleM = new FloatArray(this.outputs);
+            this.biasV = new FloatArray(this.outputs);
+            this.scaleV = new FloatArray(this.outputs);
         }
 
         if(batch_normalize != 0){
-            this.scales = new FloatBuffer(outputs);
-            this.scaleUpdates = new FloatBuffer(outputs);
+            this.scales = new FloatArray(outputs);
+            this.scaleUpdates = new FloatArray(outputs);
             
             for(i = 0; i < outputs; ++i){
                 this.scales.put(i,1);
             }
 
-            this.mean = new FloatBuffer(outputs);
-            this.meanDelta = new FloatBuffer(outputs);
-            this.variance = new FloatBuffer(outputs);
-            this.varianceDelta = new FloatBuffer(outputs);
+            this.mean = new FloatArray(outputs);
+            this.meanDelta = new FloatArray(outputs);
+            this.variance = new FloatArray(outputs);
+            this.varianceDelta = new FloatArray(outputs);
 
-            this.rollingMean = new FloatBuffer(outputs);
-            this.rollingVariance = new FloatBuffer(outputs);
+            this.rollingMean = new FloatArray(outputs);
+            this.rollingVariance = new FloatArray(outputs);
 
-            this.x = new FloatBuffer(batch*outputs);
-            this.xNorm = new FloatBuffer(batch*outputs);
+            this.x = new FloatArray(batch*outputs);
+            this.xNorm = new FloatArray(batch*outputs);
         }
         
         this.activation = activation;
@@ -111,9 +111,9 @@ public class ConnectedLayer extends Layer {
         int m = this.batch;
         int k = this.inputs;
         int n = this.outputs;
-        FloatBuffer a = net.input;
-        FloatBuffer b = this.weights;
-        FloatBuffer c = this.output;
+        FloatArray a = net.input;
+        FloatArray b = this.weights;
+        FloatArray c = this.output;
 
         Gemm.gemm(0,1,m,n,k,1,a,k,b,k,1,c,n);
 
@@ -140,9 +140,9 @@ public class ConnectedLayer extends Layer {
         int k = this.batch;
         int n = this.inputs;
 
-        FloatBuffer a = this.delta;
-        FloatBuffer b = net.input;
-        FloatBuffer c = this.weightUpdates;
+        FloatArray a = this.delta;
+        FloatArray b = net.input;
+        FloatArray c = this.weightUpdates;
 
         Gemm.gemm(1,0,m,n,k,1,a,m,b,n,1,c,n);
 

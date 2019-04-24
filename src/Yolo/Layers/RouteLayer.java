@@ -1,7 +1,7 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
-import Classes.Buffers.IntBuffer;
+import Classes.Arrays.FloatArray;
+import Classes.Arrays.IntArray;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Blas;
@@ -12,7 +12,7 @@ import Yolo.Enums.LayerType;
 
 public class RouteLayer extends Layer {
 
-    public RouteLayer(int batch, int n, IntBuffer input_layers, IntBuffer input_sizes) {
+    public RouteLayer(int batch, int n, IntArray input_layers, IntArray input_sizes) {
 
         System.out.print("Route ");
 
@@ -31,8 +31,8 @@ public class RouteLayer extends Layer {
 
         this.outputs = outputs;
         this.inputs = outputs;
-        this.delta = new FloatBuffer(outputs * batch);
-        this.output = new FloatBuffer(outputs * batch);
+        this.delta = new FloatArray(outputs * batch);
+        this.output = new FloatArray(outputs * batch);
     }
 
     public void resize(Network net) {
@@ -71,17 +71,16 @@ public class RouteLayer extends Layer {
         int offset = 0;
         for(i = 0; i < this.n; ++i){
             int index = this.inputLayers.get(i);
-            FloatBuffer input = net.layers[index].output;
-            int input_size = this.inputSizes.get(i);
+            FloatArray input = net.layers[index].output;
+            int inputSize = this.inputSizes.get(i);
 
             for(j = 0; j < this.batch; ++j){
 
-                FloatBuffer fb1 = input.offsetNew(j*input_size);
-                FloatBuffer fb2 = this.output.offsetNew(offset + j*this.outputs);
-
-                Blas.copyCpu(input_size, fb1, 1, fb2, 1);
+                FloatArray fb1 = input.offsetNew(j*inputSize);
+                FloatArray fb2 = this.output.offsetNew(offset + j*this.outputs);
+                fb1.copyInto(inputSize,fb2);
             }
-            offset += input_size;
+            offset += inputSize;
         }
     }
 
@@ -91,14 +90,14 @@ public class RouteLayer extends Layer {
         int offset = 0;
         for(i = 0; i < this.n; ++i){
             int index = this.inputLayers.get(i);
-            FloatBuffer delta = net.layers[index].delta;
+            FloatArray delta = net.layers[index].delta;
 
             int input_size = this.inputSizes.get(i);
 
             for(j = 0; j < this.batch; ++j){
 
-                FloatBuffer fb1 = this.delta.offsetNew(offset + j*this.outputs);
-                FloatBuffer fb2 = delta.offsetNew(j*input_size);
+                FloatArray fb1 = this.delta.offsetNew(offset + j*this.outputs);
+                FloatArray fb2 = delta.offsetNew(j*input_size);
 
                 Blas.axpyCpu(input_size, 1, fb1, 1, fb2, 1);
             }

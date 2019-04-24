@@ -1,6 +1,6 @@
 package Tools;
 
-import Classes.Buffers.ByteBuffer;
+import Classes.Arrays.ByteArray;
 import Classes.Data;
 import Classes.Image;
 import Classes.Network;
@@ -17,7 +17,7 @@ public abstract class GlobalVars {
     private static Network network;
     private static List<String> names;
 
-    private static ByteBuffer weightBytes;
+    private static ByteArray weightBytes;
 
     public static void loadAlphabet() {
 
@@ -77,7 +77,7 @@ public abstract class GlobalVars {
             else {
                 stream = new BufferedInputStream(new FileInputStream(weightFile));
             }
-            weightBytes = new ByteBuffer(stream.readAllBytes());
+            weightBytes = new ByteArray(stream.readAllBytes());
             stream.close();
         }
         catch (Exception e) {

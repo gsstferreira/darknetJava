@@ -1,13 +1,11 @@
 package Tools;
 
-import Classes.Buffers.FloatBuffer;
-
+import Classes.Arrays.FloatArray;
 import java.util.stream.IntStream;
 
-// Completo
 public abstract class Gemm {
 
-//    public static void gemmBin(int M, int N, int K, float ALPHA, ByteBuffer A, int lda, FloatBuffer B, int ldb, FloatBuffer C, int ldc) {
+//    public static void gemmBin(int M, int N, int K, float ALPHA, ByteArray A, int lda, FloatArray B, int ldb, FloatArray C, int ldc) {
 //        int i,j,k;
 //        for(i = 0; i < M; ++i){
 //            for(k = 0; k < K; ++k){
@@ -28,7 +26,7 @@ public abstract class Gemm {
 //        }
 //    }
 //
-//    public static FloatBuffer randomMatrix(int rows, int cols) {
+//    public static FloatArray randomMatrix(int rows, int cols) {
 //
 //        int i;
 //        float[] m = new float[rows*cols];
@@ -36,11 +34,11 @@ public abstract class Gemm {
 //        for(i = 0; i < rows*cols; ++i){
 //            m[i] = (1.0f*Rand.randInt())/Rand.MAX_INT;
 //        }
-//        return new FloatBuffer(m);
+//        return new FloatArray(m);
 //    }
 //
 //    public static void timeRandomMatrix(int TA, int TB, int m, int k, int n) {
-//        FloatBuffer a;
+//        FloatArray a;
 //
 //        if(TA == 0) {
 //            a = randomMatrix(m,k);
@@ -50,7 +48,7 @@ public abstract class Gemm {
 //        }
 //
 //        int lda = (TA == 0)?k:m;
-//        FloatBuffer b;
+//        FloatArray b;
 //
 //        if(TB == 0) {
 //            b = randomMatrix(k,n);
@@ -60,7 +58,7 @@ public abstract class Gemm {
 //        }
 //        int ldb = (TB == 0)?n:k;
 //
-//        FloatBuffer c = randomMatrix(m,n);
+//        FloatArray c = randomMatrix(m,n);
 //        int i;
 //
 //        long start = System.currentTimeMillis();
@@ -72,17 +70,16 @@ public abstract class Gemm {
 //        System.out.print(String.format("Matrix Multiplication %dx%d * %dx%d, TA=%d, TB=%d: %d ms\n",m,k,k,n, TA, TB, end-start));
 //    }
 
-    public static void gemm(int TA, int TB, int M, int N, int K, float ALPHA, FloatBuffer A,  int lda, FloatBuffer B, int ldb, float BETA, FloatBuffer C, int ldc) {
+    public static void gemm(int TA, int TB, int M, int N, int K, float ALPHA, FloatArray A, int lda, FloatArray B, int ldb, float BETA, FloatArray C, int ldc) {
         gemmCpu(TA,TB,M,N,K,ALPHA,A,lda,B,ldb,BETA,C,ldc);
     }
 
-    public static void gemmCpu(int TA, int TB, int M, int N, int K, float ALPHA, FloatBuffer A, int lda, FloatBuffer B, int ldb, float BETA, FloatBuffer C, int ldc) {
+    public static void gemmCpu(int TA, int TB, int M, int N, int K, float ALPHA, FloatArray A, int lda, FloatArray B, int ldb, float BETA, FloatArray C, int ldc) {
 
         IntStream.range(0,M).parallel().forEach(i -> {
             for(int j = 0; j < N; ++j){
 
-                int index = i*ldc + j;
-
+                final int index = i*ldc + j;
                 float val = C.get(index)*BETA;
                 C.put(index,val);
             }
@@ -106,12 +103,12 @@ public abstract class Gemm {
         }
     }
 
-    private static void gemmNN(int M, int N, int K, float ALPHA, FloatBuffer A, int lda, FloatBuffer B, int ldb, FloatBuffer C, int ldc) {
+    private static void gemmNN(int M, int N, int K, float ALPHA, FloatArray A, int lda, FloatArray B, int ldb, FloatArray C, int ldc) {
 
         IntStream.range(0,M).parallel().forEach(i -> {
             for (int k = 0; k < K; ++k) {
 
-                float A_PART = ALPHA * A.get(i*lda +k);
+                final float A_PART = ALPHA * A.get(i*lda +k);
 
                 for (int j = 0; j < N; ++j) {
 
@@ -122,7 +119,7 @@ public abstract class Gemm {
         });
     }
 
-    private static void gemmNT(int M, int N, int K, float ALPHA, FloatBuffer A, int lda, FloatBuffer B, int ldb, FloatBuffer C, int ldc) {
+    private static void gemmNT(int M, int N, int K, float ALPHA, FloatArray A, int lda, FloatArray B, int ldb, FloatArray C, int ldc) {
 
         IntStream.range(0,M).parallel().forEach(i -> {
             for(int j = 0; j < N; ++j){
@@ -137,12 +134,12 @@ public abstract class Gemm {
         });
     }
 
-    private static void gemmTN(int M, int N, int K, float ALPHA, FloatBuffer A, int lda, FloatBuffer B, int ldb, FloatBuffer C, int ldc) {
+    private static void gemmTN(int M, int N, int K, float ALPHA, FloatArray A, int lda, FloatArray B, int ldb, FloatArray C, int ldc) {
 
         IntStream.range(0,M).parallel().forEach( i-> {
             for (int k = 0; k < K; ++k) {
 
-                float A_PART = ALPHA * A.get(k*lda +i);
+                final float A_PART = ALPHA * A.get(k*lda +i);
 
                 for (int j = 0; j < N; ++j) {
 
@@ -153,7 +150,7 @@ public abstract class Gemm {
         });
     }
 
-    private static void gemmTT(int M, int N, int K, float ALPHA, FloatBuffer A, int lda, FloatBuffer B, int ldb, FloatBuffer C, int ldc) {
+    private static void gemmTT(int M, int N, int K, float ALPHA, FloatArray A, int lda, FloatArray B, int ldb, FloatArray C, int ldc) {
 
         IntStream.range(0,M).parallel().forEach( i-> {
             for(int j = 0; j < N; ++j){

@@ -1,6 +1,6 @@
 package Yolo.Enums;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 
 public enum Activation {
 
@@ -38,7 +38,7 @@ public enum Activation {
         return a.name().toLowerCase();
     }
 
-    public static void activateArray(FloatBuffer x,final int n, Activation a) {
+    public static void activateArray(FloatArray x, final int n, Activation a) {
 
         for(int i = 0; i < n; ++i){
 
@@ -47,7 +47,7 @@ public enum Activation {
         }
     }
 
-    public static void gradientArray(FloatBuffer x, int n, Activation a, FloatBuffer delta) {
+    public static void gradientArray(FloatArray x, int n, Activation a, FloatArray delta) {
 
         for(int i = 0; i < n; ++i){
             float val = delta.get(i) * gradient(x.get(i),a);

@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Blas;
@@ -17,22 +17,22 @@ public class ActivationLayer extends Layer {
         this.outputs = inputs;
         this.batch = batch;
 
-        this.output = new FloatBuffer(batch*inputs);
-        this.delta = new FloatBuffer(batch*inputs);
+        this.output = new FloatArray(batch*inputs);
+        this.delta = new FloatArray(batch*inputs);
 
         this.activation = activation;
     }
 
     public void forward(Network net) {
 
-        Blas.copyCpu(outputs * batch, net.input, 1, output, 1);
+        net.input.copyInto(outputs*batch,output);
         Activation.activateArray(output, outputs*batch, activation);
     }
 
     public void backward(Network net) {
 
         Activation.gradientArray(output, outputs*batch, activation, delta);
-        Blas.copyCpu(outputs*batch, delta, 1, net.delta, 1);
+        delta.copyInto(outputs*batch,net.delta);
     }
 
 }

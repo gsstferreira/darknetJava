@@ -1,7 +1,7 @@
 package Tools;
 
-import Classes.Buffers.FloatBuffer;
-import Classes.Buffers.IntBuffer;
+import Classes.Arrays.FloatArray;
+import Classes.Arrays.IntArray;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -12,9 +12,10 @@ import java.util.List;
 public abstract class Util {
 
     public static final int SECRET_NUMBER = -1234;
+
 //    public static final double log2 = Math.log(2);
 //
-//    public static void topK(FloatBuffer a, int n, int k, IntBuffer index) {
+//    public static void topK(FloatArray a, int n, int k, IntArray index) {
 //
 //        for(int i = 0; i < k; i++) {
 //            index.put(i,-1);
@@ -59,7 +60,7 @@ public abstract class Util {
 //        }
 //    }
 
-    public static IntBuffer readMap(String fileName) {
+    public static IntArray readMap(String fileName) {
 
         try {
 
@@ -80,7 +81,7 @@ public abstract class Util {
             }
             reader.close();
 
-            IntBuffer ib = new IntBuffer(list.size());
+            IntArray ib = new IntArray(list.size());
 
             for(int i = 0; i < ib.size(); i++) {
                 ib.put(i,list.get(i));
@@ -177,7 +178,7 @@ public abstract class Util {
 //        return sb.toString();
 //    }
 
-    public static float sumArray(FloatBuffer a,int n) {
+    public static float sumArray(FloatArray a, int n) {
 
         float sum = 0;
 
@@ -187,15 +188,15 @@ public abstract class Util {
         return sum;
     }
 
-//    public static float meanArray(FloatBuffer a, int n) {
+//    public static float meanArray(FloatArray a, int n) {
 //
 //        return sumArray(a,n)/n;
 //    }
 
 //    public static void meanArrays(float[][] a, int n, int els, float[] avg) {
 //
-//        FloatBuffer f = new FloatBuffer(avg);
-//        Buffers.setValue(f,0);
+//        FloatArray f = new FloatArray(avg);
+//        Arrays.setValue(f,0);
 //
 //        for(int j = 0; j < n; j++) {
 //            for(int i = 0; i < els; i++) {
@@ -207,7 +208,7 @@ public abstract class Util {
 //        }
 //    }
 //
-//    public static float varianceArray(FloatBuffer a, int n) {
+//    public static float varianceArray(FloatArray a, int n) {
 //
 //        int i;
 //        float sum = 0;
@@ -220,7 +221,7 @@ public abstract class Util {
 //        return sum/n;
 //    }
 
-//    public static float distArray(FloatBuffer a, FloatBuffer b, int n, int sub) {
+//    public static float distArray(FloatArray a, FloatArray b, int n, int sub) {
 //
 //        int i;
 //        float sum = 0;
@@ -231,7 +232,7 @@ public abstract class Util {
 //        return (float) Math.sqrt(sum);
 //    }
 //
-//    public static float mseArray(FloatBuffer a, int n) {
+//    public static float mseArray(FloatArray a, int n) {
 //
 //        int i;
 //        float sum = 0;
@@ -241,7 +242,7 @@ public abstract class Util {
 //        return (float) Math.sqrt(sum/n);
 //    }
 //
-//    public static void normalizeArray(FloatBuffer a, int n) {
+//    public static void normalizeArray(FloatArray a, int n) {
 //
 //        int i;
 //        float mu = meanArray(a,n);
@@ -252,14 +253,14 @@ public abstract class Util {
 //        }
 //    }
 //
-//    public static void translateArray(FloatBuffer a, int n, float s) {
+//    public static void translateArray(FloatArray a, int n, float s) {
 //
 //        for(int i = 0;  i < n; i++) {
 //            a.put(i,a.get(i) +s);
 //        }
 //    }
 
-    public static float magArray(FloatBuffer a, int n) {
+    public static float magArray(FloatArray a, int n) {
 
         float sum = 0;
         for(int i = 0; i < n; ++i){
@@ -269,7 +270,7 @@ public abstract class Util {
         return (float) Math.sqrt(sum);
     }
 
-//    public static void scaleArray(FloatBuffer a, int n, float s) {
+//    public static void scaleArray(FloatArray a, int n, float s) {
 //
 //        int i;
 //        for(i = 0; i < n; ++i){
@@ -277,7 +278,7 @@ public abstract class Util {
 //        }
 //    }
 
-//    public static int sampleArray(FloatBuffer a, int n) {
+//    public static int sampleArray(FloatArray a, int n) {
 //
 //        float sum = sumArray(a, n);
 //        scaleArray(a, n, 1.0f/sum);
@@ -292,7 +293,7 @@ public abstract class Util {
 //        return n-1;
 //    }
 //
-//    public static int maxIndex(IntBuffer a, int n) {
+//    public static int maxIndex(IntArray a, int n) {
 //
 //        if(n <= 0) return -1;
 //        int i, max_i = 0;
@@ -307,7 +308,7 @@ public abstract class Util {
 //        return max_i;
 //    }
 //
-//    public static int maxIndex(FloatBuffer a, int n) {
+//    public static int maxIndex(FloatArray a, int n) {
 //
 //        if(n <= 0) return -1;
 //
@@ -322,7 +323,7 @@ public abstract class Util {
 //        return max_i;
 //    }
 
-    public static int intIndex(IntBuffer a, int val, int n) {
+    public static int intIndex(IntArray a, int val, int n) {
 
         int i;
         for(i = 0; i < n; ++i){
@@ -331,7 +332,7 @@ public abstract class Util {
         return -1;
     }
 
-//    public static float[][] oneHotEncode(FloatBuffer a, int n, int k) {
+//    public static float[][] oneHotEncode(FloatArray a, int n, int k) {
 //
 //        float[][] t = new float[n][k];
 //        int index;
@@ -376,7 +377,7 @@ public abstract class Util {
 //        return line.split(",").length;
 //    }
 //
-//    public static FloatBuffer parseFields(String line, int n) {
+//    public static FloatArray parseFields(String line, int n) {
 //
 //        float[] field = new float[n];
 //        String[] separated = line.split(",");
@@ -389,34 +390,34 @@ public abstract class Util {
 //                field[i] = Float.NaN;
 //            }
 //        }
-//        return new FloatBuffer(field);
+//        return new FloatArray(field);
 //    }
 //
 //    public static byte[] toByteArray(int val) {
 //
-//        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+//        ByteArray byteBuffer = ByteArray.allocate(4);
 //        byteBuffer.putInt(val);
 //
-//        return Buffers.reverse(byteBuffer).array();
+//        return Arrays.reverse(byteBuffer).array();
 //    }
 //
 //    public static byte[] toByteArray(float val) {
 //
-//        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+//        ByteArray byteBuffer = ByteArray.allocate(4);
 //        byteBuffer.putFloat(val);
 //
-//        return Buffers.reverse(byteBuffer).array();
+//        return Arrays.reverse(byteBuffer).array();
 //    }
 //
 //    public static float byteToFloat(byte[] bytes) {
 //
-//        ByteBuffer byteBuffer = Buffers.reverse(ByteBuffer.wrap(bytes));
+//        ByteArray byteBuffer = Arrays.reverse(ByteArray.wrap(bytes));
 //        return byteBuffer.getFloat(0);
 //    }
 //
 //    public static int byteToInt(byte[] bytes) {
 //
-//        ByteBuffer byteBuffer = Buffers.reverse(ByteBuffer.wrap(bytes));
+//        ByteArray byteBuffer = Arrays.reverse(ByteArray.wrap(bytes));
 //        return byteBuffer.getInt(0);
 //    }
 }

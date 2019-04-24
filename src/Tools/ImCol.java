@@ -1,11 +1,13 @@
 package Tools;
 
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
+
+import java.util.stream.IntStream;
 
 public abstract class ImCol {
 
-    private static void col2ImAddPixel(FloatBuffer im, int height, int width, int channels, int row, int col, int channel, int pad, float val) {
+    private static void col2ImAddPixel(FloatArray im, int height, int width, int channels, int row, int col, int channel, int pad, float val) {
 
         row -= pad;
         col -= pad;
@@ -18,7 +20,7 @@ public abstract class ImCol {
         }
     }
 
-    private static float im2ColGetPixel(FloatBuffer im,int height, int width, int channels, int row, int col, int channel, int pad) {
+    private static float im2ColGetPixel(FloatArray im, int height, int width, int channels, int row, int col, int channel, int pad) {
 
         row -= pad;
         col -= pad;
@@ -31,51 +33,84 @@ public abstract class ImCol {
         }
     }
 
-    public static void col2ImCpu(FloatBuffer dataCol, int channels, int height, int width, int ksize, int stride, int pad, FloatBuffer dataIm) {
+    public static void col2ImCpu(FloatArray dataCol, int channels, int height, int width, int ksize, int stride, int pad, FloatArray dataIm) {
 
-        int c,h,w;
-        int height_col = (height + 2*pad - ksize) / stride + 1;
-        int width_col = (width + 2*pad - ksize) / stride + 1;
+        final int heightCol = (height + 2*pad - ksize) / stride + 1;
+        final int widthCol = (width + 2*pad - ksize) / stride + 1;
+        final int channelsCol = channels * ksize * ksize;
 
-        int channels_col = channels * ksize * ksize;
-        for (c = 0; c < channels_col; ++c) {
-            int w_offset = c % ksize;
-            int h_offset = (c / ksize) % ksize;
-            int c_im = c / ksize / ksize;
-            for (h = 0; h < height_col; ++h) {
-                for (w = 0; w < width_col; ++w) {
-                    int im_row = h_offset + h * stride;
-                    int im_col = w_offset + w * stride;
-                    int col_index = (c * height_col + h) * width_col + w;
-                    float val = dataCol.get(col_index);
-                    col2ImAddPixel(dataIm, height, width, channels,im_row, im_col, c_im, pad, val);
+        IntStream.range(0,channelsCol).parallel().forEach(c -> {
+            final int wOffset = c % ksize;
+            final int hOffset = (c / ksize) % ksize;
+            final int cIm = c / ksize / ksize;
+
+            for (int h = 0; h < heightCol; ++h) {
+                for (int w = 0; w < widthCol; ++w) {
+                    int imRow = hOffset + h * stride;
+                    int imCol = wOffset + w * stride;
+                    int colIndex = (c * heightCol + h) * widthCol + w;
+                    float val = dataCol.get(colIndex);
+                    col2ImAddPixel(dataIm, height, width, channels,imRow, imCol, cIm, pad, val);
                 }
             }
-        }
+        });
+
+//        for (int c = 0; c < channelsCol; ++c) {
+//            int wOffset = c % ksize;
+//            int hOffset = (c / ksize) % ksize;
+//            int cIm = c / ksize / ksize;
+//            for (int h = 0; h < heightCol; ++h) {
+//                for (int w = 0; w < widthCol; ++w) {
+//                    int imRow = hOffset + h * stride;
+//                    int imCol = wOffset + w * stride;
+//                    int colIndex = (c * heightCol + h) * widthCol + w;
+//                    float val = dataCol.get(colIndex);
+//                    col2ImAddPixel(dataIm, height, width, channels,imRow, imCol, cIm, pad, val);
+//                }
+//            }
+//        }
     }
 
-    public static void im2ColCpu(FloatBuffer dataIm, int channels, int height, int width, int ksize, int stride, int pad, FloatBuffer dataCol) {
+    public static void im2ColCpu(FloatArray dataIm, int channels, int height, int width, int ksize, int stride, int pad, FloatArray dataCol) {
 
-        int c,h,w;
-        int height_col = (height + 2*pad - ksize) / stride + 1;
-        int width_col = (width + 2*pad - ksize) / stride + 1;
+        final int heightCol = (height + 2*pad - ksize) / stride + 1;
+        final int widthCol = (width + 2*pad - ksize) / stride + 1;
+        final int channelsCol = channels * ksize * ksize;
 
-        int channels_col = channels * ksize * ksize;
+        IntStream.range(0,channelsCol).parallel().forEach( c -> {
+            final int wOffset = c % ksize;
+            final int hOffset = (c / ksize) % ksize;
+            final int cIm = c / (ksize * ksize);
 
-        for (c = 0; c < channels_col; ++c) {
-            int w_offset = c % ksize;
-            int h_offset = (c / ksize) % ksize;
-            int c_im = c / ksize / ksize;
-            for (h = 0; h < height_col; ++h) {
-                for (w = 0; w < width_col; ++w) {
-                    int im_row = h_offset + h * stride;
-                    int im_col = w_offset + w * stride;
-                    int col_index = (c * height_col + h) * width_col + w;
-                    float val = im2ColGetPixel(dataIm, height, width, channels, im_row, im_col, c_im, pad);
-                    dataCol.put(col_index,val);
+            for (int h = 0; h < heightCol; ++h) {
+
+                final int imRow = hOffset + h * stride;
+                final int colBase = (c * heightCol + h);
+
+                for (int w = 0; w < widthCol; ++w) {
+
+                    int imCol = wOffset + w * stride;
+                    int colIndex = colBase * widthCol + w;
+                    float val = im2ColGetPixel(dataIm, height, width, channels, imRow, imCol, cIm, pad);
+                    dataCol.put(colIndex,val);
                 }
             }
-        }
+        });
+
+//        for (int c = 0; c < channels_col; ++c) {
+//            int wOffset = c % ksize;
+//            int hOffset = (c / ksize) % ksize;
+//            int cIm = c / ksize / ksize;
+//            for (int h = 0; h < height_col; ++h) {
+//                for (int w = 0; w < width_col; ++w) {
+//                    int imRow = hOffset + h * stride;
+//                    int imCol = wOffset + w * stride;
+//                    int colIndex = (c * heightCol + h) * widthCol + w;
+//                    float val = im2ColGetPixel(dataIm, height, width, channels, imRow, imCol, cIm, pad);
+//                    dataCol.put(colIndex,val);
+//                }
+//            }
+//        }
     }
 
 

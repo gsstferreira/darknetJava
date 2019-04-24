@@ -1,7 +1,7 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
-import Classes.Buffers.IntBuffer;
+import Classes.Arrays.FloatArray;
+import Classes.Arrays.IntArray;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Blas;
@@ -26,14 +26,14 @@ public class IsegLayer extends Layer {
         this.classes = classes;
         this.batch = batch;
         this.extra = ids;
-        this.cost = new FloatBuffer(1);
+        this.cost = new FloatArray(1);
         this.outputs = h*w*this.c;
         this.inputs = this.outputs;
         this.truths = 90*(this.w*this.h+1);
-        this.delta = new FloatBuffer(batch*this.outputs);
-        this.output = new FloatBuffer(batch*this.outputs);
+        this.delta = new FloatArray(batch*this.outputs);
+        this.output = new FloatArray(batch*this.outputs);
 
-        this.counts = new IntBuffer(90);
+        this.counts = new IntArray(90);
         this.sums = new float[90][];
         if(ids != 0){
             int i;
@@ -63,7 +63,7 @@ public class IsegLayer extends Layer {
         int ids = this.extra;
 
         Buffers.copy(net.input,output,outputs*batch);
-        Buffers.setValue(delta,0,outputs*batch);
+        delta.setValue(0,outputs*batch);
 
         for (b = 0; b < this.batch; ++b){
             // a priori, each pixel has no class
@@ -83,11 +83,11 @@ public class IsegLayer extends Layer {
                     delta.put(index, -0.1f*output.get(index));
                 }
             }
-            Buffers.setValue(counts,0,90);
+            counts.setValue(0,90);
 
             for(i = 0; i < 90; ++i){
 
-                Blas.fillCpu(ids, 0, new FloatBuffer(this.sums[i]), 1);
+                Blas.fillCpu(ids, 0, new FloatArray(this.sums[i]), 1);
                 int c = (int) net.truth.get(b*this.truths + i*(this.w*this.h+1));
 
                 if(c < 0) {
@@ -101,9 +101,9 @@ public class IsegLayer extends Layer {
                     if(v != 0) {
 
                         delta.put(index,v - output.get(index));
-                        FloatBuffer fb = output.offsetNew(b*this.outputs + this.classes*this.w*this.h + k);
+                        FloatArray fb = output.offsetNew(b*this.outputs + this.classes*this.w*this.h + k);
 
-                        Blas.axpyCpu(ids, 1, fb, this.w*this.h, new FloatBuffer(this.sums[i]), 1);
+                        Blas.axpyCpu(ids, 1, fb, this.w*this.h, new FloatArray(this.sums[i]), 1);
                         counts.put(i,counts.get(i) + 1);
                     }
                 }
@@ -138,7 +138,7 @@ public class IsegLayer extends Layer {
                 if(this.counts.get(i) == 0) {
                     continue;
                 }
-                Blas.scalCpu(ids, 1.f/this.counts.get(i), new FloatBuffer(this.sums[i]), 1);
+                Blas.scalCpu(ids, 1.f/this.counts.get(i), new FloatArray(this.sums[i]), 1);
                 if(b == 0 && net.gpuIndex == 0) {
 
                     System.out.print(String.format("%4d, %6.3f, ", this.counts.get(i), mse[i]));

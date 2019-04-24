@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Blas;
@@ -16,15 +16,15 @@ public class LogisticLayer extends Layer {
         this.batch = batch;
         this.inputs = inputs;
         this.outputs = inputs;
-        this.loss = new FloatBuffer(inputs*batch);
-        this.output = new FloatBuffer(inputs*batch);
-        this.delta = new FloatBuffer(inputs*batch);
-        this.cost = new FloatBuffer(1);
+        this.loss = new FloatArray(inputs*batch);
+        this.output = new FloatArray(inputs*batch);
+        this.delta = new FloatArray(inputs*batch);
+        this.cost = new FloatArray(1);
     }
 
     public void forward(Network net) {
 
-        Blas.copyCpu(this.outputs * this.batch, net.input, 1, this.output, 1);
+        net.input.copyInto(outputs*batch,this.output);
         Activation.activateArray(this.output, this.outputs*this.batch, Activation.LOGISTIC);
         if(net.truth != null){
             Blas.logisticXEntCpu(this.batch*this.inputs, this.output, net.truth, this.delta, this.loss);

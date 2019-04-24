@@ -1,9 +1,9 @@
 package Yolo.Layers;
 
+import Classes.Arrays.DetectionArray;
+import Classes.Arrays.FloatArray;
 import Classes.Box;
-import Classes.Buffers.DetectionBuffer;
-import Classes.Buffers.FloatBuffer;
-import Classes.Buffers.IntBuffer;
+import Classes.Arrays.IntArray;
 import Classes.Layer;
 import Classes.Network;
 import Classes.Tree;
@@ -28,14 +28,14 @@ public class RegionLayer extends Layer {
         this.outC = this.c;
         this.classes = classes;
         this.coords = coords;
-        this.cost = new FloatBuffer(1);
-        this.biases = new FloatBuffer(n*2);
-        this.biasUpdates = new FloatBuffer(n*2);
+        this.cost = new FloatArray(1);
+        this.biases = new FloatArray(n*2);
+        this.biasUpdates = new FloatArray(n*2);
         this.outputs = h*w*n*(classes + coords + 1);
         this.inputs = this.outputs;
         this.truths = 30*(this.coords + 1);
-        this.delta = new FloatBuffer(batch*this.outputs);
-        this.output = new FloatBuffer(batch*this.outputs);
+        this.delta = new FloatArray(batch*this.outputs);
+        this.output = new FloatArray(batch*this.outputs);
         int i;
 
         for(i = 0; i < n*2; ++i){
@@ -58,7 +58,7 @@ public class RegionLayer extends Layer {
 
     }
 
-    public Box getRegionBox(FloatBuffer x, FloatBuffer biases, int n, int index, int i, int j, int w, int h, int stride) {
+    public Box getRegionBox(FloatArray x, FloatArray biases, int n, int index, int i, int j, int w, int h, int stride) {
 
         Box b = new Box();
 
@@ -69,7 +69,7 @@ public class RegionLayer extends Layer {
         return b;
     }
 
-    public float deltaRegionBox(Box truth, FloatBuffer x, FloatBuffer biases, int n, int index, int i, int j, int w, int h, FloatBuffer delta, float scale, int stride) {
+    public float deltaRegionBox(Box truth, FloatArray x, FloatArray biases, int n, int index, int i, int j, int w, int h, FloatArray delta, float scale, int stride) {
 
         Box pred = getRegionBox(x, biases, n, index, i, j, w, h, stride);
         float iou = Box.boxIou(pred, truth);
@@ -87,7 +87,7 @@ public class RegionLayer extends Layer {
         return iou;
     }
 
-    public void deltaRegionMask(FloatBuffer truth, FloatBuffer x, int n, int index, FloatBuffer delta, int stride, int scale) {
+    public void deltaRegionMask(FloatArray truth, FloatArray x, int n, int index, FloatArray delta, int stride, int scale) {
 
         int i;
         for(i = 0; i < n; ++i){
@@ -96,7 +96,7 @@ public class RegionLayer extends Layer {
         }
     }
 
-    public void deltaRegionClass(FloatBuffer output, FloatBuffer delta, int index, int clas, int classes, Tree hier, float scale, int stride, FloatBuffer avg_cat, int tag) {
+    public void deltaRegionClass(FloatArray output, FloatArray delta, int index, int clas, int classes, Tree hier, float scale, int stride, FloatArray avg_cat, int tag) {
 
         int i, n;
         if(hier != null){
@@ -156,7 +156,7 @@ public class RegionLayer extends Layer {
         int i,j,b,t,n;
 
         Buffers.copy(net.input,net.output,this.outputs*this.batch);
-        Buffers.setValue(this.delta,0,this.outputs * this.batch);
+        this.delta.setValue(0,outputs*batch);
 
         if(net.train == 0) {
             return;
@@ -176,7 +176,7 @@ public class RegionLayer extends Layer {
                 int onlyclass = 0;
                 for(t = 0; t < 30; ++t){
 
-                    FloatBuffer truthBox = net.truth.offsetNew(t*(coords + 1) + b*this.truths);
+                    FloatArray truthBox = net.truth.offsetNew(t*(coords + 1) + b*this.truths);
                     Box truth = Box.floatToBox(truthBox, 1);
 
                     if(truth.x == 0) {
@@ -192,9 +192,9 @@ public class RegionLayer extends Layer {
                             int obj_index = entryIndex(b, n, this.coords);
                             float scale =  output.get(obj_index);
 
-                            delta.put(obj_index,noobjectScale * ( - this.output.get(obj_index)));
+                            delta.put(obj_index, noObjectScale * ( - this.output.get(obj_index)));
 
-                            FloatBuffer fb = this.output.offsetNew(class_index);
+                            FloatArray fb = this.output.offsetNew(class_index);
                             float p = scale * softmaxTree.getHierarchyprobability(fb, clas, this.w*this.h);
 
                             if(p > maxp){
@@ -206,7 +206,7 @@ public class RegionLayer extends Layer {
                         int class_index = entryIndex(b, maxi, coords + 1);
                         int obj_index = entryIndex(b, maxi, coords);
 
-                        FloatBuffer fbb = new FloatBuffer(1);
+                        FloatArray fbb = new FloatArray(1);
                         fbb.put(0,avg_cat);
 
                         deltaRegionClass(output,delta, class_index, clas,classes,softmaxTree,classScale, w*h, fbb, (softmax == 0) ? 1 : 0);
@@ -241,7 +241,7 @@ public class RegionLayer extends Layer {
 
                         for(t = 0; t < 30; ++t){
 
-                            FloatBuffer truthBox = net.truth.offsetNew(t*(coords + 1) + b*this.truths);
+                            FloatArray truthBox = net.truth.offsetNew(t*(coords + 1) + b*this.truths);
                             Box truth = Box.floatToBox(truthBox, 1);
 
                             if(truth.x != 0) {
@@ -255,11 +255,11 @@ public class RegionLayer extends Layer {
                         int obj_index = entryIndex(b, n*this.w*this.h + j*this.w + i, this.coords);
                         avg_anyobj += this.output.get(obj_index);
 
-                        delta.put(obj_index,this.noobjectScale * (0 - this.output.get(obj_index)));
+                        delta.put(obj_index,this.noObjectScale * (0 - this.output.get(obj_index)));
 
                         if(this.background != 0) {
 
-                            delta.put(obj_index,this.noobjectScale * (1 - this.output.get(obj_index)));
+                            delta.put(obj_index,this.noObjectScale * (1 - this.output.get(obj_index)));
                         }
 
                         if (best_iou > this.thresh) {
@@ -281,7 +281,7 @@ public class RegionLayer extends Layer {
             }
             for(t = 0; t < 30; ++t){
 
-                FloatBuffer truthBox = net.truth.offsetNew(t*(coords + 1) + b*this.truths);
+                FloatArray truthBox = net.truth.offsetNew(t*(coords + 1) + b*this.truths);
                 Box truth = Box.floatToBox(truthBox, 1);
 
                 if(truth.x == 0) {
@@ -318,7 +318,7 @@ public class RegionLayer extends Layer {
                 if(this.coords > 4){
                     int mask_index = entryIndex(b, best_n*this.w*this.h + j*this.w + i, 4);
 
-                    FloatBuffer truthMask = net.truth.offsetNew(t*(coords + 1) + b*this.truths + 5);
+                    FloatArray truthMask = net.truth.offsetNew(t*(coords + 1) + b*this.truths + 5);
                     deltaRegionMask(truthMask, this.output, this.coords - 4, mask_index, this.delta, this.w*this.h, (int) this.maskScale);
                 }
                 if(iou > .5f) recall += 1;
@@ -347,7 +347,7 @@ public class RegionLayer extends Layer {
 
                 int class_index = entryIndex(b, best_n*this.w*this.h + j*this.w + i, this.coords + 1);
 
-                FloatBuffer fbb = new FloatBuffer(1);
+                FloatArray fbb = new FloatArray(1);
                 fbb.put(0,avg_cat);
 
                 deltaRegionClass(output, delta, class_index, clas, classes, softmaxTree, classScale, w*h, fbb, (softmax == 0) ? 1 : 0);
@@ -369,7 +369,7 @@ public class RegionLayer extends Layer {
 
     }
 
-    public void correctRegionBoxes(DetectionBuffer dets, int n, int w, int h, int netw, int neth, int relative) {
+    public void correctRegionBoxes(DetectionArray dets, int n, int w, int h, int netw, int neth, int relative) {
 
         int i;
         int new_w;
@@ -401,12 +401,12 @@ public class RegionLayer extends Layer {
         }
     }
 
-    public void getRegionDetections(int w, int h, int netw, int neth, float thresh, IntBuffer map, float tree_thresh, int relative, DetectionBuffer dets) {
+    public void getRegionDetections(int w, int h, int netw, int neth, float thresh, IntArray map, float tree_thresh, int relative, DetectionArray dets) {
 
         int i,j,n,z;
-        FloatBuffer predictions = this.output;
+        FloatArray predictions = this.output;
         if (this.batch == 2) {
-            FloatBuffer flip = this.output.offsetNew(this.outputs);
+            FloatArray flip = this.output.offsetNew(this.outputs);
 
             for (j = 0; j < this.h; ++j) {
                 for (i = 0; i < this.w/2; ++i) {
@@ -460,7 +460,7 @@ public class RegionLayer extends Layer {
                 int class_index = entryIndex(0, n*this.w*this.h + i, this.coords + ((this.background == 0) ? 1 : 0));
                 if(this.softmaxTree != null){
 
-                    FloatBuffer fb = predictions.offsetNew(class_index);
+                    FloatArray fb = predictions.offsetNew(class_index);
                     softmaxTree.hierarchyPredictions(fb, this.classes, false, this.w*this.h);
 
                     if(map != null){

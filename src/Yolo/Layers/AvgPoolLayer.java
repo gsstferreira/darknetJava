@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Yolo.Enums.LayerType;
@@ -21,8 +21,8 @@ public class AvgPoolLayer extends Layer {
         this.inputs = h*w*c;
 
         int output_size = this.outputs * batch;
-        this.output = new FloatBuffer(output_size);
-        this.delta =  new FloatBuffer(output_size);
+        this.output = new FloatArray(output_size);
+        this.delta =  new FloatArray(output_size);
     }
 
     public void resize(int width, int height) {

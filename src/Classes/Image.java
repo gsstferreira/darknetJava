@@ -1,10 +1,11 @@
 package Classes;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Tools.Blas;
 import Tools.GlobalVars;
 import Tools.Rand;
 import Yolo.Enums.ImType;
+import Yolo.Setup;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.stb.STBImageWrite;
@@ -20,9 +21,9 @@ public class Image {
     public final int w;
     public final int h;
     public final int c;
-    public final FloatBuffer data;
+    public final FloatArray data;
 
-    private static final float[][] colors = {{1,0,1},{0,0,1},{0,1,1},{0,1,0},{1,1,0},{1,0,0}};
+    private static final byte[][] colors = {{1,0,1},{0,0,1},{0,1,1},{0,1,0},{1,1,0},{1,0,0}};
     private static final int alphabetNsize = 8;
 
     public Image(int width, int height, int c, boolean random) {
@@ -30,7 +31,7 @@ public class Image {
         this.h = height;
         this.c = c;
 
-        this.data = new FloatBuffer(width*height*c);
+        this.data = new FloatArray(width*height*c);
 
         if(random) {
             for(int i = 0; i < w*h*c; ++i){
@@ -41,7 +42,7 @@ public class Image {
         }
     }
 
-    public Image(int width, int height, int c, FloatBuffer data) {
+    public Image(int width, int height, int c, FloatArray data) {
 
         this.w = width;
         this.h = height;
@@ -193,13 +194,13 @@ public class Image {
 
         for (int i = 0; i < string.length(); i++) {
 
-            Image l = characters[size][(0x0000FFFF & string.charAt(i))];
+            Image l = characters[size][(int)string.charAt(i) - 32];
             label = label.tileImages(l,-size - 1 + (size + 1)/2);
         }
         return label.borderImage((int) (label.h*0.25f));
     }
 
-    public void embedImage(Image dest, int dx, int dy) {
+    private void embedImage(Image dest, int dx, int dy) {
 
         int x,y,k;
         for(k = 0; k < c; ++k){
@@ -212,7 +213,7 @@ public class Image {
         }
     }
 
-    public Image copyImage() {
+    private Image copyImage() {
 
         Image copy = new Image(w,h,c,false);
 
@@ -222,7 +223,7 @@ public class Image {
         return copy;
     }
 
-    public Image resizeImage(int w, int h) {
+    private Image resizeImage(int w, int h) {
 
         Image resized = new Image(w, h, this.c,false);
         Image part = new Image(w, this.h, this.c,false);
@@ -246,6 +247,7 @@ public class Image {
                 }
             }
         }
+
         for(k = 0; k < this.c; ++k){
             for(r = 0; r < h; ++r){
                 float sy = r*h_scale;
@@ -265,7 +267,7 @@ public class Image {
         return resized;
     }
 
-    public void drawLabel(int r, int c, Image label, FloatBuffer rgb) {
+    private void drawLabel(int r, int c, Image label, FloatArray rgb) {
 
         int _w = label.w;
         int _h = label.h;
@@ -342,13 +344,13 @@ public class Image {
 //        }
 //    }
 
-    public static Image loadImageColor(String fileName,int w, int h) {
-        return loadImage(fileName,w,h,3);
+    public static Image loadImageColor(String fileName,int w, int h, boolean fromResource) {
+        return loadImage(fileName,w,h,3, fromResource);
     }
 
-    public static Image loadImage(String filename, int w, int h, int c) {
+    private static Image loadImage(String filename, int w, int h, int c, boolean fromResource) {
 
-        Image out = loadImageStb(filename, c);
+        Image out = loadImageStb(filename, c,fromResource);
         assert out != null;
 
         if((h != 0 && w != 0) && (h != out.h || w != out.w)){
@@ -362,7 +364,7 @@ public class Image {
         return loadImageMemory(bytes,w,h,3);
     }
 
-    public static Image loadImageMemory(byte[] bytes, int w, int h, int c) {
+    private static Image loadImageMemory(byte[] bytes, int w, int h, int c) {
 
         Image out = loadImageStb(bytes, c);
         assert out != null;
@@ -374,17 +376,18 @@ public class Image {
         return out;
     }
 
-    public static Image loadImageStb(String filename, int channels) {
+    private static Image loadImageStb(String filename, int channels, boolean fromResource) {
 
         //Emulando ponteiros
         int[] _width = new int[1];
         int[] _height = new int[1];
         int[] _channel = new int[1];
 
-        try {
-            ByteBuffer bb;
+        ByteBuffer bb;
 
-            if(GlobalVars.isJar) {
+        try {
+
+            if(fromResource) {
                 InputStream inputStream = Image.class.getResourceAsStream(filename);
                 byte[] b = inputStream.readAllBytes();
                 inputStream.close();
@@ -394,9 +397,10 @@ public class Image {
                 bb = STBImage.stbi_load_from_memory(_BB,_width,_height,_channel,channels);
             }
             else {
-                bb = STBImage.stbi_load(filename.substring(1),_width,_height,_channel,channels);
+                bb = STBImage.stbi_load(filename,_width,_height,_channel,channels);
             }
-            assert bb != null;
+
+            assert(bb != null);
 
             int width = _width[0];
             int height = _height[0];
@@ -419,11 +423,12 @@ public class Image {
         }
         catch (Exception e) {
             System.err.println(String.format("Cannot load Image '%s'",filename));
+            e.printStackTrace();
             return null;
         }
     }
 
-    public static Image loadImageStb(byte[] imageBytes, int channels) {
+    private static Image loadImageStb(byte[] imageBytes, int channels) {
 
         //Emulando ponteiros
         int[] _width = new int[1];
@@ -463,7 +468,6 @@ public class Image {
             return null;
         }
     }
-
 
     private void saveImageOptions(String name, ImType f, int quality) {
 
@@ -530,14 +534,26 @@ public class Image {
 
     public static Image[][] loadAlphabet() {
 
-        Image[][] alphabets = new Image[alphabetNsize][128];
+        Image[][] alphabets = new Image[alphabetNsize][96];
 
-        IntStream.range(0,alphabetNsize).parallel().forEach(j -> {
-            for(int i = 32; i < 127; ++i){
-                String s = String.format("/Res/labels/%d_%d.png",i,j);
-                alphabets[j][i] = loadImageColor(s, 0, 0);
-            }
-        });
+        if(GlobalVars.isJar) {
+            IntStream.range(0,alphabetNsize).parallel().forEach(j -> {
+                for(int i = 32; i < 127; ++i){
+
+                    String s = String.format("/Res/labels/%d_%d.png",i,j);
+                    alphabets[j][i - 32] = loadImageColor(s, 0, 0,true);
+                }
+            });
+        }
+        else {
+            IntStream.range(0,alphabetNsize).parallel().forEach(j -> {
+                for(int i = 32; i < 127; ++i){
+
+                    String s = String.format("Res/labels/%d_%d.png",i,j);
+                    alphabets[j][i - 32] = loadImageColor(s, 0, 0,false);
+                }
+            });
+        }
         return alphabets;
     }
 
@@ -1291,7 +1307,7 @@ public class Image {
 //        return gray;
 //    }
 
-    public Image thresholdImage(float thresh) {
+    private Image thresholdImage(float thresh) {
 
         Image t = new Image(w, h, c, false);
         for(int i = 0; i < w*h*c; ++i){
@@ -1437,8 +1453,10 @@ public class Image {
         int[] lefts = new int[num];
         int[] widths = new int[num];
         int[] _classes = new int[num];
-        FloatBuffer[] rgbs = new FloatBuffer[num];
+        FloatArray[] rgbs = new FloatArray[num];
         String[] labels = new String[num];
+
+        int decNumber = 1;
 
         for(i = 0; i < num; ++i){
 
@@ -1467,7 +1485,8 @@ public class Image {
             labels[i] = String.format("%s: %.0f%%",currentName,currentConfidence);
             if(_class >= 0){
 
-                System.out.printf("\tDetection #%02d: '%s' with confidence %.2f%%\n",i,currentName,currentConfidence);
+                System.out.printf("\tDetection #%02d: '%s' with confidence %.2f%%\n",decNumber,currentName,currentConfidence);
+                decNumber++;
 
                 int width = (int) (h * 0.006f);
                 
@@ -1504,7 +1523,7 @@ public class Image {
                 tops[i] = top;
                 lefts[i] = left;
                 widths[i] = width;
-                rgbs[i] = new FloatBuffer(rgb);
+                rgbs[i] = new FloatArray(rgb);
 
                 Result r = new Result(currentName,currentConfidence,left,top,right-left,bot-top);
                 list.add(r);
@@ -1513,7 +1532,7 @@ public class Image {
 
                 if (dets[i].mask != null) {
 
-                    Image mask = new Image(14, 14, 1, new FloatBuffer(dets[i].mask));
+                    Image mask = new Image(14, 14, 1, new FloatArray(dets[i].mask));
 
                     Image resized_mask = mask.resizeImage((int) b.w*w, (int) b.h*h);
                     Image tmask = resized_mask.thresholdImage(0.5f);

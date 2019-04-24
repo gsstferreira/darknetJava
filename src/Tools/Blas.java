@@ -1,14 +1,11 @@
 package Tools;
 
-
-import Classes.Buffers.FloatBuffer;
-
+import Classes.Arrays.FloatArray;
 import java.util.stream.IntStream;
 
-// Completo
 public abstract class Blas {
 
-    public static void reorgCpu(FloatBuffer x, int w, int h, int c, int batch, int stride, int forward, FloatBuffer out) {
+    public static void reorgCpu(FloatArray x, int w, int h, int c, int batch, int stride, int forward, FloatArray out) {
 
         int out_c = c/(stride*stride);
 
@@ -34,11 +31,11 @@ public abstract class Blas {
                 }
             }
         }
-    } //
+    }
 
-    public static void flatten(FloatBuffer x, int size, int layers, int batch, int forward) {
+    public static void flatten(FloatArray x, int size, int layers, int batch, int forward) {
 
-        FloatBuffer swap = new FloatBuffer(size*layers*batch);
+        FloatArray swap = new FloatArray(size*layers*batch);
 
         for(int b = 0; b < batch; ++b){
             for(int c = 0; c < layers; ++c){
@@ -57,18 +54,18 @@ public abstract class Blas {
             }
         }
         Buffers.copy(swap,x,size*layers*batch);
-    } //
+    }
 
-    public static void weightedSumCpu(FloatBuffer a, FloatBuffer b, FloatBuffer s, int n, FloatBuffer c) {
+    public static void weightedSumCpu(FloatArray a, FloatArray b, FloatArray s, int n, FloatArray c) {
 
         for(int i = 0; i < n; ++i){
 
             float val = s.get(i)*a.get(i) + (1 - s.get(i))*(b != null ? b.get(i) : 0);
             c.put(i,val);
         }
-    } //
+    }
 
-//    public static void weightedDeltaCpu(FloatBuffer a, FloatBuffer b, FloatBuffer s, FloatBuffer da, FloatBuffer db, FloatBuffer ds, int n, FloatBuffer dc) {
+//    public static void weightedDeltaCpu(FloatArray a, FloatArray b, FloatArray s, FloatArray da, FloatArray db, FloatArray ds, int n, FloatArray dc) {
 //
 //        for(int i = 0; i < n; ++i){
 //
@@ -81,9 +78,9 @@ public abstract class Blas {
 //            }
 //            ds.put(i,ds.get(i) + dc.get(i)*(a.get(i) - b.get(i)));
 //        }
-//    } //
+//    }
 
-    public static void shortcutCpu(int batch, int w1, int h1, int c1, FloatBuffer add, int w2, int h2, int c2, float s1, float s2, FloatBuffer out) {
+    public static void shortcutCpu(int batch, int w1, int h1, int c1, FloatArray add, int w2, int h2, int c2, float s1, float s2, FloatArray out) {
 
         int stride = w1/w2;
         int sample = w2/w1;
@@ -111,9 +108,9 @@ public abstract class Blas {
                 }
             }
         }
-    } //
+    }
 
-    public static void meanCpu(FloatBuffer x, int batch, int filters, int spatial, FloatBuffer mean) {
+    public static void meanCpu(FloatArray x, int batch, int filters, int spatial, FloatArray mean) {
 
         float scale = 1.0f/(batch * spatial);
 
@@ -129,9 +126,9 @@ public abstract class Blas {
             }
             mean.put(i,mean.get(i)* scale);
         }
-    } //
+    }
 
-    public static void varianceCpu(FloatBuffer x, FloatBuffer mean, int batch, int filters, int spatial, FloatBuffer variance) {
+    public static void varianceCpu(FloatArray x, FloatArray mean, int batch, int filters, int spatial, FloatArray variance) {
 
         float scale = 1.0f/(batch * spatial - 1);
 
@@ -150,9 +147,9 @@ public abstract class Blas {
             }
             variance.put(i,variance.get(i)*scale);
         }
-    } //
+    }
 
-    public static void l2normalizeCpu(FloatBuffer x, FloatBuffer dx, int batch, int filters, int spatial) {
+    public static void l2normalizeCpu(FloatArray x, FloatArray dx, int batch, int filters, int spatial) {
 
         for(int b = 0; b < batch; ++b){
             for(int i = 0; i < spatial; ++i){
@@ -172,64 +169,79 @@ public abstract class Blas {
                 }
             }
         }
-    } //
+    }
 
-    public static void normalizeCpu(FloatBuffer x, FloatBuffer mean, FloatBuffer variance, int batch, int filters, int spatial) {
+    public static void normalizeCpu(FloatArray x, FloatArray mean, FloatArray variance, int batch, int filters, int spatial) {
 
         for(int b = 0; b < batch; ++b){
-            for(int f = 0; f < filters; ++f){
+
+            final int bFilters = b * filters *spatial;
+            IntStream.range(0,filters).parallel().forEach(f -> {
+
+                final int indexBase = bFilters + f*spatial;
+                final float sqrtVar = (float) (Math.sqrt(variance.get(f)) + 0.000001);
+
                 for(int i = 0; i < spatial; ++i){
-                    int index = b*filters*spatial + f*spatial + i;
 
-                    double  val = (x.get(index) - mean.get(f))/(Math.sqrt(variance.get(f)) + 0.000001);
-                    x.put(index,(float)val);
+                    final int index = indexBase + i;
+                    float val = (x.get(index) - mean.get(f))/sqrtVar;
+                    x.put(index,val);
                 }
-            }
-        }
-    } //
+            });
 
-    public static void constCpu(int N, float ALPHA, FloatBuffer X, int INCX) {
+//            for(int f = 0; f < filters; ++f){
+//                for(int i = 0; i < spatial; ++i){
+//                    int index = b*filters*spatial + f*spatial + i;
+//
+//                    double  val = (x.get(index) - mean.get(f))/(Math.sqrt(variance.get(f)) + 0.000001);
+//                    x.put(index,(float)val);
+//                }
+//            }
+        }
+    }
+
+    public static void constCpu(int N, float ALPHA, FloatArray X, int INCX) {
 
         for(int i = 0; i < N; ++i) {
             X.put(i*INCX,ALPHA);
         }
-    } //
+    }
 
-    public static void mulCpu(int N, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
+    public static void mulCpu(int N, FloatArray X, int INCX, FloatArray Y, int INCY) {
 
         for(int i = 0; i < N; ++i) {
 
             Y.put(i*INCY, Y.get(i*INCY) * X.get(i*INCX));
         }
-    } //
+    }
 
-    public static void powCpu(int N, float ALPHA, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
+    public static void powCpu(int N, float ALPHA, FloatArray X, int INCX, FloatArray Y, int INCY) {
 
         for(int i = 0; i < N; ++i) {
 
             Y.put(i*INCY,(float) Math.pow(X.get(i*INCX),ALPHA));
         }
-    } //
+    }
 
-    public static void axpyCpu(int N, float ALPHA, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
+    public static void axpyCpu(int N, float ALPHA, FloatArray X, int INCX, FloatArray Y, int INCY) {
 
         IntStream.range(0,N).parallel().forEach(i -> {
             float val = Y.get(i*INCY) + ALPHA * X.get(i*INCX);
             Y.put(i*INCY,val);
         });
-    } //
+    }
 
-    public static void scalCpu(int N, float ALPHA, FloatBuffer X, int INCX) {
+    public static void scalCpu(int N, float ALPHA, FloatArray X, int INCX) {
 
         IntStream.range(0,N).parallel().forEach(i -> X.put(i*INCX, X.get(i*INCX) * ALPHA));
-    } //
+    }
 
-    public static void fillCpu(int N, float ALPHA, FloatBuffer X, int INCX) {
+    public static void fillCpu(int N, float ALPHA, FloatArray X, int INCX) {
 
         IntStream.range(0,N).parallel().forEach(i -> X.put(i*INCX,ALPHA));
-    } //
+    }
 
-//    public static void deinterCpu(int NX, FloatBuffer X, int NY, FloatBuffer Y, int B, FloatBuffer OUT) {
+//    public static void deinterCpu(int NX, FloatArray X, int NY, FloatArray Y, int B, FloatArray OUT) {
 //
 //        int index = 0;
 //
@@ -250,9 +262,9 @@ public abstract class Blas {
 //                ++index;
 //            }
 //        }
-//    } //
+//    }
 //
-//    public static void interCpu(int NX, FloatBuffer X, int NY, FloatBuffer Y, int B, FloatBuffer OUT) {
+//    public static void interCpu(int NX, FloatArray X, int NY, FloatArray Y, int B, FloatArray OUT) {
 //
 //        int index = 0;
 //
@@ -267,24 +279,19 @@ public abstract class Blas {
 //                index++;
 //            }
 //        }
-//    } //
+//    }
 
-    public static void copyCpu(int N, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
 
-        for(int i = 0; i < N; ++i) {
-            Y.put(i*INCY,X.get(i*INCX));
-        }
-    } //
 
-//    public static void multAddIntoCpu(int N, FloatBuffer X, FloatBuffer Y, FloatBuffer Z) {
+//    public static void multAddIntoCpu(int N, FloatArray X, FloatArray Y, FloatArray Z) {
 //
 //        for(int i = 0; i < N; ++i) {
 //            float val = Z.get(i) + X.get(i) * Y.get(i);
 //            Z.put(i,val);
 //        }
-//    } //
+//    }
 
-    public static void smoothL1Cpu(int n, FloatBuffer pred, FloatBuffer truth, FloatBuffer delta, FloatBuffer error) {
+    public static void smoothL1Cpu(int n, FloatArray pred, FloatArray truth, FloatArray delta, FloatArray error) {
 
         for(int i = 0; i < n; ++i){
 
@@ -301,7 +308,7 @@ public abstract class Blas {
         }
     } //
 
-    public static void l1Cpu(int n, FloatBuffer pred, FloatBuffer truth, FloatBuffer delta, FloatBuffer error) {
+    public static void l1Cpu(int n, FloatArray pred, FloatArray truth, FloatArray delta, FloatArray error) {
 
         for(int i = 0; i < n; ++i){
             float diff = truth.get(i) - pred.get(i);
@@ -310,7 +317,7 @@ public abstract class Blas {
         }
     } //
 
-    public static void softmaxXEntCpu(int n, FloatBuffer pred, FloatBuffer truth, FloatBuffer delta, FloatBuffer error) {
+    public static void softmaxXEntCpu(int n, FloatArray pred, FloatArray truth, FloatArray delta, FloatArray error) {
 
         for(int i = 0; i < n; ++i){
             float t = truth.get(i);
@@ -321,7 +328,7 @@ public abstract class Blas {
         }
     } //
 
-    public static void logisticXEntCpu(int n, FloatBuffer pred, FloatBuffer truth, FloatBuffer delta, FloatBuffer error) {
+    public static void logisticXEntCpu(int n, FloatArray pred, FloatArray truth, FloatArray delta, FloatArray error) {
 
         for(int i = 0; i < n; ++i){
             float t = truth.get(i);
@@ -334,7 +341,7 @@ public abstract class Blas {
         }
     } //
 
-    public static void l2Cpu(int n, FloatBuffer pred, FloatBuffer truth, FloatBuffer delta, FloatBuffer error) {
+    public static void l2Cpu(int n, FloatArray pred, FloatArray truth, FloatArray delta, FloatArray error) {
 
         for(int i = 0; i < n; ++i){
             float diff = truth.get(i) - pred.get(i);
@@ -343,7 +350,7 @@ public abstract class Blas {
         }
     } //
 
-//    public static float dotCpu(int N, FloatBuffer X, int INCX, FloatBuffer Y, int INCY) {
+//    public static float dotCpu(int N, FloatArray X, int INCX, FloatArray Y, int INCY) {
 //
 //        float dot = 0;
 //
@@ -354,7 +361,7 @@ public abstract class Blas {
 //        return dot;
 //    } //
 
-    public static void softmax(FloatBuffer input, int n, float temp, int stride, FloatBuffer output) {
+    public static void softmax(FloatArray input, int n, float temp, int stride, FloatArray output) {
 
         float sum = 0;
         float largest = - Rand.MAX_FLOAT;
@@ -376,37 +383,66 @@ public abstract class Blas {
         }
     } //
 
-    public static void softmaxCpu(FloatBuffer input, int n, int batch, int batch_offset, int groups, int group_offset, int stride, float temp, FloatBuffer output) {
+    public static void softmaxCpu(FloatArray input, int n, int batch, int batch_offset, int groups, int group_offset, int stride, float temp, FloatArray output) {
 
         for(int b = 0; b < batch; ++b){
             for(int g = 0; g < groups; ++g){
 
-                FloatBuffer fb1 = input.offsetNew(b*batch_offset + g*group_offset);
-                FloatBuffer fb2 = output.offsetNew(b*batch_offset + g*group_offset);
+                FloatArray fb1 = input.offsetNew(b*batch_offset + g*group_offset);
+                FloatArray fb2 = output.offsetNew(b*batch_offset + g*group_offset);
 
                 softmax(fb1, n, temp, stride, fb2);
             }
         }
     } //
 
-    public static void upsampleCpu(FloatBuffer in, int w, int h, int c, int batch, int stride, int forward, float scale, FloatBuffer out) {
+    public static void upsampleCpu(FloatArray in, int w, int h, int c, int batch, int stride, int forward, float scale, FloatArray out) {
+
+        final int mWh = w*h;
+        final int mWhc = mWh * c;
+        final int mStride = mWhc * stride * stride;
+        final int mStride2 = mWh * stride * stride;
 
         for(int b = 0; b < batch; ++b){
-            for(int k = 0; k < c; ++k){
+
+            final int bWhc = b * mWhc;
+            final int bStride = b * mStride;
+
+            IntStream.range(0,c).parallel().forEach(k ->{
                 for(int j = 0; j < h*stride; ++j){
+
+                    final int inBase = bWhc + k * mWh + (j/stride)*w;
+                    final int outBase = bStride + k*mStride2 + j*w*stride;
+
                     for(int i = 0; i < w*stride; ++i){
-                        int in_index = b*w*h*c + k*w*h + (j/stride)*w + i/stride;
-                        int out_index = b*w*h*c*stride*stride + k*w*h*stride*stride + j*w*stride + i;
+                        final int inIndex = inBase + i/stride;
+                        final int outIndex = outBase + i;
 
                         if(forward != 0) {
-                            out.put(out_index,scale*in.get(in_index));
+                            out.put(outIndex,scale*in.get(inIndex));
                         }
                         else {
-                            in.put(in_index, in.get(in_index) + scale*out.get(out_index));
+                            in.put(inIndex, in.get(inIndex) + scale*out.get(outIndex));
                         }
                     }
                 }
-            }
+            });
+
+//            for(int k = 0; k < c; ++k){
+//                for(int j = 0; j < h*stride; ++j){
+//                    for(int i = 0; i < w*stride; ++i){
+//                        int in_index = b*w*h*c + k*w*h + (j/stride)*w + i/stride;
+//                        int out_index = b*w*h*c*stride*stride + k*w*h*stride*stride + j*w*stride + i;
+//
+//                        if(forward != 0) {
+//                            out.put(out_index,scale*in.get(in_index));
+//                        }
+//                        else {
+//                            in.put(in_index, in.get(in_index) + scale*out.get(out_index));
+//                        }
+//                    }
+//                }
+//            }
         }
-    } //
+    }
 }

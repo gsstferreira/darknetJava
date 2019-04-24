@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
@@ -29,8 +29,8 @@ public class RnnLayer extends Layer {
         this.steps = steps;
         this.inputs = inputs;
 
-        this.state = new FloatBuffer(batch*outputs);
-        this.prevState = new FloatBuffer(batch*outputs);
+        this.state = new FloatArray(batch*outputs);
+        this.prevState = new FloatArray(batch*outputs);
 
         this.inputLayer = new ConnectedLayer(batch*steps, inputs, outputs, activation, batch_normalize, adam);
         System.out.print("\t\t");
@@ -79,14 +79,14 @@ public class RnnLayer extends Layer {
 
             ((ConnectedLayer)selfLayer).forward(s);
 
-            FloatBuffer old_state = this.state;
+            FloatArray oldState = this.state;
 
             if(net.train != 0) {
 
                 this.state.offset(outputs*batch);
             }
             if(this.shortcut != 0){
-                Blas.copyCpu(this.outputs * this.batch, old_state, 1, this.state, 1);
+                oldState.copyInto(outputs*batch,this.state);
             }
             else{
                 Blas.fillCpu(this.outputs * this.batch, 0, this.state, 1);
@@ -119,7 +119,8 @@ public class RnnLayer extends Layer {
         this.state.offset(outputs*batch*steps);
 
         for (i = this.steps-1; i >= 0; --i) {
-            Blas.copyCpu(this.outputs * this.batch, inputLayer.output, 1, this.state, 1);
+
+            inputLayer.output.copyInto(outputs*batch,this.state);
             Blas.axpyCpu(this.outputs * this.batch, 1, selfLayer.output, 1, this.state, 1);
 
             s.input = this.state;
@@ -139,10 +140,10 @@ public class RnnLayer extends Layer {
 
             ((ConnectedLayer)selfLayer).backward(s);
 
-            Blas.copyCpu(this.outputs*this.batch, selfLayer.delta, 1, inputLayer.delta, 1);
+            selfLayer.delta.copyInto(outputs*batch,inputLayer.delta);
             if (i > 0 && this.shortcut != 0) {
 
-                FloatBuffer fb = selfLayer.delta.offsetNew(-outputs*batch);
+                FloatArray fb = selfLayer.delta.offsetNew(-outputs*batch);
                 Blas.axpyCpu(this.outputs*this.batch, 1, selfLayer.delta, 1, fb, 1);
             }
 

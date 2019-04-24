@@ -1,13 +1,12 @@
 package Classes;
 
-import Classes.Buffers.ByteBuffer;
-import Classes.Buffers.FloatBuffer;
-import Classes.Buffers.IntBuffer;
+import Classes.Arrays.ByteArray;
+import Classes.Arrays.FloatArray;
+import Classes.Arrays.IntArray;
 import Yolo.Enums.Activation;
 import Yolo.Enums.CostType;
 import Yolo.Enums.LayerType;
 import Yolo.Layers.*;
-
 
 public class Layer {
 
@@ -22,8 +21,8 @@ public class Layer {
     public int flipped;
     public int inputs;
     public int outputs;
-    public int nweights;
-    public int nbiases;
+    public int nWeights;
+    public int nBiases;
     public int extra;
     public int truths;
     public int h;
@@ -60,7 +59,7 @@ public class Layer {
     public float ratio;
     public float learningRateScale;
     public float clip;
-    public int noloss;
+    public int noLoss;
     public int softmax;
     public int classes;
     public int coords;
@@ -72,7 +71,7 @@ public class Layer {
     public int reorg;
     public int log;
     public int tanh;
-    public IntBuffer mask;
+    public IntArray mask;
     public int total;
 
     public float alpha;
@@ -81,7 +80,7 @@ public class Layer {
 
     public float coordScale;
     public float objectScale;
-    public float noobjectScale;
+    public float noObjectScale;
     public float maskScale;
     public float classScale;
     public int biasMatch;
@@ -90,100 +89,100 @@ public class Layer {
     public float truthThresh;
     public float thresh;
 //    public float focus;
-    public int classfix;
+    public int classFix;
     public int absolute;
 
-    public int onlyforward;
-    public int stopbackward;
-    public int dontload;
-    public int dontsave;
-    public int dontloadscales;
-    public int numload;
+    public int onlyForward;
+    public int stopBackward;
+    public int dontLoad;
+    public int dontSave;
+    public int dontLoadScales;
+    public int numLoad;
 
     public float temperature;
     public float probability;
     public float scale;
 
-    public ByteBuffer cweights;
-    public IntBuffer indexes;
-    public IntBuffer inputLayers;
-    public IntBuffer inputSizes;
-    public IntBuffer map;
-    public IntBuffer counts;
+    public ByteArray cWeights;
+    public IntArray indexes;
+    public IntArray inputLayers;
+    public IntArray inputSizes;
+    public IntArray map;
+    public IntArray counts;
     public float[][] sums;
-    public FloatBuffer rand;
-    public FloatBuffer cost;
-    public FloatBuffer state;
-    public FloatBuffer prevState;
-    public FloatBuffer forgotState;
-    public FloatBuffer forgotDelta;
-//    public FloatBuffer stateDelta;
-//    public FloatBuffer combineCpu;
-//    public FloatBuffer combineDeltaCpu;
+    public FloatArray rand;
+    public FloatArray cost;
+    public FloatArray state;
+    public FloatArray prevState;
+    public FloatArray forgotState;
+    public FloatArray forgotDelta;
+//    public FloatArray stateDelta;
+//    public FloatArray combineCpu;
+//    public FloatArray combineDeltaCpu;
 //
-//    public FloatBuffer concat;
-//    public FloatBuffer concatDelta;
+//    public FloatArray concat;
+//    public FloatArray concatDelta;
 
-    public FloatBuffer binaryWeights;
+    public FloatArray binaryWeights;
 
-    public FloatBuffer biases;
-    public FloatBuffer biasUpdates;
+    public FloatArray biases;
+    public FloatArray biasUpdates;
 
-    public FloatBuffer scales;
-    public FloatBuffer scaleUpdates;
+    public FloatArray scales;
+    public FloatArray scaleUpdates;
 
-    public FloatBuffer weights;
-    public FloatBuffer weightUpdates;
+    public FloatArray weights;
+    public FloatArray weightUpdates;
 
-    public FloatBuffer delta;
-    public FloatBuffer output;
-    public FloatBuffer loss;
-    public FloatBuffer squared;
-    public FloatBuffer norms;
+    public FloatArray delta;
+    public FloatArray output;
+    public FloatArray loss;
+    public FloatArray squared;
+    public FloatArray norms;
 
-//    public FloatBuffer spatialMean;
-    public FloatBuffer mean;
-    public FloatBuffer variance;
+//    public FloatArray spatialMean;
+    public FloatArray mean;
+    public FloatArray variance;
 
-    public FloatBuffer meanDelta;
-    public FloatBuffer varianceDelta;
+    public FloatArray meanDelta;
+    public FloatArray varianceDelta;
 
-    public FloatBuffer rollingMean;
-    public FloatBuffer rollingVariance;
+    public FloatArray rollingMean;
+    public FloatArray rollingVariance;
 
-    public FloatBuffer x;
-    public FloatBuffer xNorm;
+    public FloatArray x;
+    public FloatArray xNorm;
 
-    public FloatBuffer m;
-    public FloatBuffer v;
+    public FloatArray m;
+    public FloatArray v;
 
-    public FloatBuffer biasM;
-    public FloatBuffer biasV;
-    public FloatBuffer scaleM;
-    public FloatBuffer scaleV;
+    public FloatArray biasM;
+    public FloatArray biasV;
+    public FloatArray scaleM;
+    public FloatArray scaleV;
 
 
-    public FloatBuffer zCpu;
-    public FloatBuffer rCpu;
-    public FloatBuffer hCpu;
-    public FloatBuffer prevStateCpu;
+    public FloatArray zCpu;
+    public FloatArray rCpu;
+    public FloatArray hCpu;
+    public FloatArray prevStateCpu;
 
-    public FloatBuffer tempCpu;
-    public FloatBuffer temp2Cpu;
-    public FloatBuffer temp3Cpu;
+    public FloatArray tempCpu;
+    public FloatArray temp2Cpu;
+    public FloatArray temp3Cpu;
 
-    public FloatBuffer dhCpu;
-//    public FloatBuffer hhCpu;
-    public FloatBuffer prevCellCpu;
-    public FloatBuffer cellCpu;
-    public FloatBuffer fCpu;
-    public FloatBuffer iCpu;
-    public FloatBuffer gCpu;
-    public FloatBuffer oCpu;
-    public FloatBuffer cCpu;
-    public FloatBuffer dcCpu;
+    public FloatArray dhCpu;
+//    public FloatArray hhCpu;
+    public FloatArray prevCellCpu;
+    public FloatArray cellCpu;
+    public FloatArray fCpu;
+    public FloatArray iCpu;
+    public FloatArray gCpu;
+    public FloatArray oCpu;
+    public FloatArray cCpu;
+    public FloatArray dcCpu;
 
-    public FloatBuffer binaryInput;
+    public FloatArray binaryInput;
 
     public Layer inputLayer;
     public Layer selfLayer;

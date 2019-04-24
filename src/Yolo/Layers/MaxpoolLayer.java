@@ -1,13 +1,15 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
-import Classes.Buffers.IntBuffer;
+import Classes.Arrays.FloatArray;
+import Classes.Arrays.IntArray;
 import Classes.Image;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Buffers;
 import Tools.Rand;
 import Yolo.Enums.LayerType;
+
+import java.util.stream.IntStream;
 
 
 public class MaxpoolLayer extends Layer {
@@ -30,23 +32,24 @@ public class MaxpoolLayer extends Layer {
 
     public MaxpoolLayer(int batch, int height, int width, int c, int size, int stride, int padding) {
 
-        type = LayerType.MAXPOOL;
+        this.type = LayerType.MAXPOOL;
         this.batch = batch;
-        h = height;
-        w = width;
+        this.h = height;
+        this.w = width;
         this.c = c;
-        pad = padding;
-        outW = (width + padding - size)/stride + 1;
-        outH = (height + padding - size)/stride + 1;
-        outC = c;
-        outputs = outH * outW * outC;
-        inputs = height*width*c;
+        this.pad = padding;
+        this.outW = (width + padding - size)/stride + 1;
+        this.outH = (height + padding - size)/stride + 1;
+        this.outC = c;
+        this.outputs = outH * outW * outC;
+        this.inputs = height*width*c;
         this.size = size;
         this.stride = stride;
-        int output_size = outH * outW * outC * batch;
-        indexes = new IntBuffer(output_size);
-        output = new FloatBuffer(output_size);
-        delta =  new FloatBuffer(output_size);
+
+        final int outputSize = outH * outW * outC * batch;
+        this.indexes = new IntArray(outputSize);
+        this.output = new FloatArray(outputSize);
+        this.delta =  new FloatArray(outputSize);
 
         System.out.printf("Max         %d x %d / %d  %4d x%4d x%4d   ->  %4d x%4d x%4d\n", size, size, stride, w, h, c, outW, outH, outC);
     }
@@ -69,39 +72,61 @@ public class MaxpoolLayer extends Layer {
 
     public void forward(Network net) {
 
-        int b,i,j,k,m,n;
-        int w_offset = -pad/2;
-        int h_offset = -pad/2;
+        int wOffset = -pad/2;
+        int hOffset = -pad/2;
 
-        int h = outH;
-        int w = outW;
-        int c = this.c;
+        for(int b = 0; b < batch; ++b){
 
-        for(b = 0; b < batch; ++b){
-            for(k = 0; k < c; ++k){
-                for(i = 0; i < h; ++i){
-                    for(j = 0; j < w; ++j){
-                        int out_index = j + w*(i + h*(k + c*b));
+            final int finalB = b;
+            IntStream.range(0,c).parallel().forEach(k -> {
+                for(int i = 0; i < outH; ++i){
+                    for(int j = 0; j < outW; ++j){
+                        final int outIndex = j + outW*(i + outH*(k + c* finalB));
                         float max = -Rand.MAX_FLOAT;
-                        int max_i = -1;
-                        for(n = 0; n < size; ++n){
-                            for(m = 0; m < size; ++m){
-                                int cur_h = h_offset + i*stride + n;
-                                int cur_w = w_offset + j*stride + m;
-                                int index = cur_w + this.w*(cur_h + this.h*(k + b*this.c));
-                                boolean valid = (cur_h >= 0 && cur_h < this.h && cur_w >= 0 && cur_w < this.w);
+                        int maxI = -1;
+                        for(int n = 0; n < size; ++n){
+                            for(int m = 0; m < size; ++m){
+                                final int curH = hOffset + i*stride + n;
+                                final int curW = wOffset + j*stride + m;
+                                final int index = curW + this.w*(curH + this.h*(k + finalB *this.c));
 
+                                boolean valid = (curH >= 0 && curH < this.h && curW >= 0 && curW < this.w);
                                 float val = (valid) ? net.input.get(index) : -Rand.MAX_FLOAT;
 
-                                max_i = (val > max) ? index : max_i;
+                                maxI = (val > max) ? index : maxI;
                                 max   = (val > max) ? val   : max;
                             }
                         }
-                        output.put(out_index,max);
-                        indexes.put(out_index,max_i);
+                        output.put(outIndex,max);
+                        indexes.put(outIndex,maxI);
                     }
                 }
-            }
+            });
+
+//            for(int k = 0; k < c; ++k){
+//                for(int i = 0; i < h; ++i){
+//                    for(int j = 0; j < w; ++j){
+//                        int outIndex = j + w*(i + h*(k + c*b));
+//                        float max = -Rand.MAX_FLOAT;
+//                        int maxI = -1;
+//                        for(int n = 0; n < size; ++n){
+//                            for(int m = 0; m < size; ++m){
+//                                int curH = hOffset + i*stride + n;
+//                                int curW = wOffset + j*stride + m;
+//                                int index = curW + this.w*(curH + this.h*(k + b*this.c));
+//                                boolean valid = (curH >= 0 && curH < this.h && curW >= 0 && curW < this.w);
+//
+//                                float val = (valid) ? net.input.get(index) : -Rand.MAX_FLOAT;
+//
+//                                maxI = (val > max) ? index : maxI;
+//                                max   = (val > max) ? val   : max;
+//                            }
+//                        }
+//                        output.put(outIndex,max);
+//                        indexes.put(outIndex,maxI);
+//                    }
+//                }
+//            }
         }
     }
 

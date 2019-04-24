@@ -1,44 +1,48 @@
-package Classes.Buffers;
+package Classes.Arrays;
 
-public class ByteBuffer {
+import java.nio.ByteBuffer;
+import java.util.stream.IntStream;
 
+public class ByteArray {
+
+    private final ByteBuffer buffer;
     private final byte[] array;
     private int offset;
 
-    private final java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(8);
-
-    public ByteBuffer(byte[] arr) {
+    public ByteArray(byte[] arr) {
 
         this.array = arr;
         this.offset = 0;
+        this.buffer = ByteBuffer.allocate(8);
     }
 
-    public ByteBuffer(int size) {
+    public ByteArray(int size) {
 
         this.array = new byte[size];
         this.offset = 0;
+        this.buffer = ByteBuffer.allocate(8);
     }
 
     public void offset(int off) {
         this.offset += off;
 
         if(this.offset < 0) {
-            throw new IndexOutOfBoundsException("ByteBuffer offset is lesser than 0");
+            throw new IndexOutOfBoundsException("ByteArray offset is lesser than 0");
         }
     }
 
-    public ByteBuffer offsetNew(int off) {
+    public ByteArray offsetNew(int off) {
 
-        ByteBuffer dec = new ByteBuffer(this.array);
+        ByteArray dec = new ByteArray(this.array);
 
         dec.offset = off + this.offset;
 
         if(dec.offset < 0) {
-            throw new IndexOutOfBoundsException("ByteBuffer offset is lesser than 0");
+            throw new IndexOutOfBoundsException("ByteArray offset is lesser than 0");
         }
 
         else if(dec.offset > this.array.length) {
-            throw new IndexOutOfBoundsException("ByteBuffer offset is bigger than buffer length");
+            throw new IndexOutOfBoundsException("ByteArray offset is bigger than buffer length");
         }
 
         return dec;
@@ -49,13 +53,9 @@ public class ByteBuffer {
         return this.array[index + offset];
     }
 
-    /**
-     * Creates a new ByteBuffer object which is a shallow copy of the original object
-     * @return ByteBuffer object, with reference to the same array
-     */
-    public ByteBuffer shallowClone() {
+    public ByteArray shallowClone() {
 
-        ByteBuffer buff = new ByteBuffer(this.array);
+        ByteArray buff = new ByteArray(this.array);
         buff.offset(this.offset);
 
         return buff;
@@ -64,6 +64,20 @@ public class ByteBuffer {
     public void put(int index,Byte d) {
 
         this.array[index + offset] = d;
+    }
+
+    public void setValue(byte val) {
+
+        IntStream.range(offset,array.length).forEach(i -> {
+            array[i] = val;
+        });
+    }
+
+    public void setValue(byte val, int size) {
+
+        IntStream.range(offset,offset + size).forEach(i -> {
+            array[i] = val;
+        });
     }
 
     public int size() {
@@ -106,5 +120,15 @@ public class ByteBuffer {
         buffer.position(0);
 
         return buffer.getFloat();
+    }
+
+    public void copyInto(int size,int offsetSrc, ByteArray dest, int offsetdest) {
+
+        IntStream.range(0,size).parallel().forEach(i -> dest.array[i*offsetdest] = this.array[i*offsetSrc]);
+    }
+
+    public void copyInto(int size, ByteArray dest) {
+
+        IntStream.range(0,size).parallel().forEach(i -> dest.array[dest.offset + i] = this.array[this.offset + i]);
     }
 }

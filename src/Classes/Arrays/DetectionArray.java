@@ -1,19 +1,19 @@
-package Classes.Buffers;
+package Classes.Arrays;
 
 import Classes.Detection;
 
-public class DetectionBuffer {
+public class DetectionArray {
 
     private final Detection[] array;
     private int offset;
 
-    public DetectionBuffer(Detection[] arr) {
+    public DetectionArray(Detection[] arr) {
 
         this.array = arr;
         this.offset = 0;
     }
 
-    public DetectionBuffer(int size) {
+    public DetectionArray(int size) {
 
         this.array = new Detection[size];
         this.offset = 0;
@@ -23,22 +23,22 @@ public class DetectionBuffer {
         this.offset += off;
 
         if(this.offset < 0) {
-            throw new IndexOutOfBoundsException("DetectionBuffer offset is lesser than 0");
+            throw new IndexOutOfBoundsException("DetectionArray offset is lesser than 0");
         }
     }
 
-    public DetectionBuffer offsetNew(int off) {
+    public DetectionArray offsetNew(int off) {
 
-        DetectionBuffer dec = new DetectionBuffer(this.array);
+        DetectionArray dec = new DetectionArray(this.array);
 
         dec.offset = off + this.offset;
 
         if(dec.offset < 0) {
-            throw new IndexOutOfBoundsException("DetectionBuffer offset is lesser than 0");
+            throw new IndexOutOfBoundsException("DetectionArray offset is lesser than 0");
         }
 
         else if(dec.offset > this.array.length) {
-            throw new IndexOutOfBoundsException("DetectionBuffer offset is bigger than buffer length");
+            throw new IndexOutOfBoundsException("DetectionArray offset is bigger than buffer length");
         }
 
         return dec;
@@ -49,13 +49,9 @@ public class DetectionBuffer {
         return this.array[index + offset];
     }
 
-    /**
-     * Creates a new DetectionBuffer object which is a shallow copy of the original object
-     * @return DetectionBuffer object, with reference to the same array
-     */
-    public DetectionBuffer shallowClone() {
+    public DetectionArray shallowClone() {
 
-        DetectionBuffer buff = new DetectionBuffer(this.array);
+        DetectionArray buff = new DetectionArray(this.array);
         buff.offset(this.offset);
 
         return buff;

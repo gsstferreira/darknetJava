@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Blas;
@@ -28,8 +28,8 @@ public class UpsampleLayer extends Layer {
         this.stride = stride;
         this.outputs = this.outW*this.outH*this.outC;
         this.inputs = this.w*this.h*this.c;
-        this.delta =  new FloatBuffer(this.outputs*batch);
-        this.output = new FloatBuffer(this.outputs*batch);
+        this.delta =  new FloatArray(this.outputs*batch);
+        this.output = new FloatArray(this.outputs*batch);
 
         if(this.reverse != 0) {
             System.out.printf("Downs %3dX             %4d x%4d x%4d   ->  %4d x%4d x%4d\n", stride, w, h, c, this.outW, this.outH, this.outC);
@@ -59,7 +59,10 @@ public class UpsampleLayer extends Layer {
 
     public void forward(Network net) {
 
-        Blas.fillCpu(this.outputs*this.batch, 0, this.output, 1);
+        //Blas.fillCpu(this.outputs*this.batch, 0, this.output, 1);
+
+        this.output.setValue(0,outputs*batch);
+
         if(this.reverse != 0){
             Blas.upsampleCpu(this.output, this.outW, this.outH, this.c, this.batch, this.stride, 0, this.scale, net.input);
         }

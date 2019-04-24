@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Blas;
@@ -46,8 +46,8 @@ public class ReorgLayer extends Layer {
         }
 
         int output_size = this.outputs * batch;
-        this.output = new FloatBuffer(output_size);
-        this.delta = new FloatBuffer(output_size);
+        this.output = new FloatArray(output_size);
+        this.delta = new FloatArray(output_size);
     }
 
     public void resize(int w, int h) {
@@ -95,10 +95,10 @@ public class ReorgLayer extends Layer {
         else if (this.extra != 0) {
             for(i = 0; i < this.batch; ++i){
 
-                FloatBuffer fb = net.input.offsetNew(i*this.inputs);
-                FloatBuffer fb2 = this.output.offsetNew(i*this.outputs);
+                FloatArray fb = net.input.offsetNew(i*this.inputs);
+                FloatArray fb2 = this.output.offsetNew(i*this.outputs);
 
-                Blas.copyCpu(this.inputs, fb, 1, fb2, 1);
+                fb.copyInto(this.inputs,fb2);
             }
         }
         else if (this.reverse != 0){
@@ -129,10 +129,10 @@ public class ReorgLayer extends Layer {
         else if (this.extra != 0) {
             for(i = 0; i < this.batch; ++i){
 
-                FloatBuffer fb = this.delta.offsetNew(i*this.outputs);
-                FloatBuffer fb2 = net.delta.offsetNew(i*this.inputs);
+                FloatArray fb = this.delta.offsetNew(i*this.outputs);
+                FloatArray fb2 = net.delta.offsetNew(i*this.inputs);
 
-                Blas.copyCpu(this.inputs, fb, 1, fb2, 1);
+                fb.copyInto(this.inputs,fb2);
             }
         }
         else{

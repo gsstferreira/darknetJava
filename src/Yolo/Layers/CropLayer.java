@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Image;
 import Classes.Layer;
 import Classes.Network;
@@ -36,7 +36,7 @@ public class CropLayer extends Layer {
         this.inputs = this.w * this.h * this.c;
         this.outputs = this.outW * this.outH * this.outC;
 
-        this.output = new FloatBuffer(this.outputs*batch);
+        this.output = new FloatArray(this.outputs*batch);
     }
 
     public void resize(int width, int height) {

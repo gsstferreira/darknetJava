@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
@@ -46,14 +46,14 @@ public class DeconvolutionalLayer extends Layer {
         this.stride = stride;
         this.size = size;
 
-        this.nweights = c*n*size*size;
-        this.nbiases = n;
+        this.nWeights = c*n*size*size;
+        this.nBiases = n;
 
-        this.weights = new FloatBuffer(c*n*size*size);
-        this.weightUpdates = new FloatBuffer(c*n*size*size);
+        this.weights = new FloatArray(c*n*size*size);
+        this.weightUpdates = new FloatArray(c*n*size*size);
 
-        this.biases = new FloatBuffer(n);
-        this.biasUpdates = new FloatBuffer(n);
+        this.biases = new FloatArray(n);
+        this.biasUpdates = new FloatArray(n);
 
         float scale = 0.02f;
         for(i = 0; i < c*n*size*size; ++i) {
@@ -74,43 +74,43 @@ public class DeconvolutionalLayer extends Layer {
         this.outputs = this.outW * this.outH * this.outC;
         this.inputs = this.w * this.h * this.c;
 
-        Blas.scalCpu(this.nweights, (float) this.outW * this.outH / (this.w * this.h), this.weights, 1);
+        Blas.scalCpu(this.nWeights, (float) this.outW * this.outH / (this.w * this.h), this.weights, 1);
 
-        this.output = new FloatBuffer(this.batch*this.outputs);
-        this.delta  = new FloatBuffer(this.batch*this.outputs);
+        this.output = new FloatArray(this.batch*this.outputs);
+        this.delta  = new FloatArray(this.batch*this.outputs);
         
         this.batchNormalize = batch_normalize;
 
         if(batch_normalize != 0){
             
-            this.scales = new FloatBuffer(n);
-            this.scaleUpdates = new FloatBuffer(n);
+            this.scales = new FloatArray(n);
+            this.scaleUpdates = new FloatArray(n);
             
             for(i = 0; i < n; ++i){
                 
                 this.scales.put(i,1);
             }
 
-            this.mean = new FloatBuffer(n);
-            this.variance = new FloatBuffer(n);
+            this.mean = new FloatArray(n);
+            this.variance = new FloatArray(n);
 
-            this.meanDelta = new FloatBuffer(n);
-            this.varianceDelta = new FloatBuffer(n);
+            this.meanDelta = new FloatArray(n);
+            this.varianceDelta = new FloatArray(n);
 
-            this.rollingMean = new FloatBuffer(n);
-            this.rollingVariance = new FloatBuffer(n);
+            this.rollingMean = new FloatArray(n);
+            this.rollingVariance = new FloatArray(n);
             
-            this.x = new FloatBuffer(this.batch*this.outputs);
-            this.xNorm = new FloatBuffer(this.batch*this.outputs);
+            this.x = new FloatArray(this.batch*this.outputs);
+            this.xNorm = new FloatArray(this.batch*this.outputs);
         }
         
         if(adam != 0){
-            this.m = new FloatBuffer(c*n*size*size);
-            this.v = new FloatBuffer(c*n*size*size);
-            this.biasM = new FloatBuffer(n);
-            this.scaleM = new FloatBuffer(n);
-            this.biasV = new FloatBuffer(n);
-            this.scaleV = new FloatBuffer(n);
+            this.m = new FloatArray(c*n*size*size);
+            this.v = new FloatArray(c*n*size*size);
+            this.biasM = new FloatArray(n);
+            this.scaleM = new FloatArray(n);
+            this.biasV = new FloatArray(n);
+            this.scaleV = new FloatArray(n);
         }
         
         this.activation = activation;
@@ -172,13 +172,13 @@ public class DeconvolutionalLayer extends Layer {
         Blas.fillCpu(this.outputs*this.batch, 0, this.output, 1);
 
         for(i = 0; i < this.batch; ++i){
-            FloatBuffer a = this.weights;
-            FloatBuffer b = net.input.offsetNew(i*this.c*this.h*this.w);
-            FloatBuffer c = net.workspace;
+            FloatArray a = this.weights;
+            FloatArray b = net.input.offsetNew(i*this.c*this.h*this.w);
+            FloatArray c = net.workspace;
 
             Gemm.gemmCpu(1,0,m,n,k,1,a,m,b,n,0,c,n);
 
-            FloatBuffer fb = this.output.offsetNew(i*this.outputs);
+            FloatArray fb = this.output.offsetNew(i*this.outputs);
             ImCol.col2ImCpu(net.workspace, this.outC, this.outH, this.outW, this.size, this.stride, this.pad, fb);
         }
 
@@ -213,11 +213,11 @@ public class DeconvolutionalLayer extends Layer {
             int n = this.size*this.size*this.n;
             int k = this.h*this.w;
 
-            FloatBuffer a = net.input.offsetNew(i*m*k);
-            FloatBuffer b = net.workspace;
-            FloatBuffer c = this.weightUpdates;
+            FloatArray a = net.input.offsetNew(i*m*k);
+            FloatArray b = net.workspace;
+            FloatArray c = this.weightUpdates;
 
-            FloatBuffer fb = delta.offsetNew(i*this.outputs);
+            FloatArray fb = delta.offsetNew(i*this.outputs);
 
             ImCol.im2ColCpu(fb, this.outC, this.outH, this.outW,this.size, this.stride, this.pad, b);
             Gemm.gemmCpu(0,1,m,n,k,1,a,k,b,k,1,c,n);

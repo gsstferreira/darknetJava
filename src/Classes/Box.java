@@ -1,6 +1,6 @@
 package Classes;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 
 import java.util.Arrays;
 
@@ -48,7 +48,7 @@ public class Box {
         h = b.h;
     }
 
-    public static Box floatToBox(FloatBuffer f, int stride) {
+    public static Box floatToBox(FloatArray f, int stride) {
 
         Box b = new Box();
         b.x = f.get(0);

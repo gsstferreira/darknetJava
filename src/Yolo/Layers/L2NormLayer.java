@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Blas;
@@ -14,14 +14,14 @@ public class L2NormLayer extends Layer {
         this.batch = batch;
         this.inputs = inputs;
         this.outputs = inputs;
-        this.output = new FloatBuffer(inputs*batch);
-        this.scales = new FloatBuffer(inputs*batch);
-        this.delta = new FloatBuffer(inputs*batch);
+        this.output = new FloatArray(inputs*batch);
+        this.scales = new FloatArray(inputs*batch);
+        this.delta = new FloatArray(inputs*batch);
     }
 
     public void forward(Network net) {
-        
-        Blas.copyCpu(this.outputs*this.batch, net.input, 1, this.output, 1);
+
+        net.input.copyInto(outputs*batch,this.output);
         Blas.l2normalizeCpu(this.output, this.scales, this.batch, this.outC, this.outW*this.outH);
     }
 

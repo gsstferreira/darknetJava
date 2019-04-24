@@ -1,8 +1,8 @@
 package Yolo;
 
 import Classes.*;
-import Classes.Buffers.FloatBuffer;
-import Classes.Buffers.IntBuffer;
+import Classes.Arrays.FloatArray;
+import Classes.Arrays.IntArray;
 import Tools.GlobalVars;
 import Yolo.Enums.ImType;
 
@@ -25,12 +25,12 @@ public abstract class Detector {
 
         time1 = System.currentTimeMillis();
         System.out.print("Loading image...\t");
-        Image im = Image.loadImageColor(filename,0,0);
+        Image im = Image.loadImageColor(filename,0,0,false);
         Image sized = im.letterbox(net.w,net.h);
 
         Layer l = net.layers[net.n - 1];
 
-        FloatBuffer X = sized.data;
+        FloatArray X = sized.data;
         time2 = System.currentTimeMillis();
         System.out.printf("done in %.3f seconds.\n",(time2 - time1)/1000.0f);
 
@@ -44,7 +44,7 @@ public abstract class Detector {
         System.out.print(String.format("%s: Predicted in %.3f seconds.\n\n", filename,procTime));
 
         int nboxes = 0;
-        IntBuffer b = new IntBuffer(1);
+        IntArray b = new IntArray(1);
         b.put(0,nboxes);
 
         Detection[] dets = net.getBoxes( im.w, im.h, thresh, hier_thresh, null, 1, b);
@@ -58,18 +58,19 @@ public abstract class Detector {
         String oldName = newNamePath[newNamePath.length - 1];
         String newName = "Predictions/" + System.currentTimeMillis() + "_" + oldName.replace(".jpg", "");
 
-        im.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
+        if(GlobalVars.isJar) {
+            im.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
+            String finalNewName = newName + ".jpg";
 
-        String finalNewName = newName + ".jpg";
+            new Thread(() -> {
+                if(displayer != null) {
+                    displayer.dispose();
 
-        new Thread(() -> {
-            if(displayer != null) {
-                displayer.dispose();
-
-            }
-            displayer = new ImageDisplayer(finalNewName,im.w + 20,im.h + 20);
-            displayer.display();
-        }).start();
+                }
+                displayer = new ImageDisplayer(finalNewName,im.w + 20,im.h + 20);
+                displayer.display();
+            }).start();
+        }
 
         return new DetectionResult(procTime,resultList,im.w,im.h);
     }
@@ -89,7 +90,7 @@ public abstract class Detector {
 
         Layer l = net.layers[net.n - 1];
 
-        FloatBuffer X = sized.data;
+        FloatArray X = sized.data;
         time2 = System.currentTimeMillis();
         System.out.printf("done in %.3f seconds.\n",(time2 - time1)/1000.0f);
 
@@ -103,7 +104,7 @@ public abstract class Detector {
         System.out.print(String.format("Predicted in %.3f seconds.\n\n", procTime));
 
         int nboxes = 0;
-        IntBuffer b = new IntBuffer(1);
+        IntArray b = new IntArray(1);
         b.put(0,nboxes);
 
         Detection[] dets = net.getBoxes( image.w, image.h, thresh, hier_thresh, null, 1, b);
@@ -115,33 +116,34 @@ public abstract class Detector {
 
         String newName = "Predictions/" + System.currentTimeMillis() + "_POSTreq";
 
-        image.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
+        if(GlobalVars.isJar) {
+            image.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
+            String finalNewName = newName + ".jpg";
 
-        String finalNewName = newName + ".jpg";
+            new Thread(() -> {
+                if(displayer != null) {
+                    displayer.dispose();
 
-        new Thread(() -> {
-            if(displayer != null) {
-                displayer.dispose();
-
-            }
-            displayer = new ImageDisplayer(finalNewName,image.w + 20,image.h + 20);
-            displayer.display();
-        }).start();
+                }
+                displayer = new ImageDisplayer(finalNewName,image.w + 20,image.h + 20);
+                displayer.display();
+            }).start();
+        }
 
         return new DetectionResult(procTime,resultList,image.w,image.h);
     }
 
     public static DetectionResult runDetector(String imagePath, float thresh) {
 
-        float hier_thresh = 0.5f;
+        float hierThresh = 0.5f;
 
-        return testDetector(imagePath, thresh,hier_thresh);
+        return testDetector(imagePath, thresh,hierThresh);
     }
 
     public static DetectionResult runDetectorImage(Image image, float thresh) {
 
-        float hier_thresh = 0.5f;
+        float hierThresh = 0.5f;
 
-        return testDetectorImage(image, thresh,hier_thresh);
+        return testDetectorImage(image, thresh,hierThresh);
     }
 }

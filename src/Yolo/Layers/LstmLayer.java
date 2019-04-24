@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Classes.UpdateArgs;
@@ -56,24 +56,24 @@ public class LstmLayer extends Layer {
         this.batchNormalize = batch_normalize;
         this.outputs = outputs;
 
-        this.output = new FloatBuffer(outputs*batch*steps);
-        this.state = new FloatBuffer(outputs*batch);
+        this.output = new FloatArray(outputs*batch*steps);
+        this.state = new FloatArray(outputs*batch);
         
-        this.prevStateCpu = new FloatBuffer(batch*outputs);
-        this.prevCellCpu = new FloatBuffer(batch*outputs);
-        this.cellCpu = new FloatBuffer(batch*outputs*steps);
+        this.prevStateCpu = new FloatArray(batch*outputs);
+        this.prevCellCpu = new FloatArray(batch*outputs);
+        this.cellCpu = new FloatArray(batch*outputs*steps);
 
-        this.fCpu = new FloatBuffer(batch*outputs);
-        this.iCpu = new FloatBuffer(batch*outputs);
-        this.gCpu = new FloatBuffer(batch*outputs);
-        this.oCpu = new FloatBuffer(batch*outputs);
-        this.cCpu = new FloatBuffer(batch*outputs);
-        this.hCpu = new FloatBuffer(batch*outputs);
-        this.tempCpu = new FloatBuffer(batch*outputs);
-        this.temp2Cpu = new FloatBuffer(batch*outputs);
-        this.temp3Cpu = new FloatBuffer(batch*outputs);
-        this.dcCpu = new FloatBuffer(batch*outputs);
-        this.dhCpu = new FloatBuffer(batch*outputs);
+        this.fCpu = new FloatArray(batch*outputs);
+        this.iCpu = new FloatArray(batch*outputs);
+        this.gCpu = new FloatArray(batch*outputs);
+        this.oCpu = new FloatArray(batch*outputs);
+        this.cCpu = new FloatArray(batch*outputs);
+        this.hCpu = new FloatArray(batch*outputs);
+        this.tempCpu = new FloatArray(batch*outputs);
+        this.temp2Cpu = new FloatArray(batch*outputs);
+        this.temp3Cpu = new FloatArray(batch*outputs);
+        this.dcCpu = new FloatArray(batch*outputs);
+        this.dhCpu = new FloatArray(batch*outputs);
     }
 
     public void update(UpdateArgs a) {
@@ -123,16 +123,16 @@ public class LstmLayer extends Layer {
             ((ConnectedLayer)ug).forward(s);
             ((ConnectedLayer)uo).forward(s);
 
-            Blas.copyCpu(outputs*batch, wf.output, 1, fCpu, 1);
+            wf.output.copyInto(outputs*batch,fCpu);
             Blas.axpyCpu(outputs*batch, 1, uf.output, 1, fCpu, 1);
 
-            Blas.copyCpu(outputs*batch, wi.output, 1, iCpu, 1);
+            wi.output.copyInto(outputs*batch,iCpu);
             Blas.axpyCpu(outputs*batch, 1, ui.output, 1, iCpu, 1);
 
-            Blas.copyCpu(outputs*batch, wg.output, 1, gCpu, 1);
+            wg.output.copyInto(outputs*batch,gCpu);
             Blas.axpyCpu(outputs*batch, 1, ug.output, 1, gCpu, 1);
 
-            Blas.copyCpu(outputs*batch, wo.output, 1, oCpu, 1);
+            wo.output.copyInto(outputs*batch,oCpu);
             Blas.axpyCpu(outputs*batch, 1, uo.output, 1, oCpu, 1);
 
             Activation.activateArray(fCpu, outputs*batch, Activation.LOGISTIC);
@@ -140,17 +140,17 @@ public class LstmLayer extends Layer {
             Activation.activateArray(gCpu, outputs*batch, Activation.TANH);
             Activation.activateArray(oCpu, outputs*batch, Activation.LOGISTIC);
 
-            Blas.copyCpu(outputs*batch, iCpu, 1, tempCpu, 1);
+            iCpu.copyInto(outputs*batch,tempCpu);
             Blas.mulCpu(outputs*batch, gCpu, 1, tempCpu, 1);
             Blas.mulCpu(outputs*batch, fCpu, 1, cCpu, 1);
             Blas.axpyCpu(outputs*batch, 1, tempCpu, 1, cCpu, 1);
 
-            Blas.copyCpu(outputs*batch, cCpu, 1, hCpu, 1);
+            cCpu.copyInto(outputs*batch,hCpu);
             Activation.activateArray(hCpu, outputs*batch, Activation.TANH);
             Blas.mulCpu(outputs*batch, oCpu, 1, hCpu, 1);
 
-            Blas.copyCpu(outputs*batch, cCpu, 1, cellCpu, 1);
-            Blas.copyCpu(outputs*batch, hCpu, 1, output, 1);
+            cCpu.copyInto(outputs*batch,cellCpu);
+            hCpu.copyInto(outputs*batch,output);
 
             state.input.offset(inputs*batch);
             output.offset(outputs*batch);
@@ -197,31 +197,31 @@ public class LstmLayer extends Layer {
         
         for (i = steps - 1; i >= 0; --i) {
 
-            FloatBuffer fba = cellCpu.offsetNew(-outputs*batch);
-            FloatBuffer fbb = output.offsetNew(-outputs*batch);
+            FloatArray fba = cellCpu.offsetNew(-outputs*batch);
+            FloatArray fbb = output.offsetNew(-outputs*batch);
             
             if (i != 0) {
-                Blas.copyCpu(outputs*batch, fba, 1, prevCellCpu, 1);
+                fba.copyInto(outputs*batch,prevCellCpu);
             }
-            Blas.copyCpu(outputs*batch, cellCpu, 1,cCpu, 1);
+            cellCpu.copyInto(outputs*batch,cCpu);
             
             if (i != 0) {
-                Blas.copyCpu(outputs*batch, fbb, 1, prevStateCpu, 1);
+                fbb.copyInto(outputs*batch,prevStateCpu);
             }
-            Blas.copyCpu(outputs*batch, output, 1, hCpu, 1);
+            output.copyInto(outputs*batch,hCpu);
 
             dhCpu = (i == 0) ? null : delta.offsetNew(-outputs*batch);
 
-            Blas.copyCpu(outputs*batch, wf.output, 1, fCpu, 1);
+            wf.output.copyInto(outputs*batch,fCpu);
             Blas.axpyCpu(outputs*batch, 1, uf.output, 1, fCpu, 1);
 
-            Blas.copyCpu(outputs*batch, wi.output, 1, iCpu, 1);
+            wi.output.copyInto(outputs*batch,iCpu);
             Blas.axpyCpu(outputs*batch, 1, ui.output, 1, iCpu, 1);
 
-            Blas.copyCpu(outputs*batch, wg.output, 1, gCpu, 1);
+            wg.output.copyInto(outputs*batch,gCpu);
             Blas.axpyCpu(outputs*batch, 1, ug.output, 1, gCpu, 1);
 
-            Blas.copyCpu(outputs*batch, wo.output, 1, oCpu, 1);
+            wo.output.copyInto(outputs*batch,oCpu);
             Blas.axpyCpu(outputs*batch, 1, uo.output, 1, oCpu, 1);
 
             Activation.activateArray(fCpu, outputs*batch, Activation.LOGISTIC);
@@ -229,81 +229,81 @@ public class LstmLayer extends Layer {
             Activation.activateArray(gCpu, outputs*batch, Activation.TANH);
             Activation.activateArray(oCpu, outputs*batch, Activation.LOGISTIC);
 
-            Blas.copyCpu(outputs*batch, delta, 1, temp3Cpu, 1);
+            delta.copyInto(outputs*batch,temp3Cpu);
 
-            Blas.copyCpu(outputs*batch,cCpu, 1, tempCpu, 1);
+            cCpu.copyInto(outputs*batch,tempCpu);
             Activation.activateArray(tempCpu, outputs*batch, Activation.TANH);
 
-            Blas.copyCpu(outputs*batch, temp3Cpu, 1, temp2Cpu, 1);
+            temp3Cpu.copyInto(outputs*batch,temp2Cpu);
             Blas.mulCpu(outputs*batch, oCpu, 1, temp2Cpu, 1);
 
             Activation.gradientArray(tempCpu, outputs*batch, Activation.TANH, temp2Cpu);
             Blas.axpyCpu(outputs*batch, 1, dcCpu, 1, temp2Cpu, 1);
 
-            Blas.copyCpu(outputs*batch,cCpu, 1, tempCpu, 1);
+            cCpu.copyInto(outputs*batch,tempCpu);
             Activation.activateArray(tempCpu, outputs*batch, Activation.TANH);
             Blas.mulCpu(outputs*batch, temp3Cpu, 1, tempCpu, 1);
             Activation.gradientArray(oCpu, outputs*batch, Activation.LOGISTIC, tempCpu);
-            Blas.copyCpu(outputs*batch, tempCpu, 1, wo.delta, 1);
+            tempCpu.copyInto(outputs*batch,wo.delta);
             s.input = prevStateCpu;
             s.delta = dhCpu;
 
             ((ConnectedLayer)wo).backward(s);
 
-            Blas.copyCpu(outputs*batch, tempCpu, 1, uo.delta, 1);
+            tempCpu.copyInto(outputs*batch,uo.delta);
             s.input = state.input;
             s.delta = state.delta;
 
             ((ConnectedLayer)uo).backward(s);
 
-            Blas.copyCpu(outputs*batch, temp2Cpu, 1, tempCpu, 1);
+            temp2Cpu.copyInto(outputs*batch,tempCpu);
             Blas.mulCpu(outputs*batch, iCpu, 1, tempCpu, 1);
             Activation.gradientArray(gCpu, outputs*batch, Activation.TANH, tempCpu);
-            Blas.copyCpu(outputs*batch, tempCpu, 1, wg.delta, 1);
+            tempCpu.copyInto(outputs*batch,wg.delta);
             s.input = prevStateCpu;
             s.delta = dhCpu;
 
             ((ConnectedLayer)wg).backward(s);
 
-            Blas.copyCpu(outputs*batch, tempCpu, 1, ug.delta, 1);
+            tempCpu.copyInto(outputs*batch,ug.delta);
             s.input = state.input;
             s.delta = state.delta;
 
             ((ConnectedLayer)ug).backward(s);
 
-            Blas.copyCpu(outputs*batch, temp2Cpu, 1, tempCpu, 1);
+            temp2Cpu.copyInto(outputs*batch,tempCpu);
             Blas.mulCpu(outputs*batch, gCpu, 1, tempCpu, 1);
             Activation.gradientArray(iCpu, outputs*batch, Activation.LOGISTIC, tempCpu);
-            Blas.copyCpu(outputs*batch, tempCpu, 1, wi.delta, 1);
+            tempCpu.copyInto(outputs*batch,wi.delta);
             s.input = prevStateCpu;
             s.delta = dhCpu;
 
             ((ConnectedLayer)wi).backward(s);
 
-            Blas.copyCpu(outputs*batch, tempCpu, 1, ui.delta, 1);
+            tempCpu.copyInto(outputs*batch,ui.delta);
             s.input = state.input;
             s.delta = state.delta;
 
             ((ConnectedLayer)ui).backward(s);
 
-            Blas.copyCpu(outputs*batch, temp2Cpu, 1, tempCpu, 1);
+            temp2Cpu.copyInto(outputs*batch,tempCpu);
             Blas.mulCpu(outputs*batch, prevCellCpu, 1, tempCpu, 1);
             Activation.gradientArray(fCpu, outputs*batch, Activation.LOGISTIC, tempCpu);
-            Blas.copyCpu(outputs*batch, tempCpu, 1, wf.delta, 1);
+            tempCpu.copyInto(outputs*batch,wf.delta);
             s.input = prevStateCpu;
             s.delta = dhCpu;
 
             ((ConnectedLayer)wf).backward(s);
 
-            Blas.copyCpu(outputs*batch, tempCpu, 1, uf.delta, 1);
+            tempCpu.copyInto(outputs*batch,uf.delta);
             s.input = state.input;
             s.delta = state.delta;
 
             ((ConnectedLayer)uf).backward(s);
 
-            Blas.copyCpu(outputs*batch, temp2Cpu, 1, tempCpu, 1);
+            temp2Cpu.copyInto(outputs*batch,tempCpu);
             Blas.mulCpu(outputs*batch, fCpu, 1, tempCpu, 1);
-            Blas.copyCpu(outputs*batch, tempCpu, 1, dcCpu, 1);
+            tempCpu.copyInto(outputs*batch,dcCpu);
 
             state.input.offset(-inputs*batch);
 

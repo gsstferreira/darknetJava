@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Blas;
@@ -16,29 +16,29 @@ public class BatchnormLayer extends Layer {
         this.w = this.outW = w;
         this.c = this.outC = c;
 
-        this.output = new FloatBuffer(h * w * c * batch);
-        this.delta  = new FloatBuffer(h * w * c * batch);
+        this.output = new FloatArray(h * w * c * batch);
+        this.delta  = new FloatArray(h * w * c * batch);
         this.inputs = w*h*c;
         this.outputs = this.inputs;
 
-        this.scales = new FloatBuffer(c);
-        this.scaleUpdates = new FloatBuffer(c);
-        this.biases = new FloatBuffer(c);
-        this.biasUpdates = new FloatBuffer(c);
+        this.scales = new FloatArray(c);
+        this.scaleUpdates = new FloatArray(c);
+        this.biases = new FloatArray(c);
+        this.biasUpdates = new FloatArray(c);
         
         for(int i = 0; i < c; ++i){
 
             this.scales.put(i,1);
         }
 
-        this.mean = new FloatBuffer(c);
-        this.variance = new FloatBuffer(c);
+        this.mean = new FloatArray(c);
+        this.variance = new FloatArray(c);
 
-        this.rollingMean = new FloatBuffer(c);
-        this.rollingVariance = new FloatBuffer(c);
+        this.rollingMean = new FloatArray(c);
+        this.rollingVariance = new FloatArray(c);
     }
 
-    public static void backwardScaleCpu(FloatBuffer xNorm, FloatBuffer delta, int batch, int n, int size, FloatBuffer scaleUpdates) {
+    public static void backwardScaleCpu(FloatArray xNorm, FloatArray delta, int batch, int n, int size, FloatArray scaleUpdates) {
 
         int i,b,f;
         for(f = 0; f < n; ++f){
@@ -54,7 +54,7 @@ public class BatchnormLayer extends Layer {
         }
     }
 
-    public static void meanDeltaCpu(FloatBuffer delta, FloatBuffer variance, int batch, int filters, int spatial, FloatBuffer meanDelta) {
+    public static void meanDeltaCpu(FloatArray delta, FloatArray variance, int batch, int filters, int spatial, FloatArray meanDelta) {
 
         int i,j,k;
         for(i = 0; i < filters; ++i){
@@ -73,7 +73,7 @@ public class BatchnormLayer extends Layer {
         }
     }
 
-    public static void varianceDeltaCpu(FloatBuffer x, FloatBuffer delta, FloatBuffer mean, FloatBuffer variance, int batch, int filters, int spatial, FloatBuffer varianceDelta) {
+    public static void varianceDeltaCpu(FloatArray x, FloatArray delta, FloatArray mean, FloatArray variance, int batch, int filters, int spatial, FloatArray varianceDelta) {
 
         int i,j,k;
         for(i = 0; i < filters; ++i){
@@ -93,8 +93,8 @@ public class BatchnormLayer extends Layer {
         }
     }
 
-    public static void normalizeDeltaCpu(FloatBuffer x, FloatBuffer mean, FloatBuffer variance, FloatBuffer meanDelta,
-                                         FloatBuffer varianceDelta, int batch, int filters, int spatial, FloatBuffer delta) {
+    public static void normalizeDeltaCpu(FloatArray x, FloatArray mean, FloatArray variance, FloatArray meanDelta,
+                                         FloatArray varianceDelta, int batch, int filters, int spatial, FloatArray delta) {
 
         int f, j, k;
         for(j = 0; j < batch; ++j){
@@ -119,10 +119,10 @@ public class BatchnormLayer extends Layer {
     public void forward(Network net) {
 
         if(type == LayerType.BATCHNORM) {
-            Blas.copyCpu(outputs*batch, net.input, 1, output, 1);
+            net.input.copyInto(outputs*batch,output);
         }
 
-        Blas.copyCpu(outputs*batch, output, 1, x, 1);
+        output.copyInto(outputs*batch,x);
 
         if(net.train != 0){
             Blas.meanCpu(output, batch, outC, outH*outW, mean);
@@ -134,7 +134,7 @@ public class BatchnormLayer extends Layer {
             Blas.axpyCpu(outC, 0.01f, variance, 1, rollingVariance, 1);
 
             Blas.normalizeCpu(output, mean, variance, batch, outC, outH*outW);
-            Blas.copyCpu(outputs*batch, output, 1, xNorm, 1);
+            output.copyInto(outputs*batch,xNorm);
         }
         else {
             Blas.normalizeCpu(output, rollingMean, rollingVariance, batch, outC, outH*outW);
@@ -160,17 +160,17 @@ public class BatchnormLayer extends Layer {
         normalizeDeltaCpu(x, mean, variance, meanDelta, varianceDelta, batch, outC, outW*outH, delta);
 
         if(type == LayerType.BATCHNORM) {
-            Blas.copyCpu(outputs*batch, delta, 1, net.delta, 1);
+            delta.copyInto(outputs*batch,net.delta);
         }
     }
 
     public static void staticForward(Layer l, Network net) {
 
         if(l.type == LayerType.BATCHNORM) {
-            Blas.copyCpu(l.outputs*l.batch, net.input, 1, l.output, 1);
+            net.input.copyInto(l.outputs*l.batch,l.output);
         }
-        
-        Blas.copyCpu(l.outputs*l.batch, l.output, 1, l.x, 1);
+
+        l.output.copyInto(l.outputs*l.batch,l.x);
         
         if(net.train != 0){
             Blas.meanCpu(l.output, l.batch, l.outC, l.outH*l.outW, l.mean);
@@ -182,7 +182,7 @@ public class BatchnormLayer extends Layer {
             Blas.axpyCpu(l.outC, 0.01f, l.variance, 1, l.rollingVariance, 1);
 
             Blas.normalizeCpu(l.output, l.mean, l.variance, l.batch, l.outC, l.outH*l.outW);
-            Blas.copyCpu(l.outputs*l.batch, l.output, 1, l.xNorm, 1);
+            l.output.copyInto(l.outputs*l.batch,l.xNorm);
         } 
         else {
             Blas.normalizeCpu(l.output, l.rollingMean, l.rollingVariance, l.batch, l.outC, l.outH*l.outW);
@@ -208,7 +208,7 @@ public class BatchnormLayer extends Layer {
         normalizeDeltaCpu(l.x, l.mean, l.variance, l.meanDelta, l.varianceDelta, l.batch, l.outC, l.outW*l.outH, l.delta);
         
         if(l.type == LayerType.BATCHNORM) {
-            Blas.copyCpu(l.outputs*l.batch, l.delta, 1, net.delta, 1);
+            l.delta.copyInto(l.outputs*l.batch,net.delta);
         }
     }
 }

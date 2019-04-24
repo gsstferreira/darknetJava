@@ -1,9 +1,9 @@
 package Yolo.Layers;
 
+import Classes.Arrays.FloatArray;
+import Classes.Arrays.IntArray;
 import Classes.Box;
-import Classes.Buffers.DetectionBuffer;
-import Classes.Buffers.FloatBuffer;
-import Classes.Buffers.IntBuffer;
+import Classes.Arrays.DetectionArray;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Blas;
@@ -14,7 +14,7 @@ import Yolo.Enums.LayerType;
 
 public class YoloLayer extends Layer {
 
-    public YoloLayer(int batch, int w, int h, int n, int total, IntBuffer mask, int classes) {
+    public YoloLayer(int batch, int w, int h, int n, int total, IntArray mask, int classes) {
 
         int i;
         this.type = LayerType.YOLO;
@@ -29,25 +29,25 @@ public class YoloLayer extends Layer {
         this.outH = this.h;
         this.outC = this.c;
         this.classes = classes;
-        this.cost = new FloatBuffer(1);
-        this.biases = new FloatBuffer(total*2);
+        this.cost = new FloatArray(1);
+        this.biases = new FloatArray(total*2);
 
         if(mask != null) {
             this.mask = mask;
         }
         else{
-            this.mask = new IntBuffer(n);
+            this.mask = new IntArray(n);
             for(i = 0; i < n; ++i){
 
                 this.mask.put(i,i);
             }
         }
-        this.biasUpdates = new FloatBuffer(n*2);
+        this.biasUpdates = new FloatArray(n*2);
         this.outputs = h*w*n*(classes + 4 + 1);
         this.inputs = this.outputs;
         this.truths = 90*(4 + 1);
-        this.delta = new FloatBuffer(batch*this.outputs);
-        this.output = new FloatBuffer(batch*this.outputs);
+        this.delta = new FloatArray(batch*this.outputs);
+        this.output = new FloatArray(batch*this.outputs);
 
         for(i = 0; i < total*2; ++i){
 
@@ -69,7 +69,7 @@ public class YoloLayer extends Layer {
         this.delta = Buffers.realloc(this.delta, this.batch*this.outputs);
     }
 
-    public static Box getYoloBox(FloatBuffer x, FloatBuffer biases, int n, int index, int i, int j, int lw, int lh, int w, int h, int stride) {
+    public static Box getYoloBox(FloatArray x, FloatArray biases, int n, int index, int i, int j, int lw, int lh, int w, int h, int stride) {
 
         Box b = new Box();
         b.x = (i + x.get(index)) / lw;
@@ -79,8 +79,8 @@ public class YoloLayer extends Layer {
         return b;
     }
 
-    public static float deltaYoloBox(Box truth, FloatBuffer x, FloatBuffer biases, int n, int index, int i, int j,
-                              int lw, int lh, int w, int h, FloatBuffer delta, float scale, int stride) {
+    public static float deltaYoloBox(Box truth, FloatArray x, FloatArray biases, int n, int index, int i, int j,
+                                     int lw, int lh, int w, int h, FloatArray delta, float scale, int stride) {
 
         Box pred = getYoloBox(x, biases, n, index, i, j, lw, lh, w, h, stride);
         float iou = Box.boxIou(pred, truth);
@@ -99,7 +99,7 @@ public class YoloLayer extends Layer {
     }
 
 
-    public static void deltaYoloClass(FloatBuffer output, FloatBuffer delta, int index, int clas, int classes, int stride, FloatBuffer avg_cat) {
+    public static void deltaYoloClass(FloatArray output, FloatArray delta, int index, int clas, int classes, int stride, FloatArray avg_cat) {
 
         int n;
         if (delta.get(index) != 0){
@@ -137,13 +137,13 @@ public class YoloLayer extends Layer {
         int i,j,b,t,n;
 
         Buffers.copy(net.input,this.output, this.outputs*this.batch);
-        Buffers.setValue(this.delta,0,this.outputs * this.batch);
+        this.delta.setValue(0,this.outputs*this.batch);
 
         for (b = 0; b < this.batch; ++b){
             for(n = 0; n < this.n; ++n){
                 int index = entryIndex(b, n*w*h, 0);
 
-                FloatBuffer fb = this.output.offsetNew(index);
+                FloatArray fb = this.output.offsetNew(index);
                 Activation.activateArray(fb,2*w*h, Activation.LOGISTIC);
                 int index2 = entryIndex(b, n*w*h, 4);
                 fb.offset(index2 - index);
@@ -176,7 +176,7 @@ public class YoloLayer extends Layer {
                         int best_t = 0;
                         for(t = 0; t < this.maxBoxes; ++t){
 
-                            FloatBuffer fb = net.truth.offsetNew(t*(4 + 1) + b*this.truths);
+                            FloatArray fb = net.truth.offsetNew(t*(4 + 1) + b*this.truths);
 
                             Box truth = Box.floatToBox(fb, 1);
 
@@ -213,7 +213,7 @@ public class YoloLayer extends Layer {
                             int class_index = entryIndex(b, n*this.w*this.h + j*this.w + i, 4 + 1);
                             deltaYoloClass(this.output, this.delta, class_index, clas, this.classes, this.w*this.h, null);
 
-                            FloatBuffer fb = net.truth.offsetNew(best_t*(4 + 1) + b*this.truths);
+                            FloatArray fb = net.truth.offsetNew(best_t*(4 + 1) + b*this.truths);
                             Box truth = Box.floatToBox(fb, 1);
 
                             deltaYoloBox(truth, output, biases, mask.get(n), Box_index, i, j, w, h, net.w, net.h, delta, (2-truth.w*truth.h), w*h);
@@ -224,7 +224,7 @@ public class YoloLayer extends Layer {
 
             for(t = 0; t < this.maxBoxes; ++t){
 
-                FloatBuffer fb = net.truth.offsetNew(t*(4 + 1) + b*this.truths);
+                FloatArray fb = net.truth.offsetNew(t*(4 + 1) + b*this.truths);
                 Box truth = Box.floatToBox(fb, 1);
 
                 if(truth.x == 0) {
@@ -268,7 +268,7 @@ public class YoloLayer extends Layer {
 
                     int class_index = entryIndex(b, mask_n*this.w*this.h + j*this.w + i, 4 + 1);
 
-                    FloatBuffer avg = new FloatBuffer(1);
+                    FloatArray avg = new FloatArray(1);
                     avg.put(0,avg_cat);
 
                     deltaYoloClass(this.output, this.delta, class_index, clas, this.classes, this.w*this.h, avg);
@@ -295,7 +295,7 @@ public class YoloLayer extends Layer {
         Blas.axpyCpu(this.batch * this.inputs, 1, this.delta, 1, net.delta, 1);
     }
 
-    public void correctYoloBoxes(DetectionBuffer dets, int n, int w, int h, int netw, int neth, int relative) {
+    public void correctYoloBoxes(DetectionArray dets, int n, int w, int h, int netw, int neth, int relative) {
 
         int i;
         int new_w;
@@ -349,7 +349,7 @@ public class YoloLayer extends Layer {
     public void avgFlippedYolo() {
 
         int i,j,n,z;
-        FloatBuffer flip = this.output.offsetNew(this.outputs);
+        FloatArray flip = this.output.offsetNew(this.outputs);
         for (j = 0; j < this.h; ++j) {
             for (i = 0; i < this.w/2; ++i) {
                 for (n = 0; n < this.n; ++n) {
@@ -376,10 +376,10 @@ public class YoloLayer extends Layer {
         }
     }
 
-    public int getYoloDetections(int w, int h, int netw, int neth, float thresh, IntBuffer map, int relative, DetectionBuffer dets) {
+    public int getYoloDetections(int w, int h, int netw, int neth, float thresh, IntArray map, int relative, DetectionArray dets) {
 
         int i,j,n;
-        FloatBuffer predictions = this.output;
+        FloatArray predictions = this.output;
         if (this.batch == 2) {
             avgFlippedYolo();
         }

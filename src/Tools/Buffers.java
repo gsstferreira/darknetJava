@@ -1,105 +1,67 @@
 package Tools;
 
-import Classes.Buffers.ByteBuffer;
-import Classes.Buffers.FloatBuffer;
-import Classes.Buffers.IntBuffer;
-import Classes.Buffers.LongBuffer;
-
+import Classes.Arrays.FloatArray;
+import Classes.Arrays.IntArray;
+import Classes.Arrays.LongArray;
 import java.util.stream.IntStream;
-
 
 public abstract class Buffers {
 
-    public static void copy(FloatBuffer src, FloatBuffer dest, int size) {
+    public static void copy(FloatArray src, FloatArray dest, int size) {
 
         IntStream.range(0,size).parallel().forEach(i -> dest.put(i,src.get(i)));
     }
 
-    public static void copy(IntBuffer src, IntBuffer dest, int size) {
+    public static void copy(IntArray src, IntArray dest, int size) {
 
         IntStream.range(0,size).parallel().forEach(i -> dest.put(i,src.get(i)));
     }
 
-    public static FloatBuffer copyNew(FloatBuffer src, int size) {
+    public static FloatArray copy(FloatArray src, int size) {
 
-        FloatBuffer f = new FloatBuffer(size);
+        float[] arr = new float[size];
 
-        for(int i = 0; i < size; i++) {
-            f.put(i,src.get(i));
-        }
+        IntStream.range(0,size).parallel().forEach(i -> {
+            arr[i] = src.get(i);
+        });
+        return new FloatArray(arr);
 
-        return f;
+//        for(int i = 0; i < size; i++) {
+//            f.put(i,src.get(i));
+//        }
     }
 
-    public static IntBuffer copyNew(IntBuffer src, int size) {
+    public static IntArray copy(IntArray src, int size) {
 
-        IntBuffer f = new IntBuffer(size);
+        int[] arr = new int[size];
 
-        for(int i = 0; i < size; i++) {
-            f.put(i,src.get(i));
-        }
-        return f;
+        IntStream.range(0,size).parallel().forEach(i -> {
+            arr[i] = src.get(i);
+        });
+        return new IntArray(arr);
+
+//        for(int i = 0; i < size; i++) {
+//            f.put(i,src.get(i));
+//        }
     }
 
-    public static LongBuffer copyNew(LongBuffer src, int size) {
+    public static LongArray copy(LongArray src, int size) {
 
-        LongBuffer f = new LongBuffer(size);
+        long[] arr = new long[size];
 
-        for(int i = 0; i < size; i++) {
-            f.put(i,src.get(i));
-        }
-        return f;
+        IntStream.range(0,size).parallel().forEach(i -> {
+            arr[i] = src.get(i);
+        });
+        return new LongArray(arr);
+
+//        for(int i = 0; i < size; i++) {
+//            f.put(i,src.get(i));
+//        }
     }
 
-    public static void copyArray(String[] src, String[] dest, int size) {
+    public static FloatArray realloc(FloatArray src, int newSize) {
 
-        System.arraycopy(src,0,dest,0,size);
-    }
-
-    public static String[] offset(String[] src, int offset) {
-
-        String[] arr = new String[src.length - offset];
-
-        System.arraycopy(src,offset,arr,0,src.length - offset);
-
-        return arr;
-    }
-    
-    public static void setValue(IntBuffer array, int value) {
-
-        int c = array.size();
-
-        for(int i = 0; i < c; i++) {
-            array.put(i,value);
-        }
-    }
-
-    public static void setValue(FloatBuffer array, float value) {
-
-        int c = array.size();
-
-        for(int i = 0; i < c; i++) {
-            array.put(i,value);
-        }
-    }
-
-    public static void setValue(IntBuffer array, int value, int size) {
-
-        for(int i = 0; i < size; i++) {
-            array.put(i,value);
-        }
-    }
-
-    public static void setValue(FloatBuffer array, float value, int size) {
-
-        for(int i = 0; i < size; i++) {
-            array.put(i,value);
-        }
-    }
-
-    public static FloatBuffer realloc(FloatBuffer src, int newSize) {
-
-        FloatBuffer fb = new FloatBuffer(newSize);
+        FloatArray fb = new FloatArray(newSize);
 
         for(int i = 0; i < newSize; i++) {
             fb.put(i,src.get(i));
@@ -107,27 +69,14 @@ public abstract class Buffers {
         return fb;
     }
 
-    public static IntBuffer realloc(IntBuffer src, int newSize) {
+    public static IntArray realloc(IntArray src, int newSize) {
 
-        IntBuffer fb = new IntBuffer(newSize);
+        IntArray fb = new IntArray(newSize);
 
         for(int i = 0; i < newSize; i++) {
             fb.put(i,src.get(i));
         }
         return fb;
     }
-
-    public static ByteBuffer reverse(ByteBuffer buffer) {
-
-        int cap = buffer.size();
-        ByteBuffer byteBuffer = new ByteBuffer(cap);
-
-        for(int i = 0; i < cap; i++) {
-
-            byteBuffer.put(i,buffer.get(cap - i - 1));
-        }
-        return byteBuffer;
-    }
-
 
 }

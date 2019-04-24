@@ -1,7 +1,7 @@
 package Yolo;
 
-import Classes.Buffers.FloatBuffer;
-import Classes.Buffers.IntBuffer;
+import Classes.Arrays.FloatArray;
+import Classes.Arrays.IntArray;
 import Classes.*;
 import Classes.Lists.KeyValuePairElement;
 import Classes.Lists.KeyValuePairList;
@@ -174,7 +174,7 @@ public abstract class Parser {
 //
 //    }
 //
-//    public static void parseData(String data, FloatBuffer a, int n) {
+//    public static void parseData(String data, FloatArray a, int n) {
 //
 //        if(data != null) {
 //
@@ -257,8 +257,8 @@ public abstract class Parser {
                 steps[i] = Integer.parseInt(lArr[i].strip());
                 scales[i] = Float.parseFloat(pArr[i].strip());
             }
-            net.scales = new FloatBuffer(scales);
-            net.steps = new IntBuffer(steps);
+            net.scales = new FloatArray(scales);
+            net.steps = new IntArray(steps);
             net.numSteps = lArr.length;
         }
         else if (net.policy == LearningRatePolicy.EXP){
@@ -428,18 +428,18 @@ public abstract class Parser {
         l.h = params.h;
         l.c = params.c;
         l.spatial = (int) optionFindFloat(options, "spatial", 0);
-        l.noloss =  optionFindInt(options, "noloss", 0);
+        l.noLoss =  optionFindInt(options, "noLoss", 0);
         return l;
     }
 
-    private static IntBuffer parseYoloMask(String a, IntBuffer num) {
+    private static IntArray parseYoloMask(String a, IntArray num) {
 
-        IntBuffer mask = null;
+        IntArray mask = null;
 
         if(a != null){
 
             String[] sp = a.strip().split(",");
-            mask = new IntBuffer(sp.length);
+            mask = new IntArray(sp.length);
 
             for(int i = 0; i < sp.length; i++) {
                 mask.put(i,Integer.parseInt(sp[i]));
@@ -457,10 +457,10 @@ public abstract class Parser {
         int num = total;
 
         String a = optionFindString(options, "mask", "");
-        IntBuffer ib = new IntBuffer(1);
+        IntArray ib = new IntArray(1);
         ib.put(0,num);
 
-        IntBuffer mask = parseYoloMask(a, ib);
+        IntArray mask = parseYoloMask(a, ib);
         num = ib.get(0);
 
         YoloLayer l = new YoloLayer(params.batch, params.w, params.h, num, total, mask, classes);
@@ -519,13 +519,13 @@ public abstract class Parser {
         l.rescore = optionFindInt(options, "rescore",0);
 
         l.thresh = optionFindFloat(options, "thresh", .5f);
-        l.classfix = optionFindInt(options, "classfix", 0);
+        l.classFix = optionFindInt(options, "classFix", 0);
         l.absolute = optionFindInt(options, "absolute", 0);
         l.random = optionFindInt(options, "random", 0);
 
         l.coordScale = optionFindFloat(options, "coord_scale", 1);
         l.objectScale = optionFindFloat(options, "object_scale", 1);
-        l.noobjectScale = optionFindFloat(options, "noobject_scale", 1);
+        l.noObjectScale = optionFindFloat(options, "noobject_scale", 1);
         l.maskScale = optionFindFloat(options, "mask_scale", 1);
         l.classScale = optionFindFloat(options, "class_scale", 1);
         l.biasMatch = optionFindInt(options, "bias_match",0);
@@ -568,7 +568,7 @@ public abstract class Parser {
         Layer.coordScale = optionFindFloat(options, "coord_scale", 1);
         Layer.forced = optionFindInt(options, "forced", 0);
         Layer.objectScale = optionFindFloat(options, "object_scale", 1);
-        Layer.noobjectScale = optionFindFloat(options, "noobject_scale", 1);
+        Layer.noObjectScale = optionFindFloat(options, "noobject_scale", 1);
         Layer.classScale = optionFindFloat(options, "class_scale", 1);
         Layer.jitter = optionFindFloat(options, "jitter", .2f);
         Layer.random = optionFindInt(options, "random", 0);
@@ -583,7 +583,7 @@ public abstract class Parser {
         float scale = optionFindFloat(options, "scale",1);
         CostLayer Layer = new CostLayer(params.batch, params.inputs, type, scale);
         Layer.ratio =  optionFindFloat(options, "ratio",0);
-        Layer.noobjectScale =  optionFindFloat(options, "noobj", 1);
+        Layer.noObjectScale =  optionFindFloat(options, "noobj", 1);
         Layer.thresh =  optionFindFloat(options, "thresh",0);
         return Layer;
     }
@@ -759,8 +759,8 @@ public abstract class Parser {
 
         String[] sp = l.strip().split(",");
 
-        IntBuffer layers = new IntBuffer(sp.length);
-        IntBuffer sizes = new IntBuffer(sp.length);
+        IntArray layers = new IntArray(sp.length);
+        IntArray sizes = new IntArray(sp.length);
 
         for(int i = 0; i < sp.length; i++) {
             int index = Integer.parseInt(sp[i].strip());
@@ -906,12 +906,12 @@ public abstract class Parser {
             
             l.clip = net.clip;
             l.truth = optionFindInt(options, "truth", 0);
-            l.onlyforward = optionFindInt(options, "onlyforward", 0);
-            l.stopbackward = optionFindInt(options, "stopbackward", 0);
-            l.dontsave = optionFindInt(options, "dontsave", 0);
-            l.dontload = optionFindInt(options, "dontload", 0);
-            l.numload = optionFindInt(options, "numload", 0);
-            l.dontloadscales = optionFindInt(options, "dontloadscales", 0);
+            l.onlyForward = optionFindInt(options, "onlyForward", 0);
+            l.stopBackward = optionFindInt(options, "stopBackward", 0);
+            l.dontSave = optionFindInt(options, "dontSave", 0);
+            l.dontLoad = optionFindInt(options, "dontLoad", 0);
+            l.numLoad = optionFindInt(options, "numLoad", 0);
+            l.dontLoadScales = optionFindInt(options, "dontLoadScales", 0);
             l.learningRateScale = optionFindFloat(options, "learning_rate", 1);
             l.smooth = optionFindFloat(options, "smooth", 0);
 
@@ -938,12 +938,12 @@ public abstract class Parser {
         }
         net.output = out.output;
 
-        net.input = new FloatBuffer(net.inputs*net.batch);
-        net.truth = new FloatBuffer(net.truths*net.batch);
+        net.input = new FloatArray(net.inputs*net.batch);
+        net.truth = new FloatArray(net.truths*net.batch);
 
         if(workspace_size != 0){
 
-            net.workspace = new FloatBuffer((int)workspace_size);
+            net.workspace = new FloatArray((int)workspace_size);
 
         }
         return net;
@@ -1012,7 +1012,7 @@ public abstract class Parser {
 //        byte[] buf;
 //
 //        try {
-//            int num = l.nweights;
+//            int num = l.nWeights;
 //
 //            for(int i = 0; i < l.n; i++) {
 //                buf = Util.toByteArray(l.biases.get(i));
@@ -1149,7 +1149,7 @@ public abstract class Parser {
 //                Layer l = net.layers[i];
 //
 //
-//                if (l.dontsave != 0) {
+//                if (l.dontSave != 0) {
 //                    continue;
 //                }
 //                if(l.type == CONVOLUTIONAL || l.type == DECONVOLUTIONAL){
@@ -1218,7 +1218,7 @@ public abstract class Parser {
 //        saveWeightsUpto(net, filename, net.n);
 //    }
 
-    public static void transposeMatrix(FloatBuffer a, int rows, int cols) {
+    public static void transposeMatrix(FloatArray a, int rows, int cols) {
 
         float[] transpose = new float[rows*cols];
 
@@ -1229,7 +1229,7 @@ public abstract class Parser {
             }
         }
 
-        Buffers.copy(new FloatBuffer(transpose),a,rows*cols);
+        Buffers.copy(new FloatArray(transpose),a,rows*cols);
     }
 
     public static void loadConnectedWeights(Layer l, int transpose) {
@@ -1252,7 +1252,7 @@ public abstract class Parser {
                 transposeMatrix(l.weights, l.inputs, l.outputs);
             }
 
-            if (l.batchNormalize != 0 && l.dontloadscales == 0){
+            if (l.batchNormalize != 0 && l.dontLoadScales == 0){
 
 
                 for(int i = 0; i < l.outputs; i++) {
@@ -1315,7 +1315,7 @@ public abstract class Parser {
 //                l.biases.put(i,Util.byteToFloat(value));
 //            }
 //
-//            if(l.batchNormalize != 0 && l.dontloadscales == 0) {
+//            if(l.batchNormalize != 0 && l.dontLoadScales == 0) {
 //                for(int i = 0; i < l.n; i++) {
 //                    value = stream.readNBytes(4);
 //                    l.scales.put(i,Util.byteToFloat(value));
@@ -1365,8 +1365,8 @@ public abstract class Parser {
 
     public static void loadConvolutionalWeights(Layer l) {
 
-        if(l.numload != 0) {
-            l.n = l.numload;
+        if(l.numLoad != 0) {
+            l.n = l.numLoad;
         }
 
         int num = l.c/l.groups*l.n*l.size*l.size;
@@ -1377,7 +1377,7 @@ public abstract class Parser {
                 l.biases.put(i,v);
             }
 
-            if (l.batchNormalize != 0 && l.dontloadscales == 0){
+            if (l.batchNormalize != 0 && l.dontLoadScales == 0){
 
                 for(int i = 0; i < l.n; i++) {
                     float v = GlobalVars.getFloatWeight();
@@ -1441,7 +1441,7 @@ public abstract class Parser {
 
                 Layer l = net.layers[i];
 
-                if (l.dontload != 0) {
+                if (l.dontLoad != 0) {
                     continue;
                 }
                 if(l.type == CONVOLUTIONAL || l.type == DECONVOLUTIONAL){

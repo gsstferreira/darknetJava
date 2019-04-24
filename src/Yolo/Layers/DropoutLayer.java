@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Buffers;
@@ -16,7 +16,7 @@ public class DropoutLayer extends Layer {
         this.inputs = inputs;
         this.outputs = inputs;
         this.batch = batch;
-        this.rand = new FloatBuffer(inputs*batch);
+        this.rand = new FloatArray(inputs*batch);
         this.scale = 1.0f/(1.0f - probability);        
     }
 

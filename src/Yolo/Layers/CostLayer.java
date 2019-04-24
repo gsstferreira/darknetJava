@@ -1,6 +1,6 @@
 package Yolo.Layers;
 
-import Classes.Buffers.FloatBuffer;
+import Classes.Arrays.FloatArray;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Blas;
@@ -21,9 +21,9 @@ public class CostLayer extends Layer {
         this.outputs = inputs;
         this.costType = costType;
 
-        this.delta = new FloatBuffer(inputs*batch);
-        this.output = new FloatBuffer(inputs*batch);
-        this.cost = new FloatBuffer(1);
+        this.delta = new FloatArray(inputs*batch);
+        this.output = new FloatArray(inputs*batch);
+        this.cost = new FloatArray(1);
     }
 
     public void resize(int inputs) {
