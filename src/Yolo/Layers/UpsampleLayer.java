@@ -59,9 +59,7 @@ public class UpsampleLayer extends Layer {
 
     public void forward(Network net) {
 
-        //Blas.fillCpu(this.outputs*this.batch, 0, this.output, 1);
-
-        this.output.setValue(0,outputs*batch);
+        this.output.setAll(0,outputs*batch);
 
         if(this.reverse != 0){
             Blas.upsampleCpu(this.output, this.outW, this.outH, this.c, this.batch, this.stride, 0, this.scale, net.input);

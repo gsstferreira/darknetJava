@@ -34,13 +34,13 @@ public class DropoutLayer extends Layer {
         for(i = 0; i < batch * inputs; ++i){
 
             float r = Rand.randUniform(0, 1);
-            this.rand.put(i,r);
+            this.rand.set(i,r);
 
             if(r < probability) {
-                net.input.put(i,0);
+                net.input.set(i,0);
             }
             else {
-                net.input.put(i,net.input.get(i) * scale);
+                net.input.set(i,net.input.get(i) * scale);
             }
         }
     }
@@ -56,10 +56,10 @@ public class DropoutLayer extends Layer {
             float r = rand.get(i);
 
             if(r < this.probability) {
-                net.delta.put(i,0);
+                net.delta.set(i,0);
             }
             else {
-                net.delta.put(i,net.delta.get(i) * scale);
+                net.delta.set(i,net.delta.get(i) * scale);
             }
         }
     }

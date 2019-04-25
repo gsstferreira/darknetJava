@@ -2,7 +2,7 @@ package Classes.Arrays;
 
 import Classes.Detection;
 
-public class DetectionArray {
+public class DetectionArray extends ArrayBase{
 
     private final Detection[] array;
     private int offset;
@@ -10,21 +10,15 @@ public class DetectionArray {
     public DetectionArray(Detection[] arr) {
 
         this.array = arr;
+        this.size = arr.length;
         this.offset = 0;
     }
 
     public DetectionArray(int size) {
 
         this.array = new Detection[size];
+        this.size = size;
         this.offset = 0;
-    }
-
-    public void offset(int off) {
-        this.offset += off;
-
-        if(this.offset < 0) {
-            throw new IndexOutOfBoundsException("DetectionArray offset is lesser than 0");
-        }
     }
 
     public DetectionArray offsetNew(int off) {
@@ -57,14 +51,9 @@ public class DetectionArray {
         return buff;
     }
 
-    public void put(int index,Detection d) {
+    public void set(int index, Detection d) {
 
         this.array[index + offset] = d;
-    }
-
-    public int size() {
-
-        return this.array.length - this.offset;
     }
 
 }

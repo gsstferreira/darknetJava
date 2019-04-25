@@ -10,14 +10,18 @@ import java.io.IOException;
 public class ImageDisplayer extends JFrame {
 
     public ImageDisplayer(String path, int width, int height) {
-        setTitle(path);
-        setSize(width,height);
-        add(new ImageComponent(path));
-
+        setTitle("Last Prediction");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        updateImage(path,width,height);
     }
 
-    public void display() {
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    public void updateImage(String path, int width, int height) {
+
+        setSize(width,height);
+        getContentPane().removeAll();
+        add(new ImageComponent(path));
+        validate();
+        repaint();
         setVisible(true);
     }
 
@@ -26,7 +30,7 @@ public class ImageDisplayer extends JFrame {
         private static final long serialVersionUID = 1L;
         private BufferedImage image;
 
-        public ImageComponent(String path){
+        ImageComponent(String path){
             try{
                 File image2 = new File(path);
                 image = ImageIO.read(image2);

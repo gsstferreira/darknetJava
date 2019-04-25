@@ -28,7 +28,7 @@ public class BatchnormLayer extends Layer {
         
         for(int i = 0; i < c; ++i){
 
-            this.scales.put(i,1);
+            this.scales.set(i,1);
         }
 
         this.mean = new FloatArray(c);
@@ -50,7 +50,7 @@ public class BatchnormLayer extends Layer {
                     sum += delta.get(index) * xNorm.get(index);
                 }
             }
-            scaleUpdates.put(f,scaleUpdates.get(f) + sum);
+            scaleUpdates.set(f,scaleUpdates.get(f) + sum);
         }
     }
 
@@ -59,17 +59,17 @@ public class BatchnormLayer extends Layer {
         int i,j,k;
         for(i = 0; i < filters; ++i){
 
-            meanDelta.put(i,0);
+            meanDelta.set(i,0);
             for (j = 0; j < batch; ++j) {
                 for (k = 0; k < spatial; ++k) {
 
                     int index = j*filters*spatial + i*spatial + k;
-                    meanDelta.put(i,meanDelta.get(i) + delta.get(index));
+                    meanDelta.set(i,meanDelta.get(i) + delta.get(index));
                 }
             }
 
             float val =  (float) (meanDelta.get(i) * (-1/Math.sqrt(variance.get(i) + 0.00001f)));
-            meanDelta.put(i,val);
+            meanDelta.set(i,val);
         }
     }
 
@@ -78,18 +78,18 @@ public class BatchnormLayer extends Layer {
         int i,j,k;
         for(i = 0; i < filters; ++i){
 
-            varianceDelta.put(i,0);
+            varianceDelta.set(i,0);
             for(j = 0; j < batch; ++j){
                 for(k = 0; k < spatial; ++k){
                     int index = j*filters*spatial + i*spatial + k;
 
                     float val = varianceDelta.get(i) + delta.get(index) * (x.get(index) - mean.get(i));
-                    varianceDelta.put(i,val);
+                    varianceDelta.set(i,val);
                 }
             }
 
             float val = varianceDelta.get(i) * (float) (Math.pow(variance.get(i) + 0.00001f, -1.5f))/-2;
-            varianceDelta.put(i,val);
+            varianceDelta.set(i,val);
         }
     }
 
@@ -105,7 +105,7 @@ public class BatchnormLayer extends Layer {
                     double val = delta.get(index) * 1/(Math.sqrt(variance.get(f) + 0.00001f));
                     val += varianceDelta.get(f) * 2 * (x.get(index) - mean.get(f))/(spatial * batch) + meanDelta.get(f)/(spatial * batch);
 
-                    delta.put(index,(float)val);
+                    delta.set(index,(float)val);
                 }
             }
         }

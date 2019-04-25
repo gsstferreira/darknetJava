@@ -90,7 +90,7 @@ public class CropLayer extends Layer {
                         row = i + dh;
                         index = col+this.w*(row+this.h*(c + this.c*b));
 
-                        this.output.put(count++,net.input.get(index)*scale + trans);
+                        this.output.set(count++,net.input.get(index)*scale + trans);
                     }
                 }
             }

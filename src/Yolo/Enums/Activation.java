@@ -2,6 +2,8 @@ package Yolo.Enums;
 
 import Classes.Arrays.FloatArray;
 
+import java.util.stream.IntStream;
+
 public enum Activation {
 
     LOGISTIC,
@@ -40,19 +42,31 @@ public enum Activation {
 
     public static void activateArray(FloatArray x, final int n, Activation a) {
 
-        for(int i = 0; i < n; ++i){
 
+        IntStream.range(0,n).parallel().forEach(i -> {
             float val = activate(x.get(i),a);
-            x.put(i,val);
-        }
+            x.set(i,val);
+        });
+
+//        for(int i = 0; i < n; ++i){
+//
+//            float val = activate(x.get(i),a);
+//            x.set(i,val);
+//        }
     }
 
     public static void gradientArray(FloatArray x, int n, Activation a, FloatArray delta) {
 
-        for(int i = 0; i < n; ++i){
+        IntStream.range(0,n).parallel().forEach(i -> {
             float val = delta.get(i) * gradient(x.get(i),a);
-            delta.put(i,val);
-        }
+            delta.set(i,val);
+        });
+
+
+//        for(int i = 0; i < n; ++i){
+//            float val = delta.get(i) * gradient(x.get(i),a);
+//            delta.set(i,val);
+//        }
     }
 
     private static float activate(float x, Activation a) {
@@ -335,7 +349,7 @@ public enum Activation {
 
     private static float leakyGradient(float x){
 
-        return (x>0) ? 1 : 0.1f;
+        return (x > 0) ? 1 : 0.1f;
     }
 
     private static float tanhGradient(float x){

@@ -2,33 +2,22 @@ package Classes.Arrays;
 
 import java.util.stream.IntStream;
 
-public class FloatArray {
+public class FloatArray extends ArrayBase {
 
     private final float[] array;
-    private int offset;
 
     public FloatArray(float[] arr) {
 
         this.array = arr;
+        this.size = arr.length;
         this.offset = 0;
     }
 
     public FloatArray(int size) {
 
         this.array = new float[size];
+        this.size = size;
         this.offset = 0;
-    }
-
-    public void offset(int off) {
-        this.offset += off;
-
-        if(this.offset < 0) {
-            throw new IndexOutOfBoundsException("FloatArray offset is lesser than 0");
-        }
-
-        else if(this.offset > this.array.length) {
-            throw new IndexOutOfBoundsException("DetectionArray offset is bigger than buffer length");
-        }
     }
 
     public FloatArray offsetNew(int off) {
@@ -41,7 +30,7 @@ public class FloatArray {
             throw new IndexOutOfBoundsException("FloatArray offset is lesser than 0");
         }
 
-        else if(dec.offset > this.array.length) {
+        else if(dec.offset > this.size) {
             throw new IndexOutOfBoundsException("DetectionArray offset is bigger than buffer length");
         }
 
@@ -61,33 +50,75 @@ public class FloatArray {
         return buff;
     }
 
-    public void put(int index,float d) {
+    public void set(int index, float d) {
 
-        this.array[index + offset] = d;
+        this.array[offset + index] = d;
     }
 
-    public void setValue(float val) {
+    public void setAll(float val) {
 
-        IntStream.range(offset,array.length).forEach(i -> array[i] = val);
+        if((size - offset) >= parallelLength) {
+            IntStream.range(offset,size).forEach(i -> array[i] = val);
+        }
+        else {
+            for(int i = offset; i < size - offset; i++) {
+                array[i] = val;
+            }
+        }
+
     }
 
-    public void setValue(float val, int size) {
+    public void setAll(float val, int size) {
 
-        IntStream.range(offset,offset + size).forEach(i -> array[i] = val);
-    }
-
-    public int size() {
-
-        return this.array.length - this.offset;
+        if(size >= parallelLength) {
+            IntStream.range(offset,offset + size).forEach(i -> array[i] = val);
+        }
+        else {
+            for(int i = offset; i < offset + size; i++) {
+                array[i] = val;
+            }
+        }
     }
 
     public void copyInto(int size,int offsetSrc, FloatArray dest, int offsetdest) {
 
-        IntStream.range(0,size).parallel().forEach(i -> dest.array[i*offsetdest] = this.array[i*offsetSrc]);
+        if(size >= parallelLength) {
+            IntStream.range(0,size).parallel().forEach(i -> dest.array[dest.offset + i*offsetdest] = this.array[this.offset + i*offsetSrc]);
+        }
+        else {
+            for(int i = 0; i < size; i++) {
+                dest.array[dest.offset + i*offsetdest] = this.array[this.offset + i*offsetSrc];
+            }
+        }
     }
 
     public void copyInto(int size, FloatArray dest) {
 
-        IntStream.range(0,size).parallel().forEach(i -> dest.array[dest.offset + i] = this.array[this.offset + i]);
+        if(size >= parallelLength) {
+            IntStream.range(0,size).parallel().forEach(i -> dest.array[dest.offset + i] = this.array[this.offset + i]);
+        }
+        else {
+            System.arraycopy(this.array, this.offset, dest.array, dest.offset, size);
+        }
+    }
+
+    public void addIn(int position, float val) {
+
+        this.array[offset + position] += val;
+    }
+
+    public void subIn(int position, float val) {
+
+        this.array[offset + position] -= val;
+    }
+
+    public void mulIn(int position, float val) {
+
+        this.array[offset + position] *= val;
+    }
+
+    public void divIn(int position, float val) {
+
+        this.array[offset + position] /= val;
     }
 }

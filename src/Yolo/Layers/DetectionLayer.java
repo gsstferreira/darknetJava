@@ -60,10 +60,10 @@ public class DetectionLayer extends Layer {
 
             float avg_iou = 0;
 
-            this.cost.put(0,0);
+            this.cost.set(0,0);
 
             int size = this.inputs * this.batch;
-            this.delta.setValue(0,size);
+            this.delta.setAll(0,size);
 
             for (b = 0; b < this.batch; ++b){
                 int index = b*this.inputs;
@@ -77,10 +77,10 @@ public class DetectionLayer extends Layer {
                         int p_index = index + locations*this.classes + i*this.n + j;
 
                         float val = this.noObjectScale * ( -this.output.get(p_index));
-                        this.delta.put(p_index,val);
+                        this.delta.set(p_index,val);
 
                         val = this.cost.get(0) + (noObjectScale * (float)Math.pow(output.get(p_index),2));
-                        this.cost.put(0,val);
+                        this.cost.set(0,val);
                     }
 
                     int best_index = -1;
@@ -95,10 +95,10 @@ public class DetectionLayer extends Layer {
                     for(j = 0; j < this.classes; ++j) {
 
                         float val = this.classScale * (net.truth.get(truth_index+1+j) - this.output.get(class_index+j));
-                        this.delta.put(class_index+j,val);
+                        this.delta.set(class_index+j,val);
 
                         val = this.cost.get(0) + (float)(this.classScale * Math.pow(net.truth.get(truth_index+1+j) - this.output.get(class_index+j),2));
-                        this.cost.put(0,val);
+                        this.cost.set(0,val);
                     }
 
                     FloatArray fb = net.truth.offsetNew(truth_index + 1 + this.classes);
@@ -166,34 +166,34 @@ public class DetectionLayer extends Layer {
                     int p_index = index + locations*this.classes + i*this.n + best_index;
 
                     double val = this.cost.get(0) - (noObjectScale * Math.pow(output.get(p_index),2)) + (objectScale * Math.pow(1 - output.get(p_index),2));
-                    this.cost.put(0,(float) val);
+                    this.cost.set(0,(float) val);
 
-                    this.delta.put(p_index,this.objectScale * (1.0f - this.output.get(p_index)));
+                    this.delta.set(p_index,this.objectScale * (1.0f - this.output.get(p_index)));
 
                     if(this.rescore != 0){
 
-                        this.delta.put(p_index,this.objectScale * (iou - this.output.get(p_index)));
+                        this.delta.set(p_index,this.objectScale * (iou - this.output.get(p_index)));
                     }
 
-                    delta.put(bIndex,coordScale*(net.truth.get(tbIndex) - output.get(bIndex)));
-                    delta.put(bIndex + 1,coordScale*(net.truth.get(tbIndex + 1) - output.get(bIndex + 1)));
+                    delta.set(bIndex,coordScale*(net.truth.get(tbIndex) - output.get(bIndex)));
+                    delta.set(bIndex + 1,coordScale*(net.truth.get(tbIndex + 1) - output.get(bIndex + 1)));
 
                     if(sqrt != 0) {
-                        delta.put(bIndex + 2,coordScale*((float)Math.sqrt(net.truth.get(tbIndex + 2)) - output.get(bIndex + 2)));
-                        delta.put(bIndex + 3,coordScale*((float)Math.sqrt(net.truth.get(tbIndex + 3)) - output.get(bIndex + 3)));
+                        delta.set(bIndex + 2,coordScale*((float)Math.sqrt(net.truth.get(tbIndex + 2)) - output.get(bIndex + 2)));
+                        delta.set(bIndex + 3,coordScale*((float)Math.sqrt(net.truth.get(tbIndex + 3)) - output.get(bIndex + 3)));
                     }
                     else {
-                        delta.put(bIndex + 2,coordScale*(net.truth.get(tbIndex + 2) - output.get(bIndex + 2)));
-                        delta.put(bIndex + 3,coordScale*(net.truth.get(tbIndex + 3) - output.get(bIndex + 3)));
+                        delta.set(bIndex + 2,coordScale*(net.truth.get(tbIndex + 2) - output.get(bIndex + 2)));
+                        delta.set(bIndex + 3,coordScale*(net.truth.get(tbIndex + 3) - output.get(bIndex + 3)));
                     }
 
 
-                    this.cost.put(0,cost.get(0) + (float)Math.pow(1 - iou,2));
+                    this.cost.set(0,cost.get(0) + (float)Math.pow(1 - iou,2));
                     avg_iou += iou;
                 }
             }
 
-            this.cost.put(0,(float)Math.pow(Util.magArray(this.delta, this.outputs * this.batch), 2));
+            this.cost.set(0,(float)Math.pow(Util.magArray(this.delta, this.outputs * this.batch), 2));
         }
     }
 

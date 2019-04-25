@@ -115,7 +115,7 @@ public class Network implements Cloneable {
         }
 
         if(clear != 0) {
-            net.seen.put(0,0);
+            net.seen.set(0,0);
         }
         return net;
     }
@@ -195,7 +195,7 @@ public class Network implements Cloneable {
         int nboxes = numDetections(thresh);
 
         if(num != null) {
-            num.put(0,nboxes);
+            num.set(0,nboxes);
         }
 
         Detection[] dets = new Detection[nboxes];
@@ -288,6 +288,6 @@ public class Network implements Cloneable {
                 ++count;
             }
         }
-        this.cost.put(0,sum/count);
+        this.cost.set(0,sum/count);
     }
 }

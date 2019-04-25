@@ -63,7 +63,7 @@ public class IsegLayer extends Layer {
         int ids = this.extra;
 
         Buffers.copy(net.input,output,outputs*batch);
-        delta.setValue(0,outputs*batch);
+        delta.setAll(0,outputs*batch);
 
         for (b = 0; b < this.batch; ++b){
             // a priori, each pixel has no class
@@ -71,7 +71,7 @@ public class IsegLayer extends Layer {
                 for(k = 0; k < this.w*this.h; ++k){
                     int index = b*this.outputs + i*this.w*this.h + k;
 
-                    delta.put(index, -output.get(index));
+                    delta.set(index, -output.get(index));
                 }
             }
 
@@ -80,10 +80,10 @@ public class IsegLayer extends Layer {
                 for(k = 0; k < this.w*this.h; ++k){
 
                     int index = b*this.outputs + (i+this.classes)*this.w*this.h + k;
-                    delta.put(index, -0.1f*output.get(index));
+                    delta.set(index, -0.1f*output.get(index));
                 }
             }
-            counts.setValue(0,90);
+            counts.setAll(0,90);
 
             for(i = 0; i < 90; ++i){
 
@@ -100,11 +100,11 @@ public class IsegLayer extends Layer {
                     float v = net.truth.get(b*this.truths + i*(this.w*this.h + 1) + 1 + k);
                     if(v != 0) {
 
-                        delta.put(index,v - output.get(index));
+                        delta.set(index,v - output.get(index));
                         FloatArray fb = output.offsetNew(b*this.outputs + this.classes*this.w*this.h + k);
 
                         Blas.axpyCpu(ids, 1, fb, this.w*this.h, new FloatArray(this.sums[i]), 1);
-                        counts.put(i,counts.get(i) + 1);
+                        counts.set(i,counts.get(i) + 1);
                     }
                 }
             }
@@ -167,12 +167,12 @@ public class IsegLayer extends Layer {
                                 if (j == i) {
 
                                     float val = delta.get(index) + ((diff < 0) ? -0.1f : 0.1f);
-                                    delta.put(index,val);
+                                    delta.set(index,val);
                                 }
                                 else {
 
                                     float val = delta.get(index) - ((diff < 0) ? -0.1f : 0.1f);
-                                    delta.put(index,val);
+                                    delta.set(index,val);
                                 }
                             }
                         }
@@ -184,11 +184,11 @@ public class IsegLayer extends Layer {
                 for(k = 0; k < this.w*this.h; ++k){
                     int index = b*this.outputs + (i+this.classes)*this.w*this.h + k;
 
-                    delta.put(index,delta.get(index) * 0.1f);
+                    delta.set(index,delta.get(index) * 0.1f);
                 }
             }
         }
-        this.cost.put(0,(float)Math.pow(Util.magArray(this.delta, this.outputs * this.batch), 2));
+        this.cost.set(0,(float)Math.pow(Util.magArray(this.delta, this.outputs * this.batch), 2));
 
         long time2 = System.currentTimeMillis();
         System.out.print(String.format("took %f sec\n",(time2 - time)/1000.0f));

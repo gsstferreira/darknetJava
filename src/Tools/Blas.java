@@ -22,10 +22,10 @@ public abstract class Blas {
                         int out_index = w2 + w*stride*(h2 + h*stride*(c2 + out_c*b));
 
                         if(forward != 0) {
-                            out.put(out_index,x.get(in_index));
+                            out.set(out_index,x.get(in_index));
                         }
                         else  {
-                            out.put(in_index,x.get(out_index));
+                            out.set(in_index,x.get(out_index));
                         }
                     }
                 }
@@ -45,10 +45,10 @@ public abstract class Blas {
                     int i2 = b*layers*size + i*layers + c;
 
                     if (forward != 0) {
-                        swap.put(i2,x.get(i1));
+                        swap.set(i2,x.get(i1));
                     }
                     else  {
-                        swap.put(i1,x.get(i2));
+                        swap.set(i1,x.get(i2));
                     }
                 }
             }
@@ -61,7 +61,7 @@ public abstract class Blas {
         for(int i = 0; i < n; ++i){
 
             float val = s.get(i)*a.get(i) + (1 - s.get(i))*(b != null ? b.get(i) : 0);
-            c.put(i,val);
+            c.set(i,val);
         }
     }
 
@@ -70,13 +70,13 @@ public abstract class Blas {
 //        for(int i = 0; i < n; ++i){
 //
 //            if(da != null) {
-//                da.put(i,da.get(i) + dc.get(i)*s.get(i));
+//                da.set(i,da.get(i) + dc.get(i)*s.get(i));
 //            }
 //
 //            if(db != null) {
-//                db.put(i,db.get(i) + dc.get(i)*(1 - s.get(i)));
+//                db.set(i,db.get(i) + dc.get(i)*(1 - s.get(i)));
 //            }
-//            ds.put(i,ds.get(i) + dc.get(i)*(a.get(i) - b.get(i)));
+//            ds.set(i,ds.get(i) + dc.get(i)*(a.get(i) - b.get(i)));
 //        }
 //    }
 
@@ -103,7 +103,7 @@ public abstract class Blas {
                         int add_index = i*stride + w1*(j*stride + h1*(k + c1*b));
 
                         float val = s1 * out.get(out_index) + s2*add.get(add_index);
-                        out.put(out_index,val);
+                        out.set(out_index,val);
                     }
                 }
             }
@@ -116,15 +116,15 @@ public abstract class Blas {
 
         for(int i = 0; i < filters; ++i){
 
-            mean.put(i,0);
+            mean.set(i,0);
             for(int j = 0; j < batch; ++j){
                 for(int k = 0; k < spatial; ++k){
                     int index = j*filters*spatial + i*spatial + k;
 
-                    mean.put(i,mean.get(i) + x.get(index));
+                    mean.set(i,mean.get(i) + x.get(index));
                 }
             }
-            mean.put(i,mean.get(i)* scale);
+            mean.set(i,mean.get(i)* scale);
         }
     }
 
@@ -134,7 +134,7 @@ public abstract class Blas {
 
         for(int i = 0; i < filters; ++i){
 
-            variance.put(i,0);
+            variance.set(i,0);
 
             for(int j = 0; j < batch; ++j){
                 for(int k = 0; k < spatial; ++k){
@@ -142,10 +142,10 @@ public abstract class Blas {
 
                     float val = variance.get(i) + (float) Math.pow((x.get(index) - mean.get(i)),2);
 
-                    variance.put(i,val);
+                    variance.set(i,val);
                 }
             }
-            variance.put(i,variance.get(i)*scale);
+            variance.set(i,variance.get(i)*scale);
         }
     }
 
@@ -164,8 +164,8 @@ public abstract class Blas {
                 for(int f = 0; f < filters; ++f){
                     int index = b*filters*spatial + f*spatial + i;
 
-                    x.put(index,x.get(index)/sum);
-                    dx.put(index,(1 - x.get(index))/sum);
+                    x.set(index,x.get(index)/sum);
+                    dx.set(index,(1 - x.get(index))/sum);
                 }
             }
         }
@@ -180,12 +180,14 @@ public abstract class Blas {
 
                 final int indexBase = bFilters + f*spatial;
                 final float sqrtVar = (float) (Math.sqrt(variance.get(f)) + 0.000001);
+                final float meanF = mean.get(f);
 
                 for(int i = 0; i < spatial; ++i){
 
                     final int index = indexBase + i;
-                    float val = (x.get(index) - mean.get(f))/sqrtVar;
-                    x.put(index,val);
+                    float val = (x.get(index) - meanF)/sqrtVar;
+
+                    x.set(index,val);
                 }
             });
 
@@ -194,7 +196,7 @@ public abstract class Blas {
 //                    int index = b*filters*spatial + f*spatial + i;
 //
 //                    double  val = (x.get(index) - mean.get(f))/(Math.sqrt(variance.get(f)) + 0.000001);
-//                    x.put(index,(float)val);
+//                    x.set(index,(float)val);
 //                }
 //            }
         }
@@ -203,7 +205,7 @@ public abstract class Blas {
     public static void constCpu(int N, float ALPHA, FloatArray X, int INCX) {
 
         for(int i = 0; i < N; ++i) {
-            X.put(i*INCX,ALPHA);
+            X.set(i*INCX,ALPHA);
         }
     }
 
@@ -211,7 +213,7 @@ public abstract class Blas {
 
         for(int i = 0; i < N; ++i) {
 
-            Y.put(i*INCY, Y.get(i*INCY) * X.get(i*INCX));
+            Y.set(i*INCY, Y.get(i*INCY) * X.get(i*INCX));
         }
     }
 
@@ -219,7 +221,7 @@ public abstract class Blas {
 
         for(int i = 0; i < N; ++i) {
 
-            Y.put(i*INCY,(float) Math.pow(X.get(i*INCX),ALPHA));
+            Y.set(i*INCY,(float) Math.pow(X.get(i*INCX),ALPHA));
         }
     }
 
@@ -227,18 +229,18 @@ public abstract class Blas {
 
         IntStream.range(0,N).parallel().forEach(i -> {
             float val = Y.get(i*INCY) + ALPHA * X.get(i*INCX);
-            Y.put(i*INCY,val);
+            Y.set(i*INCY,val);
         });
     }
 
     public static void scalCpu(int N, float ALPHA, FloatArray X, int INCX) {
 
-        IntStream.range(0,N).parallel().forEach(i -> X.put(i*INCX, X.get(i*INCX) * ALPHA));
+        IntStream.range(0,N).parallel().forEach(i -> X.set(i*INCX, X.get(i*INCX) * ALPHA));
     }
 
     public static void fillCpu(int N, float ALPHA, FloatArray X, int INCX) {
 
-        IntStream.range(0,N).parallel().forEach(i -> X.put(i*INCX,ALPHA));
+        IntStream.range(0,N).parallel().forEach(i -> X.set(i*INCX,ALPHA));
     }
 
 //    public static void deinterCpu(int NX, FloatArray X, int NY, FloatArray Y, int B, FloatArray OUT) {
@@ -249,7 +251,7 @@ public abstract class Blas {
 //            for(int i = 0; i < NX; ++i){
 //
 //                if(X != null) {
-//                    X.put(j*NX + i,X.get(j*NX + i) + OUT.get(index));
+//                    X.set(j*NX + i,X.get(j*NX + i) + OUT.get(index));
 //                }
 //                ++index;
 //            }
@@ -257,7 +259,7 @@ public abstract class Blas {
 //            for(int i = 0; i < NY; ++i){
 //
 //                if(Y != null) {
-//                    Y.put(j*NY +i, Y.get(j*NY + i) + OUT.get(index));
+//                    Y.set(j*NY +i, Y.get(j*NY + i) + OUT.get(index));
 //                }
 //                ++index;
 //            }
@@ -270,12 +272,12 @@ public abstract class Blas {
 //
 //        for(int j = 0; j < B; ++j) {
 //            for(int i = 0; i < NX; ++i){
-//                OUT.put(index,X.get(j*NX + i));
+//                OUT.set(index,X.get(j*NX + i));
 //                index++;
 //            }
 //
 //            for(int i = 0; i < NY; ++i){
-//                OUT.put(index,Y.get(j*NY + i));
+//                OUT.set(index,Y.get(j*NY + i));
 //                index++;
 //            }
 //        }
@@ -287,7 +289,7 @@ public abstract class Blas {
 //
 //        for(int i = 0; i < N; ++i) {
 //            float val = Z.get(i) + X.get(i) * Y.get(i);
-//            Z.put(i,val);
+//            Z.set(i,val);
 //        }
 //    }
 
@@ -298,12 +300,12 @@ public abstract class Blas {
             float diff = truth.get(i) - pred.get(i);
             float abs_val = Math.abs(diff);
             if(abs_val < 1) {
-                error.put(i,diff*diff);
-                delta.put(i,diff);
+                error.set(i,diff*diff);
+                delta.set(i,diff);
             }
             else {
-                error.put(i,2 * abs_val - 1);
-                delta.put(i,(diff < 0) ? 1 : -1);
+                error.set(i,2 * abs_val - 1);
+                delta.set(i,(diff < 0) ? 1 : -1);
             }
         }
     } //
@@ -312,8 +314,8 @@ public abstract class Blas {
 
         for(int i = 0; i < n; ++i){
             float diff = truth.get(i) - pred.get(i);
-            error.put(i,Math.abs(diff));
-            delta.put(i,(diff > 0) ? 1 : -1);
+            error.set(i,Math.abs(diff));
+            delta.set(i,(diff > 0) ? 1 : -1);
         }
     } //
 
@@ -323,8 +325,8 @@ public abstract class Blas {
             float t = truth.get(i);
             float p = pred.get(i);
 
-            error.put(i,(t != 0) ? - (float)Math.log(p) : 0);
-            delta.put(i,t - p);
+            error.set(i,(t != 0) ? - (float)Math.log(p) : 0);
+            delta.set(i,t - p);
         }
     } //
 
@@ -336,8 +338,8 @@ public abstract class Blas {
 
             double val = -t*Math.log(p) - (1-t)*Math.log(1-p);
 
-            error.put(i,(float) val);
-            delta.put(i,t - p);
+            error.set(i,(float) val);
+            delta.set(i,t - p);
         }
     } //
 
@@ -345,8 +347,8 @@ public abstract class Blas {
 
         for(int i = 0; i < n; ++i){
             float diff = truth.get(i) - pred.get(i);
-            error.put(i,diff * diff);
-            delta.put(i,diff);
+            error.set(i,diff * diff);
+            delta.set(i,diff);
         }
     } //
 
@@ -375,11 +377,11 @@ public abstract class Blas {
         for(int i = 0; i < n; ++i){
             float e = (float) Math.exp(input.get(i*stride) / temp - largest / temp);
             sum += e;
-            output.put(i*stride,e);
+            output.set(i*stride,e);
         }
 
         for(int i = 0; i < n; ++i){
-            output.put(i*stride,output.get(i*stride)/sum);
+            output.set(i*stride,output.get(i*stride)/sum);
         }
     } //
 
@@ -400,6 +402,7 @@ public abstract class Blas {
 
         final int mWh = w*h;
         final int mWhc = mWh * c;
+        final int wStride = w*stride;
         final int mStride = mWhc * stride * stride;
         final int mStride2 = mWh * stride * stride;
 
@@ -409,20 +412,25 @@ public abstract class Blas {
             final int bStride = b * mStride;
 
             IntStream.range(0,c).parallel().forEach(k ->{
+
+                final int inB = bWhc + k * mWh;
+                final int outB = bStride + k * mStride2;
+
                 for(int j = 0; j < h*stride; ++j){
 
-                    final int inBase = bWhc + k * mWh + (j/stride)*w;
-                    final int outBase = bStride + k*mStride2 + j*w*stride;
+                    final int inBase = inB + (j/stride)*w;
+                    final int outBase = outB + j*wStride;
 
-                    for(int i = 0; i < w*stride; ++i){
-                        final int inIndex = inBase + i/stride;
-                        final int outIndex = outBase + i;
+                    if(forward != 0) {
+                        for(int i = 0; i < wStride; ++i){
 
-                        if(forward != 0) {
-                            out.put(outIndex,scale*in.get(inIndex));
+                            out.set(outBase + i,scale*in.get(inBase + i/stride));
                         }
-                        else {
-                            in.put(inIndex, in.get(inIndex) + scale*out.get(outIndex));
+                    }
+                    else {
+                        for(int i = 0; i < wStride; ++i){
+
+                            in.addIn(inBase + i/stride,scale*out.get(outBase + i));
                         }
                     }
                 }
@@ -435,10 +443,10 @@ public abstract class Blas {
 //                        int out_index = b*w*h*c*stride*stride + k*w*h*stride*stride + j*w*stride + i;
 //
 //                        if(forward != 0) {
-//                            out.put(out_index,scale*in.get(in_index));
+//                            out.set(out_index,scale*in.get(in_index));
 //                        }
 //                        else {
-//                            in.put(in_index, in.get(in_index) + scale*out.get(out_index));
+//                            in.set(in_index, in.get(in_index) + scale*out.get(out_index));
 //                        }
 //                    }
 //                }

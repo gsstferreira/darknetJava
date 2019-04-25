@@ -182,7 +182,7 @@ public abstract class Parser {
 //
 //            for(int i = 0; i < n && i < values.length; i++) {
 //                float val = Float.parseFloat(values[i].strip());
-//                a.put(i,val);
+//                a.set(i,val);
 //            }
 //        }
 //    }
@@ -442,10 +442,10 @@ public abstract class Parser {
             mask = new IntArray(sp.length);
 
             for(int i = 0; i < sp.length; i++) {
-                mask.put(i,Integer.parseInt(sp[i]));
+                mask.set(i,Integer.parseInt(sp[i]));
             }
 
-            num.put(0,sp.length);
+            num.set(0,sp.length);
         }
         return mask;
     }
@@ -458,7 +458,7 @@ public abstract class Parser {
 
         String a = optionFindString(options, "mask", "");
         IntArray ib = new IntArray(1);
-        ib.put(0,num);
+        ib.set(0,num);
 
         IntArray mask = parseYoloMask(a, ib);
         num = ib.get(0);
@@ -485,7 +485,7 @@ public abstract class Parser {
             String[] sp = a.strip().split(",");
 
             for(int i = 0; i < sp.length; i++) {
-                l.biases.put(i,Float.parseFloat(sp[i]));
+                l.biases.set(i,Float.parseFloat(sp[i]));
             }
         }
         return l;
@@ -546,7 +546,7 @@ public abstract class Parser {
             String[] sp = a.strip().split(",");
             
             for(int i = 0; i < sp.length; i++) {
-                l.biases.put(i, Float.parseFloat(sp[i]));
+                l.biases.set(i, Float.parseFloat(sp[i]));
             }
         }
         return l;
@@ -768,8 +768,8 @@ public abstract class Parser {
             if(index < 0) {
                 index += params.index;
             }
-            layers.put(i,index);
-            sizes.put(i,net.layers[index].outputs);
+            layers.set(i,index);
+            sizes.set(i,net.layers[index].outputs);
         }
 
         int batch = params.batch;
@@ -828,7 +828,7 @@ public abstract class Parser {
         params.time_steps = net.timeSteps;
         params.net = net;
 
-        long workspace_size = 0;
+        long workspaceSize = 0;
 
         int i = 0;
         while(listSections.size() > 0) {
@@ -838,72 +838,97 @@ public abstract class Parser {
             options = section.options;
 
             Layer l = new Layer();
-            LayerType lt = LayerType.getLayerType(section.type);
 
-            System.out.printf("%02d: ",i+1);
-
-            if(lt == CONVOLUTIONAL){
-                l = parseConvolutional(options, params);
-            }else if(lt == DECONVOLUTIONAL){
-                l = parseDeconvolutional(options, params);
-            }else if(lt == LOCAL){
-                l = parseLocal(options, params);
-            }else if(lt == ACTIVE){
-                l = parseActivation(options, params);
-            }else if(lt == LOGXENT){
-                l = parseLogistic(options, params);
-            }else if(lt == L2NORM){
-                l = parseL2Norm(options, params);
-            }else if(lt == RNN){
-                l = parseRnn(options, params);
-            }else if(lt == GRU){
-                l = parseGru(options, params);
-            }else if (lt == LSTM) {
-                l = parseLstm(options, params);
-            }else if(lt == CRNN){
-                l = parseCrnn(options, params);
-            }else if(lt == CONNECTED){
-                l = parseConnected(options, params);
-            }else if(lt == CROP){
-                l = parseCrop(options, params);
-            }else if(lt == COST){
-                l = parseCost(options, params);
-            }else if(lt == REGION){
-                l = parseRegion(options, params);
-            }else if(lt == YOLO){
-                l = parseYolo(options, params);
-            }else if(lt == ISEG){
-                l = parseIseg(options, params);
-            }else if(lt == DETECTION){
-                l = parseDetection(options, params);
-            }else if(lt == SOFTMAX){
-                l = parseSoftmax(options, params);
-                net.hierarchy = l.softmaxTree;
-            }else if(lt == NORMALIZATION){
-                l = parseNormalization(options, params);
-            }else if(lt == BATCHNORM){
-                l = parseBatchnorm(options, params);
-            }else if(lt == MAXPOOL){
-                l = parseMaxpool(options, params);
-            }else if(lt == REORG){
-                l = parseReorg(options, params);
-            }else if(lt == AVGPOOL){
-                l = parseAvgpool(options, params);
-            }else if(lt == ROUTE){
-                l = parseRoute(options, params, net);
-            }else if(lt == UPSAMPLE){
-                l = parseUpsample(options, params, net);
-            }else if(lt == SHORTCUT){
-                l = parseShortcut(options, params, net);
-            }else if(lt == DROPOUT){
-                l = parse_dropout(options, params);
-                l.output = net.layers[i - 1].output;
-                l.delta = net.layers[i - 1].delta;
-
-            }else{
-                System.out.println(String.format("Parser:parseNetworkCfg - Layer type not recognized: '%s'\n", section.type));
+            switch (LayerType.getLayerType(section.type)) {
+                case CONVOLUTIONAL:
+                    l = parseConvolutional(options, params);
+                    break;
+                case DECONVOLUTIONAL:
+                    l = parseDeconvolutional(options, params);
+                    break;
+                case LOCAL:
+                    l = parseLocal(options, params);
+                    break;
+                case ACTIVE:
+                    l = parseActivation(options, params);
+                    break;
+                case LOGXENT:
+                    l = parseLogistic(options, params);
+                    break;
+                case L2NORM:
+                    l = parseL2Norm(options, params);
+                    break;
+                case RNN:
+                    l = parseRnn(options, params);
+                    break;
+                case GRU:
+                    l = parseGru(options, params);
+                    break;
+                case LSTM:
+                    l = parseLstm(options, params);
+                    break;
+                case CRNN:
+                    l = parseCrnn(options, params);
+                    break;
+                case CONNECTED:
+                    l = parseConnected(options, params);
+                    break;
+                case MAXPOOL:
+                    l = parseMaxpool(options, params);
+                    break;
+                case SOFTMAX:
+                    l = parseSoftmax(options, params);
+                    net.hierarchy = l.softmaxTree;
+                    break;
+                case DETECTION:
+                    l = parseDetection(options, params);
+                    break;
+                case DROPOUT:
+                    l = parse_dropout(options, params);
+                    l.output = net.layers[i - 1].output;
+                    l.delta = net.layers[i - 1].delta;
+                    break;
+                case CROP:
+                    l = parseCrop(options, params);
+                    break;
+                case ROUTE:
+                    l = parseRoute(options, params, net);
+                    break;
+                case COST:
+                    l = parseCost(options, params);
+                    break;
+                case REGION:
+                    l = parseRegion(options, params);
+                    break;
+                case NORMALIZATION:
+                    l = parseNormalization(options, params);
+                    break;
+                case AVGPOOL:
+                    l = parseAvgpool(options, params);
+                    break;
+                case SHORTCUT:
+                    l = parseShortcut(options, params, net);
+                    break;
+                case BATCHNORM:
+                    l = parseBatchnorm(options, params);
+                    break;
+                case YOLO:
+                    l = parseYolo(options, params);
+                    break;
+                case ISEG:
+                    l = parseIseg(options, params);
+                    break;
+                case REORG:
+                    l = parseReorg(options, params);
+                    break;
+                case UPSAMPLE:
+                    l = parseUpsample(options, params, net);
+                    break;
+                default:
+                    System.out.println(String.format("Parser:parseNetworkCfg - Layer type not recognized: '%s'\n", section.type));
+                    break;
             }
-            
+
             l.clip = net.clip;
             l.truth = optionFindInt(options, "truth", 0);
             l.onlyForward = optionFindInt(options, "onlyForward", 0);
@@ -916,8 +941,8 @@ public abstract class Parser {
             l.smooth = optionFindFloat(options, "smooth", 0);
 
             net.layers[i] = l;
-            if (l.workspaceSize > workspace_size) {
-                workspace_size = l.workspaceSize;
+            if (l.workspaceSize > workspaceSize) {
+                workspaceSize = l.workspaceSize;
             }
 
             params.h = l.outH;
@@ -927,7 +952,6 @@ public abstract class Parser {
             i++;
             System.gc();
         }
-
 
         Layer out = net.getNetworkOutputLayer();
         net.outputs = out.outputs;
@@ -941,9 +965,9 @@ public abstract class Parser {
         net.input = new FloatArray(net.inputs*net.batch);
         net.truth = new FloatArray(net.truths*net.batch);
 
-        if(workspace_size != 0){
+        if(workspaceSize != 0){
 
-            net.workspace = new FloatArray((int)workspace_size);
+            net.workspace = new FloatArray((int)workspaceSize);
 
         }
         return net;
@@ -1240,12 +1264,12 @@ public abstract class Parser {
 
             for(int i = 0; i < l.outputs; i++) {
                 v = GlobalVars.getFloatWeight();
-                l.biases.put(i,v);
+                l.biases.set(i,v);
             }
 
             for(int i = 0; i < l.outputs*l.inputs; i++) {
                 v = GlobalVars.getFloatWeight();
-                l.weights.put(i,v);
+                l.weights.set(i,v);
             }
 
             if(transpose != 0){
@@ -1257,17 +1281,17 @@ public abstract class Parser {
 
                 for(int i = 0; i < l.outputs; i++) {
                     v = GlobalVars.getFloatWeight();
-                    l.scales.put(i,v);
+                    l.scales.set(i,v);
                 }
 
                 for(int i = 0; i < l.outputs; i++) {
                     v = GlobalVars.getFloatWeight();
-                    l.rollingMean.put(i,v);
+                    l.rollingMean.set(i,v);
                 }
 
                 for(int i = 0; i < l.outputs; i++) {
                     v = GlobalVars.getFloatWeight();
-                    l.rollingVariance.put(i,v);
+                    l.rollingVariance.set(i,v);
                 }
             }
         }
@@ -1284,17 +1308,17 @@ public abstract class Parser {
         try {
             for(int i = 0; i < l.c; i++) {
                 v = GlobalVars.getFloatWeight();
-                l.scales.put(i,v);
+                l.scales.set(i,v);
             }
 
             for(int i = 0; i < l.c; i++) {
                 v = GlobalVars.getFloatWeight();
-                l.rollingMean.put(i,v);
+                l.rollingMean.set(i,v);
             }
 
             for(int i = 0; i < l.c; i++) {
                 v = GlobalVars.getFloatWeight();
-                l.rollingVariance.put(i,v);
+                l.rollingVariance.set(i,v);
             }
 
         }
@@ -1312,23 +1336,23 @@ public abstract class Parser {
 //
 //            for(int i = 0; i < l.n; i++) {
 //                value = stream.readNBytes(4);
-//                l.biases.put(i,Util.byteToFloat(value));
+//                l.biases.set(i,Util.byteToFloat(value));
 //            }
 //
 //            if(l.batchNormalize != 0 && l.dontLoadScales == 0) {
 //                for(int i = 0; i < l.n; i++) {
 //                    value = stream.readNBytes(4);
-//                    l.scales.put(i,Util.byteToFloat(value));
+//                    l.scales.set(i,Util.byteToFloat(value));
 //                }
 //
 //                for(int i = 0; i < l.n; i++) {
 //                    value = stream.readNBytes(4);
-//                    l.rollingMean.put(i,Util.byteToFloat(value));
+//                    l.rollingMean.set(i,Util.byteToFloat(value));
 //                }
 //
 //                for(int i = 0; i < l.n; i++) {
 //                    value = stream.readNBytes(4);
-//                    l.rollingVariance.put(i,Util.byteToFloat(value));
+//                    l.rollingVariance.set(i,Util.byteToFloat(value));
 //                }
 //            }
 //
@@ -1352,7 +1376,7 @@ public abstract class Parser {
 //                            break;
 //                        }
 //
-//                        l.weights.put(index + k,((c & 1<<k) != 0) ? mean : -mean);
+//                        l.weights.set(index + k,((c & 1<<k) != 0) ? mean : -mean);
 //                    }
 //                }
 //            }
@@ -1374,30 +1398,30 @@ public abstract class Parser {
         try {
             for(int i = 0; i < l.n; i++) {
                 float v = GlobalVars.getFloatWeight();
-                l.biases.put(i,v);
+                l.biases.set(i,v);
             }
 
             if (l.batchNormalize != 0 && l.dontLoadScales == 0){
 
                 for(int i = 0; i < l.n; i++) {
                     float v = GlobalVars.getFloatWeight();
-                    l.scales.put(i,v);
+                    l.scales.set(i,v);
                 }
 
                 for(int i = 0; i < l.n; i++) {
                     float v = GlobalVars.getFloatWeight();
-                    l.rollingMean.put(i,v);
+                    l.rollingMean.set(i,v);
                 }
 
                 for(int i = 0; i < l.n; i++) {
                     float v = GlobalVars.getFloatWeight();
-                    l.rollingVariance.put(i,v);
+                    l.rollingVariance.set(i,v);
                 }
             }
 
             for(int i = 0; i < num; i++) {
                 float v = GlobalVars.getFloatWeight();
-                l.weights.put(i,v);
+                l.weights.set(i,v);
             }
 
             if (l.flipped != 0) {
@@ -1426,11 +1450,11 @@ public abstract class Parser {
             if ((major*10 + minor) >= 2 && major < 1000 && minor < 1000){
 
                 long v = GlobalVars.getLongWeight();
-                net.seen.put(0, v);
+                net.seen.set(0, v);
             }
             else {
                 int v = GlobalVars.getIntWeight();
-                net.seen.put(0,v);
+                net.seen.set(0,v);
             }
 
             int transpose = ((major > 1000) || (minor > 1000)) ? 1 : 0;
@@ -1487,12 +1511,12 @@ public abstract class Parser {
 
                     for(int z = 0; z < l.outputs; z++) {
                         float v = GlobalVars.getFloatWeight();
-                        l.biases.put(z,v);
+                        l.biases.set(z,v);
                     }
 
                     for(int z = 0; z < size; z++) {
                         float v = GlobalVars.getFloatWeight();
-                        l.weights.put(z,v);
+                        l.weights.set(z,v);
                     }
                 }
             }

@@ -47,7 +47,7 @@ public class SoftmaxLayer extends Layer {
         if(net.truth != null && this.noLoss == 0){
             Blas.softmaxXEntCpu(this.batch*this.inputs, this.output, net.truth, this.delta, this.loss);
 
-            this.cost.put(0,Util.sumArray(this.loss, this.batch * this.inputs));
+            this.cost.set(0,Util.sumArray(this.loss, this.batch * this.inputs));
         }
     }
 

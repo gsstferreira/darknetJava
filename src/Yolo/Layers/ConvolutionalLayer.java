@@ -32,7 +32,7 @@ public class ConvolutionalLayer extends Layer {
             mean = mean / size;
             for(i = 0; i < size; ++i){
                 
-                binary.put(f*size + i,(weights.get(f*size + i) > 0) ? mean : -mean);
+                binary.set(f*size + i,(weights.get(f*size + i) > 0) ? mean : -mean);
             }
         }
     }
@@ -42,7 +42,7 @@ public class ConvolutionalLayer extends Layer {
         int i;
         for(i = 0; i < n; ++i){
             
-            binary.put(i,(input.get(i) > 0) ? 1 : -1);
+            binary.set(i,(input.get(i) > 0) ? 1 : -1);
         }
     }
 
@@ -56,7 +56,7 @@ public class ConvolutionalLayer extends Layer {
 //            mean = mean / n;
 //            for(i = 0; i < n; ++i){
 //
-//                binary.put(i*size + s, (input.get(i*size +s) > 0) ? mean : -mean);
+//                binary.set(i*size + s, (input.get(i*size +s) > 0) ? mean : -mean);
 //            }
 //        }
 //    }
@@ -90,7 +90,6 @@ public class ConvolutionalLayer extends Layer {
                               Activation activation, int batchNormalize, int binary, int xnor, int adam) {
 
         int sscg = size*size*c/groups;
-        int i;
         type = LayerType.CONVOLUTIONAL;
 
         this.groups = groups;
@@ -116,20 +115,23 @@ public class ConvolutionalLayer extends Layer {
 
         this.nBiases = n;
 
-        float scale = (float) Math.sqrt(2./sscg);
+        final float scale = (float) Math.sqrt(2./sscg);
 
-        for(i = 0; i < nWeights; ++i) {
-            weights.put(i,scale * Rand.randNormal());
+        for(int i = 0; i < nWeights; ++i) {
+            weights.set(i,scale * Rand.randNormal());
         }
 
         this.outH = convolutionalOutHeight();
         this.outW = convolutionalOutWidth();
         this.outC = n;
         this.outputs = outH * outW * outC;
+
+        final int arrSize = this.batch * this.outputs;
+
         this.inputs = this.w * this.h * this.c;
 
-        this.output = new FloatArray(this.batch*outputs);
-        this.delta  = new FloatArray(this.batch*outputs);
+        this.output = new FloatArray(arrSize);
+        this.delta  = new FloatArray(arrSize);
 
         if(binary != 0){
             this.binaryWeights = new FloatArray(this.nWeights);
@@ -141,13 +143,10 @@ public class ConvolutionalLayer extends Layer {
             this.binaryInput = new FloatArray(this.batch*inputs);
         }
         if(batchNormalize != 0){
-
             this.scales = new FloatArray(n);
             this.scaleUpdates = new FloatArray(n);
 
-            for(i = 0; i < n; ++i){
-                this.scales.put(i,1);
-            }
+            this.scales.setAll(1,n);
 
             this.mean = new FloatArray(n);
             this.variance = new FloatArray(n);
@@ -157,8 +156,8 @@ public class ConvolutionalLayer extends Layer {
 
             this.rollingMean = new FloatArray(n);
             this.rollingVariance = new FloatArray(n);
-            this.x = new FloatArray(this.batch*outputs);
-            this.xNorm = new FloatArray(this.batch*outputs);
+            this.x = new FloatArray(arrSize);
+            this.xNorm = new FloatArray(arrSize);
         }
         if(adam != 0){
             this.m = new FloatArray(this.nWeights);
@@ -185,13 +184,13 @@ public class ConvolutionalLayer extends Layer {
 //
 //            for(j = 0; j < c/groups*size*size; ++j){
 //
-//                weights.put(i*c/groups*size*size + j,weights.get(i*c/groups*size*size + j) * scale);
+//                weights.set(i*c/groups*size*size + j,weights.get(i*c/groups*size*size + j) * scale);
 //            }
 //
-//            biases.put(i,biases.get(i) - rollingMean.get(i)*scale);
-//            scales.put(i,1);
-//            rollingMean.put(i,0);
-//            rollingVariance.put(i,1);
+//            biases.set(i,biases.get(i) - rollingMean.get(i)*scale);
+//            scales.set(i,1);
+//            rollingMean.set(i,0);
+//            rollingVariance.set(i,1);
 //        }
 //    }
 
@@ -226,13 +225,15 @@ public class ConvolutionalLayer extends Layer {
 
         for(int b = 0; b < batch; ++b){
 
-            final int nB = b *n;
+            final int nB = b * n;
             IntStream.range(0,n).parallel().forEach(i -> {
+
+                final float iBiases = biases.get(i);
+                final int indexBase = (nB + i) * size;
+
                 for(int j = 0; j < size; ++j){
 
-                    final int index = (nB + i) * size + j;
-                    float val = output.get(index) + biases.get(i);
-                    output.put(index,val);
+                    output.addIn(indexBase + j,iBiases);
                 }
             });
 
@@ -241,7 +242,7 @@ public class ConvolutionalLayer extends Layer {
 //
 //                    int index = (b * n + i) * size + j;
 //                    float val = output.get(index) + biases.get(i);
-//                    output.put(index,val);
+//                    output.set(index,val);
 //                }
 //            }
         }
@@ -251,13 +252,15 @@ public class ConvolutionalLayer extends Layer {
 
         for(int b = 0; b < batch; ++b){
 
-            final int nB = b *n;
+            final int nB = b * n;
             IntStream.range(0,n).parallel().forEach(i -> {
+
+                final float iScales = scales.get(i);
+                final int indexBase = (nB + i) * size;
+
                 for(int j = 0; j < size; ++j){
 
-                    final int index = (nB + i) * size + j;
-                    float val = output.get(index) * scales.get(i);
-                    output.put(index,val);
+                    output.mulIn(indexBase + j,iScales);
                 }
             });
 
@@ -266,7 +269,7 @@ public class ConvolutionalLayer extends Layer {
 //
 //                    int index = (b * n + i) * size + j;
 //                    float val = output.get(index) * scales.get(i);
-//                    output.put(index,val);
+//                    output.set(index,val);
 //                }
 //            }
         }
@@ -279,16 +282,14 @@ public class ConvolutionalLayer extends Layer {
             for(i = 0; i < n; ++i){
                 
                 FloatArray _delta = delta.offsetNew(size*(i+b*n));
-                bias_updates.put(i,bias_updates.get(i) + Util.sumArray(_delta, size));
+                bias_updates.set(i,bias_updates.get(i) + Util.sumArray(_delta, size));
             }
         }
     }
 
     public void forward(Network net) {
 
-        int i, j;
-
-        Blas.fillCpu(outputs*batch,0,output,1);
+        output.setAll(0,outputs*batch);
 
         if(xnor != 0){
             binarizeWeights(weights, n, c/groups*size*size, binaryWeights);
@@ -297,10 +298,10 @@ public class ConvolutionalLayer extends Layer {
             net.input = binaryInput;
         }
 
-        FloatArray _a = weights.shallowClone();
-        FloatArray _b = net.workspace.shallowClone();
-        FloatArray _c = output.shallowClone();
-        FloatArray im = net.input.shallowClone();
+        final FloatArray _a = weights.shallowClone();
+        final FloatArray _b = net.workspace.shallowClone();
+        final FloatArray _c = output.shallowClone();
+        final FloatArray im = net.input.shallowClone();
 
         final int m = n/groups;
         final int k = size*size*c/groups;
@@ -309,12 +310,15 @@ public class ConvolutionalLayer extends Layer {
         final int var1 = nWeights /groups;
         final int var2 = c/groups*h*w;
 
-        for(i = 0; i < batch; ++i){
-            for(j = 0; j < groups; ++j){
+        for(int i = 0; i < batch; ++i){
+
+            final int iGroups = i*groups;
+
+            for(int j = 0; j < groups; ++j){
 
                 _a.offset(j*var1);
-                _c.offset((i*groups + j)*n*m);
-                im.offset((i*groups + j)*var2);
+                _c.offset((iGroups + j)*n*m);
+                im.offset((iGroups + j)*var2);
 
                 if (size == 1) {
                     Gemm.gemm(0,0,m,n,k,1,_a,k,im,n,1,_c,n);
@@ -444,7 +448,7 @@ public class ConvolutionalLayer extends Layer {
 //
 //                im.scale(scale);
 //                float sum = Util.sumArray(im.data, im.w*im.h*im.c);
-//                biases.put(i,biases.get(i) + sum*trans);
+//                biases.set(i,biases.get(i) + sum*trans);
 //            }
 //        }
 //    }

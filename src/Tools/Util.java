@@ -18,7 +18,7 @@ public abstract class Util {
 //    public static void topK(FloatArray a, int n, int k, IntArray index) {
 //
 //        for(int i = 0; i < k; i++) {
-//            index.put(i,-1);
+//            index.set(i,-1);
 //        }
 //
 //        for(int i = 0; i < n; i++) {
@@ -27,7 +27,7 @@ public abstract class Util {
 //                if(index.get(j) < 0 || a.get(curr) > a.get(index.get(j))) {
 //                    int swap = curr;
 //                    curr = index.get(j);
-//                    index.put(j,swap);
+//                    index.set(j,swap);
 //                }
 //            }
 //        }
@@ -84,7 +84,7 @@ public abstract class Util {
             IntArray ib = new IntArray(list.size());
 
             for(int i = 0; i < ib.size(); i++) {
-                ib.put(i,list.get(i));
+                ib.set(i,list.get(i));
             }
 
             return ib;
@@ -196,7 +196,7 @@ public abstract class Util {
 //    public static void meanArrays(float[][] a, int n, int els, float[] avg) {
 //
 //        FloatArray f = new FloatArray(avg);
-//        Arrays.setValue(f,0);
+//        Arrays.setAll(f,0);
 //
 //        for(int j = 0; j < n; j++) {
 //            for(int i = 0; i < els; i++) {
@@ -249,14 +249,14 @@ public abstract class Util {
 //        float sigma = (float) Math.sqrt(varianceArray(a,n));
 //
 //        for(i = 0; i < n; ++i){
-//            a.put(i,(a.get(i) - mu)/sigma);
+//            a.set(i,(a.get(i) - mu)/sigma);
 //        }
 //    }
 //
 //    public static void translateArray(FloatArray a, int n, float s) {
 //
 //        for(int i = 0;  i < n; i++) {
-//            a.put(i,a.get(i) +s);
+//            a.set(i,a.get(i) +s);
 //        }
 //    }
 
@@ -274,7 +274,7 @@ public abstract class Util {
 //
 //        int i;
 //        for(i = 0; i < n; ++i){
-//            a.put(i,a.get(i)*s);
+//            a.set(i,a.get(i)*s);
 //        }
 //    }
 

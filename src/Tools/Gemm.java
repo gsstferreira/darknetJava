@@ -14,12 +14,12 @@ public abstract class Gemm {
 //                    for(j = 0; j < N; ++j){
 //
 //                        float val = C.get(i*ldc+j) + B.get(k*ldb+j);
-//                        C.put(i*ldc+j,val);
+//                        C.set(i*ldc+j,val);
 //                    }
 //                } else {
 //                    for(j = 0; j < N; ++j){
 //                        float val = C.get(i*ldc+j) - B.get(k*ldb+j);
-//                        C.put(i*ldc+j,val);
+//                        C.set(i*ldc+j,val);
 //                    }
 //                }
 //            }
@@ -77,11 +77,12 @@ public abstract class Gemm {
     public static void gemmCpu(int TA, int TB, int M, int N, int K, float ALPHA, FloatArray A, int lda, FloatArray B, int ldb, float BETA, FloatArray C, int ldc) {
 
         IntStream.range(0,M).parallel().forEach(i -> {
+
+            final int index = i *ldc;
+
             for(int j = 0; j < N; ++j){
 
-                final int index = i*ldc + j;
-                float val = C.get(index)*BETA;
-                C.put(index,val);
+                C.mulIn(index + j,BETA);
             }
         });
 
@@ -106,14 +107,17 @@ public abstract class Gemm {
     private static void gemmNN(int M, int N, int K, float ALPHA, FloatArray A, int lda, FloatArray B, int ldb, FloatArray C, int ldc) {
 
         IntStream.range(0,M).parallel().forEach(i -> {
+
+            final int iLda = i * lda;
+            final int iLdc = i * ldc;
+
             for (int k = 0; k < K; ++k) {
 
-                final float A_PART = ALPHA * A.get(i*lda +k);
+                final float aPart = ALPHA * A.get(iLda +k);
+                final int kLdb = k * ldb;
 
                 for (int j = 0; j < N; ++j) {
-
-                    float val = C.get(i*ldc+j) + A_PART*B.get(k*ldb+j);
-                    C.put(i*ldc+j,val);
+                    C.addIn(iLdc + j,aPart*B.get(kLdb + j));
                 }
             }
         });
@@ -122,14 +126,20 @@ public abstract class Gemm {
     private static void gemmNT(int M, int N, int K, float ALPHA, FloatArray A, int lda, FloatArray B, int ldb, FloatArray C, int ldc) {
 
         IntStream.range(0,M).parallel().forEach(i -> {
+
+            final int iLda = i * lda;
+            final int iLdc = i * ldc;
+
             for(int j = 0; j < N; ++j){
 
                 float sum = 0;
+                final int jLdb = j * ldb;
 
                 for(int k = 0; k < K; ++k){
-                    sum += ALPHA * A.get(i*lda+k) * B.get(j*ldb + k);
+                    sum += ALPHA * A.get(iLda + k) * B.get(jLdb + k);
                 }
-                C.put(i*ldc+j,C.get(i*ldc+j) + sum);
+
+                C.addIn(iLdc + j, sum);
             }
         });
     }
@@ -137,14 +147,17 @@ public abstract class Gemm {
     private static void gemmTN(int M, int N, int K, float ALPHA, FloatArray A, int lda, FloatArray B, int ldb, FloatArray C, int ldc) {
 
         IntStream.range(0,M).parallel().forEach( i-> {
+
+            final int iLdc = i * ldc;
+
             for (int k = 0; k < K; ++k) {
 
-                final float A_PART = ALPHA * A.get(k*lda +i);
+                final float aPart = ALPHA * A.get(k*lda +i);
+                final int kLdb = k * ldb;
 
                 for (int j = 0; j < N; ++j) {
 
-                    float val = C.get(i*ldc+j) + A_PART*B.get(k*ldb+j);
-                    C.put(i*ldc+j,val);
+                    C.addIn(iLdc + j,aPart*B.get(kLdb + j));
                 }
             }
         });
@@ -153,15 +166,19 @@ public abstract class Gemm {
     private static void gemmTT(int M, int N, int K, float ALPHA, FloatArray A, int lda, FloatArray B, int ldb, FloatArray C, int ldc) {
 
         IntStream.range(0,M).parallel().forEach( i-> {
+
+            final int iLdc = i * ldc;
+
             for(int j = 0; j < N; ++j){
 
                 float sum = 0;
+                final int jLdb = j * ldb;
 
                 for(int k = 0; k < K; ++k){
-                    sum += ALPHA * A.get(i+ lda*k) * B.get(j*ldb + k);
+                    sum += ALPHA * A.get(i+ lda*k) * B.get(jLdb + k);
                 }
 
-                C.put(i*ldc+j,C.get(i*ldc+j) + sum);
+                C.addIn(iLdc + j,sum);
             }
         });
     }

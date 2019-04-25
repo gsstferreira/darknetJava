@@ -9,12 +9,12 @@ public abstract class Buffers {
 
     public static void copy(FloatArray src, FloatArray dest, int size) {
 
-        IntStream.range(0,size).parallel().forEach(i -> dest.put(i,src.get(i)));
+        IntStream.range(0,size).parallel().forEach(i -> dest.set(i,src.get(i)));
     }
 
     public static void copy(IntArray src, IntArray dest, int size) {
 
-        IntStream.range(0,size).parallel().forEach(i -> dest.put(i,src.get(i)));
+        IntStream.range(0,size).parallel().forEach(i -> dest.set(i,src.get(i)));
     }
 
     public static FloatArray copy(FloatArray src, int size) {
@@ -27,7 +27,7 @@ public abstract class Buffers {
         return new FloatArray(arr);
 
 //        for(int i = 0; i < size; i++) {
-//            f.put(i,src.get(i));
+//            f.set(i,src.get(i));
 //        }
     }
 
@@ -41,7 +41,7 @@ public abstract class Buffers {
         return new IntArray(arr);
 
 //        for(int i = 0; i < size; i++) {
-//            f.put(i,src.get(i));
+//            f.set(i,src.get(i));
 //        }
     }
 
@@ -55,7 +55,7 @@ public abstract class Buffers {
         return new LongArray(arr);
 
 //        for(int i = 0; i < size; i++) {
-//            f.put(i,src.get(i));
+//            f.set(i,src.get(i));
 //        }
     }
 
@@ -64,7 +64,7 @@ public abstract class Buffers {
         FloatArray fb = new FloatArray(newSize);
 
         for(int i = 0; i < newSize; i++) {
-            fb.put(i,src.get(i));
+            fb.set(i,src.get(i));
         }
         return fb;
     }
@@ -74,7 +74,7 @@ public abstract class Buffers {
         IntArray fb = new IntArray(newSize);
 
         for(int i = 0; i < newSize; i++) {
-            fb.put(i,src.get(i));
+            fb.set(i,src.get(i));
         }
         return fb;
     }

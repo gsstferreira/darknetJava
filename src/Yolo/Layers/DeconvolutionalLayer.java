@@ -26,7 +26,7 @@ public class DeconvolutionalLayer extends Layer {
                     int _c = f%c;
                     int ind = f*size*size*c + _c*size*size + j*size + i;
                     
-                    weights.put(ind,val);
+                    weights.set(ind,val);
                 }
             }
         }
@@ -58,12 +58,12 @@ public class DeconvolutionalLayer extends Layer {
         float scale = 0.02f;
         for(i = 0; i < c*n*size*size; ++i) {
 
-            this.weights.put(i,scale* Rand.randNormal());
+            this.weights.set(i,scale* Rand.randNormal());
         }
 
         for(i = 0; i < n; ++i){
 
-            this.biases.put(i,0);
+            this.biases.set(i,0);
         }
         
         this.pad = padding;
@@ -88,7 +88,7 @@ public class DeconvolutionalLayer extends Layer {
             
             for(i = 0; i < n; ++i){
                 
-                this.scales.put(i,1);
+                this.scales.set(i,1);
             }
 
             this.mean = new FloatArray(n);
@@ -130,13 +130,13 @@ public class DeconvolutionalLayer extends Layer {
             for(j = 0; j < this.c*this.size*this.size; ++j){
                 
                 float val = weights.get(i*c*size*size + j) * scale;
-                weights.put(i*c*size*size + j,val);
+                weights.set(i*c*size*size + j,val);
             }
             
-            biases.put(i, biases.get(i) - rollingMean.get(i)*scale);
-            scales.put(i,1);
-            rollingMean.put(i,0);
-            rollingVariance.put(i,1);
+            biases.set(i, biases.get(i) - rollingMean.get(i)*scale);
+            scales.set(i,1);
+            rollingMean.set(i,0);
+            rollingVariance.set(i,1);
         }
     }
 

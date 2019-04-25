@@ -65,7 +65,7 @@ public class LocalLayer extends Layer {
 
         float scale = (float) Math.sqrt(2./(size*size*c));
         for(i = 0; i < c*n*size*size; ++i) {
-            this.weights.put(i,scale* Rand.randUniform(-1, 1));
+            this.weights.set(i,scale* Rand.randUniform(-1, 1));
         }
 
         this.output = new FloatArray(this.batch*outH*outW*n);

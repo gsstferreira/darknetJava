@@ -40,7 +40,7 @@ public class RegionLayer extends Layer {
 
         for(i = 0; i < n*2; ++i){
 
-            this.biases.put(i,0.5f);
+            this.biases.set(i,0.5f);
         }
         System.out.println("detection");
     }
@@ -79,10 +79,10 @@ public class RegionLayer extends Layer {
         float tw = (float) Math.log(truth.w*w / biases.get(2*n));
         float th = (float) Math.log(truth.h*h / biases.get(2*n + 1));
 
-        delta.put(index,scale * (tx - x.get(index)));
-        delta.put(index + stride,scale * (ty - x.get(index + stride)));
-        delta.put(index + 2*stride,scale * (tw - x.get(index + 2*stride)));
-        delta.put(index + 3*stride,scale * (th - x.get(index + 3*stride)));
+        delta.set(index,scale * (tx - x.get(index)));
+        delta.set(index + stride,scale * (ty - x.get(index + stride)));
+        delta.set(index + 2*stride,scale * (tw - x.get(index + 2*stride)));
+        delta.set(index + 3*stride,scale * (th - x.get(index + 3*stride)));
 
         return iou;
     }
@@ -92,7 +92,7 @@ public class RegionLayer extends Layer {
         int i;
         for(i = 0; i < n; ++i){
 
-            delta.put(index + i*stride,scale*(truth.get(i) - x.get(index + i*stride)));
+            delta.set(index + i*stride,scale*(truth.get(i) - x.get(index + i*stride)));
         }
     }
 
@@ -108,27 +108,27 @@ public class RegionLayer extends Layer {
                 int offset = hier.groupOffset[g];
                 for(i = 0; i < hier.groupOffset[g]; ++i){
 
-                    delta.put(index + stride*(offset + i),scale * (0 - output.get(index + stride*(offset + i))));
+                    delta.set(index + stride*(offset + i),scale * (0 - output.get(index + stride*(offset + i))));
                 }
 
-                delta.put(index + stride*clas,scale * (1 - output.get(index + stride*clas)));
+                delta.set(index + stride*clas,scale * (1 - output.get(index + stride*clas)));
                 clas = hier.parent[clas];
             }
 
-            avg_cat.put(0,avg_cat.get(0) + pred);
+            avg_cat.set(0,avg_cat.get(0) + pred);
         }
         else {
             if (delta.get(index) != 0 && tag != 0){
 
-                delta.put(index + stride*clas,scale * (1 - output.get(index + stride*clas)));
+                delta.set(index + stride*clas,scale * (1 - output.get(index + stride*clas)));
                 return;
             }
             for(n = 0; n < classes; ++n){
 
-                delta.put(index + stride*n,scale * (((n == clas)?1 : 0) - output.get(index + stride*n)));
+                delta.set(index + stride*n,scale * (((n == clas)?1 : 0) - output.get(index + stride*n)));
 
                 if(n == clas) {
-                    avg_cat.put(0,avg_cat.get(0) + output.get(index + stride*n));
+                    avg_cat.set(0,avg_cat.get(0) + output.get(index + stride*n));
                 }
             }
         }
@@ -156,7 +156,7 @@ public class RegionLayer extends Layer {
         int i,j,b,t,n;
 
         Buffers.copy(net.input,net.output,this.outputs*this.batch);
-        this.delta.setValue(0,outputs*batch);
+        this.delta.setAll(0,outputs*batch);
 
         if(net.train == 0) {
             return;
@@ -192,7 +192,7 @@ public class RegionLayer extends Layer {
                             int obj_index = entryIndex(b, n, this.coords);
                             float scale =  output.get(obj_index);
 
-                            delta.put(obj_index, noObjectScale * ( - this.output.get(obj_index)));
+                            delta.set(obj_index, noObjectScale * ( - this.output.get(obj_index)));
 
                             FloatArray fb = this.output.offsetNew(class_index);
                             float p = scale * softmaxTree.getHierarchyprobability(fb, clas, this.w*this.h);
@@ -207,21 +207,21 @@ public class RegionLayer extends Layer {
                         int obj_index = entryIndex(b, maxi, coords);
 
                         FloatArray fbb = new FloatArray(1);
-                        fbb.put(0,avg_cat);
+                        fbb.set(0,avg_cat);
 
                         deltaRegionClass(output,delta, class_index, clas,classes,softmaxTree,classScale, w*h, fbb, (softmax == 0) ? 1 : 0);
                         avg_cat = fbb.get(0);
 
                         if(output.get(obj_index) < .3f) {
 
-                            delta.put(obj_index,objectScale * (.3f - output.get(obj_index)));
+                            delta.set(obj_index,objectScale * (.3f - output.get(obj_index)));
                         }
                         else  {
 
-                            delta.put(obj_index,0);
+                            delta.set(obj_index,0);
                         }
 
-                        delta.put(obj_index,0);
+                        delta.set(obj_index,0);
                         ++class_count;
                         onlyclass = 1;
                         break;
@@ -255,15 +255,15 @@ public class RegionLayer extends Layer {
                         int obj_index = entryIndex(b, n*this.w*this.h + j*this.w + i, this.coords);
                         avg_anyobj += this.output.get(obj_index);
 
-                        delta.put(obj_index,this.noObjectScale * (0 - this.output.get(obj_index)));
+                        delta.set(obj_index,this.noObjectScale * (0 - this.output.get(obj_index)));
 
                         if(this.background != 0) {
 
-                            delta.put(obj_index,this.noObjectScale * (1 - this.output.get(obj_index)));
+                            delta.set(obj_index,this.noObjectScale * (1 - this.output.get(obj_index)));
                         }
 
                         if (best_iou > this.thresh) {
-                            delta.put(obj_index,0);
+                            delta.set(obj_index,0);
                         }
 
                         if(net.seen.get(0) < 12800){
@@ -327,16 +327,16 @@ public class RegionLayer extends Layer {
 
                 avg_obj += this.output.get(obj_index);
 
-                delta.put(obj_index,objectScale * (1 - output.get(obj_index)));
+                delta.set(obj_index,objectScale * (1 - output.get(obj_index)));
 
                 if (this.rescore != 0) {
 
-                    delta.put(obj_index,objectScale * (iou - output.get(obj_index)));
+                    delta.set(obj_index,objectScale * (iou - output.get(obj_index)));
                 }
 
                 if(this.background != 0){
 
-                    delta.put(obj_index,objectScale * (0 - output.get(obj_index)));
+                    delta.set(obj_index,objectScale * (0 - output.get(obj_index)));
                 }
 
                 int clas = (int) net.truth.get(t*(this.coords + 1) + b*this.truths + this.coords);
@@ -348,7 +348,7 @@ public class RegionLayer extends Layer {
                 int class_index = entryIndex(b, best_n*this.w*this.h + j*this.w + i, this.coords + 1);
 
                 FloatArray fbb = new FloatArray(1);
-                fbb.put(0,avg_cat);
+                fbb.set(0,avg_cat);
 
                 deltaRegionClass(output, delta, class_index, clas, classes, softmaxTree, classScale, w*h, fbb, (softmax == 0) ? 1 : 0);
                 avg_cat = fbb.get(0);
@@ -357,7 +357,7 @@ public class RegionLayer extends Layer {
             }
         }
 
-        cost.put(0, (float)Math.pow(Util.magArray(delta, outputs * batch), 2));
+        cost.set(0, (float)Math.pow(Util.magArray(delta, outputs * batch), 2));
 
         String s = String.format("Region Avg IOU: %f, Class: %f, Obj: %f, No Obj: %f, Avg Recall: %f,  count: %d\n",
                 avg_iou/count, avg_cat/class_count, avg_obj/count, avg_anyobj/(w*h*this.n*batch), recall/count, count);
@@ -416,13 +416,13 @@ public class RegionLayer extends Layer {
                             int i2 = z*this.w*this.h*this.n + n*this.w*this.h + j*this.w + (this.w - i - 1);
 
                             float swap = flip.get(i1);
-                            flip.put(i1,flip.get(i2));
-                            flip.put(i2,swap);
+                            flip.set(i1,flip.get(i2));
+                            flip.set(i2,swap);
 
                             if(z == 0){
 
-                                flip.put(i1, - flip.get(i1));
-                                flip.put(i2, - flip.get(i2));
+                                flip.set(i1, - flip.get(i1));
+                                flip.set(i2, - flip.get(i2));
                             }
                         }
                     }
@@ -431,7 +431,7 @@ public class RegionLayer extends Layer {
             for(i = 0; i < this.outputs; ++i){
 
 
-                this.output.put(i,(this.output.get(i) + flip.get(i))/2.0f);
+                this.output.set(i,(this.output.get(i) + flip.get(i))/2.0f);
             }
         }
         for (i = 0; i < this.w*this.h; ++i){

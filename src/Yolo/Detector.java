@@ -45,7 +45,7 @@ public abstract class Detector {
 
         int nboxes = 0;
         IntArray b = new IntArray(1);
-        b.put(0,nboxes);
+        b.set(0,nboxes);
 
         Detection[] dets = net.getBoxes( im.w, im.h, thresh, hier_thresh, null, 1, b);
         nboxes = b.get(0);
@@ -58,17 +58,18 @@ public abstract class Detector {
         String oldName = newNamePath[newNamePath.length - 1];
         String newName = "Predictions/" + System.currentTimeMillis() + "_" + oldName.replace(".jpg", "");
 
-        if(GlobalVars.isJar) {
+        if(!GlobalVars.isJar) {
             im.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
             String finalNewName = newName + ".jpg";
 
             new Thread(() -> {
                 if(displayer != null) {
-                    displayer.dispose();
+                    displayer.updateImage(finalNewName,im.w + 20, im.h + 20);
 
                 }
-                displayer = new ImageDisplayer(finalNewName,im.w + 20,im.h + 20);
-                displayer.display();
+                else {
+                    displayer = new ImageDisplayer(finalNewName,im.w + 20,im.h + 20);
+                }
             }).start();
         }
 
@@ -105,7 +106,7 @@ public abstract class Detector {
 
         int nboxes = 0;
         IntArray b = new IntArray(1);
-        b.put(0,nboxes);
+        b.set(0,nboxes);
 
         Detection[] dets = net.getBoxes( image.w, image.h, thresh, hier_thresh, null, 1, b);
         nboxes = b.get(0);
@@ -116,17 +117,17 @@ public abstract class Detector {
 
         String newName = "Predictions/" + System.currentTimeMillis() + "_POSTreq";
 
-        if(GlobalVars.isJar) {
+        if(!GlobalVars.isJar) {
             image.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
             String finalNewName = newName + ".jpg";
 
             new Thread(() -> {
                 if(displayer != null) {
-                    displayer.dispose();
-
+                    displayer.updateImage(finalNewName,image.w + 20, image.h + 20);
                 }
-                displayer = new ImageDisplayer(finalNewName,image.w + 20,image.h + 20);
-                displayer.display();
+                else {
+                    displayer = new ImageDisplayer(finalNewName,image.w + 20,image.h + 20);
+                }
             }).start();
         }
 

@@ -41,7 +41,7 @@ public class CostLayer extends Layer {
                 int i;
                 for(i = 0; i < batch*inputs; ++i){
                     if(net.truth.get(i) == Util.SECRET_NUMBER) {
-                        net.input.put(i,Util.SECRET_NUMBER);
+                        net.input.set(i,Util.SECRET_NUMBER);
                     }
                 }
             }
@@ -54,7 +54,7 @@ public class CostLayer extends Layer {
             else {
                 Blas.l2Cpu(batch*inputs, net.input, net.truth, delta, output);
             }
-            cost.put(0,Util.sumArray(output,batch*inputs));
+            cost.set(0,Util.sumArray(output,batch*inputs));
         }
     }
 

@@ -2,7 +2,6 @@ package Yolo.Layers;
 
 import Classes.Arrays.FloatArray;
 import Classes.Arrays.IntArray;
-import Classes.Image;
 import Classes.Layer;
 import Classes.Network;
 import Tools.Buffers;
@@ -14,21 +13,21 @@ import java.util.stream.IntStream;
 
 public class MaxpoolLayer extends Layer {
 
-    public Image getMaxpoolImage() {
-
-        int h = outH;
-        int w = outW;
-
-        return new Image(w,h,c,output);
-    }
-
-    public Image getMaxpoolDelta() {
-
-        int h = outH;
-        int w = outW;
-
-        return new Image(w,h,c,delta);
-    }
+//    public Image getMaxpoolImage() {
+//
+//        int h = outH;
+//        int w = outW;
+//
+//        return new Image(w,h,c,output);
+//    }
+//
+//    public Image getMaxpoolDelta() {
+//
+//        int h = outH;
+//        int w = outW;
+//
+//        return new Image(w,h,c,delta);
+//    }
 
     public MaxpoolLayer(int batch, int height, int width, int c, int size, int stride, int padding) {
 
@@ -77,28 +76,45 @@ public class MaxpoolLayer extends Layer {
 
         for(int b = 0; b < batch; ++b){
 
-            final int finalB = b;
-            IntStream.range(0,c).parallel().forEach(k -> {
+            final int cBbase = b * this.c;
+            IntStream.range(0,this.c).parallel().forEach(k -> {
+
+                final int indexB = this.h*(k + cBbase);
+                final int cB = outH*(k + cBbase);
+
                 for(int i = 0; i < outH; ++i){
+
+                    final int outIndexBase = outW*(i + cB);
+                    final int curHbase = hOffset + i*stride;
+
                     for(int j = 0; j < outW; ++j){
-                        final int outIndex = j + outW*(i + outH*(k + c* finalB));
+                        final int outIndex = outIndexBase + j;
+                        final int curWbase = wOffset + j*stride;
+
                         float max = -Rand.MAX_FLOAT;
                         int maxI = -1;
+
                         for(int n = 0; n < size; ++n){
+
+                            final int curH = curHbase + n;
+                            final int indexBase = this.w*(curH + indexB);
+                            final boolean isCurHOk = curH >= 0 && curH < this.h;
+
                             for(int m = 0; m < size; ++m){
-                                final int curH = hOffset + i*stride + n;
-                                final int curW = wOffset + j*stride + m;
-                                final int index = curW + this.w*(curH + this.h*(k + finalB *this.c));
 
-                                boolean valid = (curH >= 0 && curH < this.h && curW >= 0 && curW < this.w);
-                                float val = (valid) ? net.input.get(index) : -Rand.MAX_FLOAT;
+                                final int curW = curWbase + m;
+                                final int index = curW + indexBase;
 
-                                maxI = (val > max) ? index : maxI;
-                                max   = (val > max) ? val   : max;
+                                final float val = (isCurHOk && curW >= 0 && curW < this.w) ? net.input.get(index) : -Rand.MAX_FLOAT;
+
+                                if(val > max) {
+                                    maxI = index;
+                                    max = val;
+                                }
                             }
                         }
-                        output.put(outIndex,max);
-                        indexes.put(outIndex,maxI);
+                        output.set(outIndex,max);
+                        indexes.set(outIndex,maxI);
                     }
                 }
             });
@@ -122,8 +138,8 @@ public class MaxpoolLayer extends Layer {
 //                                max   = (val > max) ? val   : max;
 //                            }
 //                        }
-//                        output.put(outIndex,max);
-//                        indexes.put(outIndex,maxI);
+//                        output.set(outIndex,max);
+//                        indexes.set(outIndex,maxI);
 //                    }
 //                }
 //            }
@@ -140,7 +156,7 @@ public class MaxpoolLayer extends Layer {
         for(i = 0; i < h*w*c*batch; ++i){
 
             int index = indexes.get(i);
-            net.delta.put(index,net.delta.get(index) + delta.get(i));
+            net.delta.set(index,net.delta.get(index) + delta.get(i));
         }
     }
 }

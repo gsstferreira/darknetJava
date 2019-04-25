@@ -12,22 +12,25 @@ import Yolo.Enums.LayerType;
 
 public class RouteLayer extends Layer {
 
-    public RouteLayer(int batch, int n, IntArray input_layers, IntArray input_sizes) {
+    public RouteLayer(int batch, int n, IntArray inputLayers, IntArray inputSizes) {
 
-        System.out.print("Route ");
+        StringBuilder sb = new StringBuilder();
+        sb.append("Route ");
 
         this.type = LayerType.ROUTE;
         this.batch = batch;
         this.n = n;
-        this.inputLayers = input_layers;
-        this.inputSizes = input_sizes;
+        this.inputLayers = inputLayers;
+        this.inputSizes = inputSizes;
         int i;
         int outputs = 0;
+
         for(i = 0; i < n; ++i){
-            System.out.printf("%4d ", this.inputLayers.get(i));
-            outputs += input_sizes.get(i);
+
+            sb.append(String.format("%4d ", this.inputLayers.get(i)));
+            outputs += inputSizes.get(i);
         }
-        System.out.println();
+        System.out.println(sb.toString());
 
         this.outputs = outputs;
         this.inputs = outputs;
@@ -43,7 +46,7 @@ public class RouteLayer extends Layer {
         this.outH = first.outH;
         this.outC = first.outC;
         this.outputs = first.outputs;
-        inputSizes.put(0,first.outputs);
+        inputSizes.set(0,first.outputs);
 
         for(i = 1; i < this.n; ++i){
 
@@ -51,7 +54,7 @@ public class RouteLayer extends Layer {
             Layer next = net.layers[index];
 
             this.outputs += next.outputs;
-            this.inputSizes.put(i,next.outputs);
+            this.inputSizes.set(i,next.outputs);
 
             if(next.outW == first.outW && next.outH == first.outH){
                 this.outC += next.outC;
@@ -67,18 +70,19 @@ public class RouteLayer extends Layer {
 
     public void forward(Network net) {
 
-        int i, j;
         int offset = 0;
-        for(i = 0; i < this.n; ++i){
-            int index = this.inputLayers.get(i);
-            FloatArray input = net.layers[index].output;
-            int inputSize = this.inputSizes.get(i);
+        for(int i = 0; i < this.n; ++i){
+            final int index = this.inputLayers.get(i);
+            final int inputSize = this.inputSizes.get(i);
 
-            for(j = 0; j < this.batch; ++j){
+            final FloatArray fb1 = net.layers[index].output.shallowClone();
+            final FloatArray fb2 = this.output.offsetNew(offset);
 
-                FloatArray fb1 = input.offsetNew(j*inputSize);
-                FloatArray fb2 = this.output.offsetNew(offset + j*this.outputs);
+            for(int j = 0; j < this.batch; ++j){
+
                 fb1.copyInto(inputSize,fb2);
+                fb1.offset(inputSize);
+                fb2.offset(this.outputs);
             }
             offset += inputSize;
         }

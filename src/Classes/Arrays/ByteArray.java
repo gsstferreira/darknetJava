@@ -3,15 +3,15 @@ package Classes.Arrays;
 import java.nio.ByteBuffer;
 import java.util.stream.IntStream;
 
-public class ByteArray {
+public class ByteArray extends ArrayBase{
 
     private final ByteBuffer buffer;
     private final byte[] array;
-    private int offset;
 
     public ByteArray(byte[] arr) {
 
         this.array = arr;
+        this.size = arr.length;
         this.offset = 0;
         this.buffer = ByteBuffer.allocate(8);
     }
@@ -20,15 +20,8 @@ public class ByteArray {
 
         this.array = new byte[size];
         this.offset = 0;
+        this.size = size;
         this.buffer = ByteBuffer.allocate(8);
-    }
-
-    public void offset(int off) {
-        this.offset += off;
-
-        if(this.offset < 0) {
-            throw new IndexOutOfBoundsException("ByteArray offset is lesser than 0");
-        }
     }
 
     public ByteArray offsetNew(int off) {
@@ -61,28 +54,34 @@ public class ByteArray {
         return buff;
     }
 
-    public void put(int index,Byte d) {
+    public void set(int index, Byte d) {
 
         this.array[index + offset] = d;
     }
 
-    public void setValue(byte val) {
+    public void setAll(byte val) {
 
-        IntStream.range(offset,array.length).forEach(i -> {
-            array[i] = val;
-        });
+        if((size - offset) >= parallelLength) {
+            IntStream.range(offset,size).forEach(i -> array[i] = val);
+        }
+        else {
+            for(int i = offset; i < size - offset; i++) {
+                array[i] = val;
+            }
+        }
+
     }
 
-    public void setValue(byte val, int size) {
+    public void setAll(byte val, int size) {
 
-        IntStream.range(offset,offset + size).forEach(i -> {
-            array[i] = val;
-        });
-    }
-
-    public int size() {
-
-        return this.array.length - this.offset;
+        if(size >= parallelLength) {
+            IntStream.range(offset,offset + size).forEach(i -> array[i] = val);
+        }
+        else {
+            for(int i = offset; i < offset + size; i++) {
+                array[i] = val;
+            }
+        }
     }
 
     public int getNextInt(int startPos) {
@@ -124,11 +123,43 @@ public class ByteArray {
 
     public void copyInto(int size,int offsetSrc, ByteArray dest, int offsetdest) {
 
-        IntStream.range(0,size).parallel().forEach(i -> dest.array[i*offsetdest] = this.array[i*offsetSrc]);
+        if(size >= parallelLength) {
+            IntStream.range(0,size).parallel().forEach(i -> dest.array[dest.offset + i*offsetdest] = this.array[this.offset + i*offsetSrc]);
+        }
+        else {
+            for(int i = 0; i < size; i++) {
+                dest.array[dest.offset + i*offsetdest] = this.array[this.offset + i*offsetSrc];
+            }
+        }
     }
 
     public void copyInto(int size, ByteArray dest) {
 
-        IntStream.range(0,size).parallel().forEach(i -> dest.array[dest.offset + i] = this.array[this.offset + i]);
+        if(size >= parallelLength) {
+            IntStream.range(0,size).parallel().forEach(i -> dest.array[dest.offset + i] = this.array[this.offset + i]);
+        }
+        else {
+            System.arraycopy(this.array, this.offset, dest.array, dest.offset, size);
+        }
+    }
+
+    public void addIn(int position, byte val) {
+
+        this.array[offset + position] += val;
+    }
+
+    public void subIn(int position, byte val) {
+
+        this.array[offset + position] -= val;
+    }
+
+    public void mulIn(int position, byte val) {
+
+        this.array[offset + position] *= val;
+    }
+
+    public void divIn(int position, byte val) {
+
+        this.array[offset + position] /= val;
     }
 }

@@ -39,13 +39,13 @@ public class AvgPoolLayer extends Layer {
         for(b = 0; b < batch; ++b){
             for(k = 0; k < c; ++k){
                 int out_index = k + b*c;
-                output.put(out_index,0);
+                output.set(out_index,0);
                 for(i = 0; i < h*w; ++i){
 
                     int in_index = i + h*w*(k + b*c);
-                    output.put(out_index,output.get(out_index) + net.input.get(in_index));
+                    output.set(out_index,output.get(out_index) + net.input.get(in_index));
                 }
-                output.put(out_index,output.get(out_index) / (h*w));
+                output.set(out_index,output.get(out_index) / (h*w));
             }
         }
     }
@@ -61,7 +61,7 @@ public class AvgPoolLayer extends Layer {
                     int in_index = i + h*w*(k + b*c);
 
                     float val = net.delta.get(in_index) + this.delta.get(out_index)/(h*w);
-                    net.delta.put(in_index,val);
+                    net.delta.set(in_index,val);
                 }
             }
         }

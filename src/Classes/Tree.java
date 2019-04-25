@@ -86,7 +86,7 @@ public class Tree {
             int parent = this.parent[i];
             if(parent >= 0) {
 
-                predictions.put(i*stride,predictions.get(i*stride) * predictions.get(parent*stride));
+                predictions.set(i*stride,predictions.get(i*stride) * predictions.get(parent*stride));
             }
         }
         if(onlyLeaves) {
@@ -94,7 +94,7 @@ public class Tree {
 
                 if(this.leaf[i] != 0) {
 
-                    predictions.put(i*stride,0);
+                    predictions.set(i*stride,0);
                 }
             }
         }

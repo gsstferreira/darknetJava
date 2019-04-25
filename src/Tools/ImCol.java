@@ -16,7 +16,7 @@ public abstract class ImCol {
 
             int index = col + width*(row + height*channel);
 
-            im.put(index, im.get(index) + val);
+            im.set(index, im.get(index) + val);
         }
     }
 
@@ -92,7 +92,7 @@ public abstract class ImCol {
                     int imCol = wOffset + w * stride;
                     int colIndex = colBase * widthCol + w;
                     float val = im2ColGetPixel(dataIm, height, width, channels, imRow, imCol, cIm, pad);
-                    dataCol.put(colIndex,val);
+                    dataCol.set(colIndex,val);
                 }
             }
         });
@@ -107,7 +107,7 @@ public abstract class ImCol {
 //                    int imCol = wOffset + w * stride;
 //                    int colIndex = (c * heightCol + h) * widthCol + w;
 //                    float val = im2ColGetPixel(dataIm, height, width, channels, imRow, imCol, cIm, pad);
-//                    dataCol.put(colIndex,val);
+//                    dataCol.set(colIndex,val);
 //                }
 //            }
 //        }

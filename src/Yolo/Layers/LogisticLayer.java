@@ -28,7 +28,7 @@ public class LogisticLayer extends Layer {
         Activation.activateArray(this.output, this.outputs*this.batch, Activation.LOGISTIC);
         if(net.truth != null){
             Blas.logisticXEntCpu(this.batch*this.inputs, this.output, net.truth, this.delta, this.loss);
-            this.cost.put(0, Util.sumArray(this.loss, this.batch*this.inputs));
+            this.cost.set(0, Util.sumArray(this.loss, this.batch*this.inputs));
         }
     }
 

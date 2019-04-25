@@ -43,12 +43,12 @@ public class ConnectedLayer extends Layer {
 
         for(i = 0; i < outputs*inputs; ++i){
 
-            this.weights.put(i,scale * Rand.randUniform(-1,1));
+            this.weights.set(i,scale * Rand.randUniform(-1,1));
         }
 
         for(i = 0; i < outputs; ++i){
 
-            this.biases.put(i,0);
+            this.biases.set(i,0);
         }
 
         if(adam != 0){
@@ -66,7 +66,7 @@ public class ConnectedLayer extends Layer {
             this.scaleUpdates = new FloatArray(outputs);
             
             for(i = 0; i < outputs; ++i){
-                this.scales.put(i,1);
+                this.scales.set(i,1);
             }
 
             this.mean = new FloatArray(outputs);
@@ -168,16 +168,16 @@ public class ConnectedLayer extends Layer {
 //
 //            for(j = 0; j < this.inputs; ++j){
 //
-//                weights.put(i*inputs + j,weights.get(i*inputs + j) * scale);
+//                weights.set(i*inputs + j,weights.get(i*inputs + j) * scale);
 //            }
 //
 //            float val = biases.get(i) - rollingMean.get(i) * scale;
-//            biases.put(i,val);
+//            biases.set(i,val);
 //
-//            scales.put(i,1);
+//            scales.set(i,1);
 //
-//            rollingMean.put(i,0);
-//            rollingVariance.put(i,1);
+//            rollingMean.set(i,0);
+//            rollingVariance.set(i,1);
 //        }
 //    }
     

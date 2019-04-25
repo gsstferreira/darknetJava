@@ -5,7 +5,6 @@ import Tools.Blas;
 import Tools.GlobalVars;
 import Tools.Rand;
 import Yolo.Enums.ImType;
-import Yolo.Setup;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.stb.STBImageWrite;
@@ -37,7 +36,7 @@ public class Image {
             for(int i = 0; i < w*h*c; ++i){
 
                 double val = (Rand.randNormal() * 0.25) + 0.5;
-                this.data.put(i,(float)val);
+                this.data.set(i,(float)val);
             }
         }
     }
@@ -80,9 +79,9 @@ public class Image {
 //                float val2 = im.data.get(i + index) + this.data.get(j*index + i) * green;
 //                float val3 = im.data.get(i + 2*index) + this.data.get(j*index + i) * blue;
 //
-//                im.data.put(i,val1);
-//                im.data.put(i + index, val2);
-//                im.data.put(i + 2*index, val3);
+//                im.data.set(i,val1);
+//                im.data.set(i + index, val2);
+//                im.data.set(i + 2*index, val3);
 //            }
 //        }
 //        return im;
@@ -115,7 +114,7 @@ public class Image {
             return;
         }
 
-        this.data.put(c*h*w + y*w + x,val);
+        this.data.set(c*h*w + y*w + x,val);
     }
 
     public void addToPixel(int x, int y, int c, float val) {
@@ -218,7 +217,7 @@ public class Image {
         Image copy = new Image(w,h,c,false);
 
         for(int i = 0; i < data.size(); i++) {
-            copy.data.put(i,data.get(i));
+            copy.data.set(i,data.get(i));
         }
         return copy;
     }
@@ -301,25 +300,25 @@ public class Image {
 
         for(i = x1; i <= x2; ++i) {
 
-            this.data.put(i + y1*w,r);
-            this.data.put(i + y2*w,r);
+            this.data.set(i + y1*w,r);
+            this.data.set(i + y2*w,r);
 
-            this.data.put(i + y1*w + w*h,g);
-            this.data.put(i + y2*w + w*h,g);
+            this.data.set(i + y1*w + w*h,g);
+            this.data.set(i + y2*w + w*h,g);
 
-            this.data.put(i + y1*w + 2*h*w,b);
-            this.data.put(i + y2*w + 2*h*w,b);
+            this.data.set(i + y1*w + 2*h*w,b);
+            this.data.set(i + y2*w + 2*h*w,b);
         }
         for(i = y1; i <= y2; ++i) {
 
-            this.data.put(x1 + i*w,r);
-            this.data.put(x2 + i*w,r);
+            this.data.set(x1 + i*w,r);
+            this.data.set(x2 + i*w,r);
 
-            this.data.put(x1 + i*w + w*h,g);
-            this.data.put(x2 + i*w + w*h,g);
+            this.data.set(x1 + i*w + w*h,g);
+            this.data.set(x2 + i*w + w*h,g);
 
-            this.data.put(x1 + i*w + 2*w*h,b);
-            this.data.put(x2 + i*w + 2*w*h,b);
+            this.data.set(x1 + i*w + 2*w*h,b);
+            this.data.set(x2 + i*w + 2*w*h,b);
         }
     }
 
@@ -415,7 +414,7 @@ public class Image {
                         int src_index = k + channel*i + channel*width*j;
 
                         float val = (bb.get(src_index) & 0x000000FF)/255.0f;
-                        im.data.put(dst_index,val);
+                        im.data.set(dst_index,val);
                     }
                 }
             }
@@ -456,7 +455,7 @@ public class Image {
                         int src_index = k + channel*i + channel*width*j;
 
                         float val = (bb.get(src_index) & 0x000000FF)/255.0f;
-                        im.data.put(dst_index,val);
+                        im.data.set(dst_index,val);
                     }
                 }
             }
@@ -561,7 +560,7 @@ public class Image {
 //        Image out = new Image(w,h,1,false);
 //
 //        for(int i = 0; i < w*h; i++) {
-//            out.data.put(i,this.data.get(i+l*h*w));
+//            out.data.set(i,this.data.get(i+l*h*w));
 //        }
 //        return out;
 //    }
@@ -646,8 +645,8 @@ public class Image {
 //
 //                    float swap = data.get(indexM);
 //
-//                    data.put(indexM,data.get(indexN));
-//                    data.put(indexN,swap);
+//                    data.set(indexM,data.get(indexN));
+//                    data.set(indexN,swap);
 //                }
 //            }
 //        }
@@ -665,10 +664,10 @@ public class Image {
 //                    for(y = 0; y < (n-1)/2 + 1; ++y){
 //
 //                        float temp = data.get(y + w*(x + h*z));
-//                        data.put(y + w*(x + h*z),n-1-x + w*(y + h*z));
-//                        data.put(n-1-x + w*(y + h*z),n-1-y + w*(n-1-x + h*z));
-//                        data.put(n-1-y + w*(n-1-x + h*z),x + w*(n-1-y + h*z));
-//                        data.put(x + w*(n-1-y + h*z),temp);
+//                        data.set(y + w*(x + h*z),n-1-x + w*(y + h*z));
+//                        data.set(n-1-x + w*(y + h*z),n-1-y + w*(n-1-x + h*z));
+//                        data.set(n-1-y + w*(n-1-x + h*z),x + w*(n-1-y + h*z));
+//                        data.set(x + w*(n-1-y + h*z),temp);
 //                    }
 //                }
 //            }
@@ -684,8 +683,8 @@ public class Image {
 //                    int index = j + w*(i + h*(k));
 //                    int flip = (w - j - 1) + w*(i + h*(k));
 //                    float swap = data.get(flip);
-//                    data.put(flip,index);
-//                    data.put(index,swap);
+//                    data.set(flip,index);
+//                    data.set(index,swap);
 //                }
 //            }
 //        }
@@ -698,12 +697,12 @@ public class Image {
 //            for(int j = 0; j < a.h*a.w; ++j){
 //
 //                float val = dist.data.get(j) + (float)Math.pow(a.data.get(i*a.h*a.w+j) - b.data.get(i*a.h*a.w+j),2);
-//                dist.data.put(j,val);
+//                dist.data.set(j,val);
 //            }
 //        }
 //        for(int j = 0; j < a.h*a.w; ++j){
 //
-//            dist.data.put(j,(float)Math.sqrt(dist.data.get(j)));
+//            dist.data.set(j,(float)Math.sqrt(dist.data.get(j)));
 //        }
 //        return dist;
 //    }
@@ -731,7 +730,7 @@ public class Image {
 //        for(int k = 0; k < c; ++k){
 //            for(int j = 0; j < h; ++j){
 //                for(int i = 0; i < w; ++i){
-//                    data.put(i + w*(j + h*k),data.get(i/s*s + w*(j/s*s + h*k)));
+//                    data.set(i + w*(j + h*k),data.get(i/s*s + w*(j/s*s + h*k)));
 //                }
 //            }
 //        }
@@ -747,7 +746,7 @@ public class Image {
 //            for(int j = dy; j < dy + h && j < h; ++j){
 //                for(int i = dx; i < dx + w && i < w; ++i){
 //
-//                    data.put(i + w*(j + h*k),data.get(i/s*s + w*(j/s*s + h*k)));
+//                    data.set(i + w*(j + h*k),data.get(i/s*s + w*(j/s*s + h*k)));
 //                }
 //            }
 //        }
@@ -757,10 +756,10 @@ public class Image {
 //
 //        for(int i = 0; i < w*h*c; ++i){
 //            if(data.get(i) < 0) {
-//                data.put(i,0);
+//                data.set(i,0);
 //            }
 //            else if(data.get(i) > 1) {
-//                data.put(i,1);
+//                data.set(i,1);
 //            }
 //        }
 //    }
@@ -785,7 +784,7 @@ public class Image {
         }
         for(int i = 0; i < c*w*h; ++i){
 
-            data.put(i,(data.get(i) - min)/(max-min));
+            data.set(i,(data.get(i) - min)/(max-min));
         }
     }
 
@@ -822,7 +821,7 @@ public class Image {
 //
 //        for(int j = 0; j < c; ++j){
 //            for(int i = 0; i < w*h; ++i){
-//                data.put(i+j*h*w,(data.get(i+j*h*w) - min[j])/(max[j]-min[j]));
+//                data.set(i+j*h*w,(data.get(i+j*h*w) - min[j])/(max[j]-min[j]));
 //            }
 //        }
 //    }
@@ -832,8 +831,8 @@ public class Image {
         int i;
         for(i = 0; i < w*h; ++i){
             float swap = data.get(i);
-            data.put(i,i+w*h*2);
-            data.put(i+w*h*2,swap);
+            data.set(i,i+w*h*2);
+            data.set(i+w*h*2,swap);
         }
     }
 
@@ -905,7 +904,7 @@ public class Image {
         int i;
         for(i = 0; i < h*w*c; ++i) {
 
-            data.put(i,s);
+            data.set(i,s);
         }
     }
 
@@ -913,7 +912,7 @@ public class Image {
 //
 //        for(int i = 0; i < h*w*c; ++i) {
 //
-//            data.put(i,data.get(i) + s);
+//            data.set(i,data.get(i) + s);
 //        }
 //    }
 
@@ -921,7 +920,7 @@ public class Image {
 
         for(int i = 0; i < h*w*c; ++i) {
 
-            data.put(i,data.get(i) * s);
+            data.set(i,data.get(i) * s);
         }
     }
 
@@ -997,7 +996,7 @@ public class Image {
 //        int i;
 //        for(i = 0; i < c.w*c.h; ++i){
 //
-//            c.data.put(i,a.data.get(i));
+//            c.data.set(i,a.data.get(i));
 //        }
 //        c.saveToDisk(out,ImType.JPG,80);
 //    }
@@ -1282,9 +1281,9 @@ public class Image {
 //                    val += scale[k]*getPixel(i, j, k);
 //                }
 //
-//                data.put(w*j + i,val);
-//                data.put(h*w + w*j + i,val);
-//                data.put(2*h*w + w*j + i,val);
+//                data.set(w*j + i,val);
+//                data.set(h*w + w*j + i,val);
+//                data.set(2*h*w + w*j + i,val);
 //            }
 //        }
 //    }
@@ -1300,7 +1299,7 @@ public class Image {
 //                for(i = 0; i < w; ++i){
 //
 //                    float val = data.get(i + w*j) + scale[k]*getPixel( i, j, k);
-//                    data.put(i + w*j,val);
+//                    data.set(i + w*j,val);
 //                }
 //            }
 //        }
@@ -1312,7 +1311,7 @@ public class Image {
         Image t = new Image(w, h, c, false);
         for(int i = 0; i < w*h*c; ++i){
 
-            t.data.put(i,(data.get(i) > thresh) ? 1 : 0);
+            t.data.set(i,(data.get(i) > thresh) ? 1 : 0);
         }
         return t;
     }
@@ -1362,10 +1361,10 @@ public class Image {
 //        int i;
 //        for(i = 0; i < w * h * c; ++i){
 //            if(bin.data.get(i) > .5) {
-//                bin.data.put(i,1);
+//                bin.data.set(i,1);
 //            }
 //            else {
-//                bin.data.put(i,0);
+//                bin.data.set(i,0);
 //            }
 //        }
 //        return bin;
@@ -1385,13 +1384,13 @@ public class Image {
 //
 //        for(int i = 0; i < w*h; ++i){
 //
-//            data.put(i,data.get(i) + hue);
+//            data.set(i,data.get(i) + hue);
 //
 //            if(data.get(i) > 1) {
-//                data.put(i,data.get(i) - 1);
+//                data.set(i,data.get(i) - 1);
 //            }
 //            else if(data.get(i) < 0) {
-//                data.put(i,data.get(i) + 1);
+//                data.set(i,data.get(i) + 1);
 //            }
 //        }
 //        hsvToRgb();
@@ -1414,13 +1413,13 @@ public class Image {
 //
 //        for(int i = 0; i < w*h; ++i){
 //
-//            data.put(i,data.get(i) + hue);
+//            data.set(i,data.get(i) + hue);
 //
 //            if(data.get(i) > 1) {
-//                data.put(i,data.get(i) - 1);
+//                data.set(i,data.get(i) - 1);
 //            }
 //            else if(data.get(i) < 0) {
-//                data.put(i,data.get(i) + 1);
+//                data.set(i,data.get(i) + 1);
 //            }
 //        }
 //        hsvToRgb();
