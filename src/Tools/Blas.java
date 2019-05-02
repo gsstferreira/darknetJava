@@ -5,6 +5,8 @@ import java.util.stream.IntStream;
 
 public abstract class Blas {
 
+    private static final int parallelLength = 7500;
+
     public static void reorgCpu(FloatArray x, int w, int h, int c, int batch, int stride, int forward, FloatArray out) {
 
         int out_c = c/(stride*stride);
@@ -227,15 +229,26 @@ public abstract class Blas {
 
     public static void axpyCpu(int N, float ALPHA, FloatArray X, int INCX, FloatArray Y, int INCY) {
 
-        IntStream.range(0,N).parallel().forEach(i -> {
-            float val = Y.get(i*INCY) + ALPHA * X.get(i*INCX);
-            Y.set(i*INCY,val);
-        });
+        if(N > parallelLength) {
+            IntStream.range(0,N).parallel().forEach(i -> Y.addIn(i*INCY,ALPHA * X.get(i*INCX)));
+        }
+        else {
+            for(int i = 0; i < N; i++) {
+                Y.addIn(i*INCY,ALPHA * X.get(i*INCX));
+            }
+        }
     }
 
     public static void scalCpu(int N, float ALPHA, FloatArray X, int INCX) {
 
-        IntStream.range(0,N).parallel().forEach(i -> X.set(i*INCX, X.get(i*INCX) * ALPHA));
+        if(N > parallelLength) {
+            IntStream.range(0,N).parallel().forEach(i -> X.mulIn(i*INCX,ALPHA));
+        }
+        else {
+            for(int i = 0; i < N; i++) {
+                X.mulIn(i*INCX,ALPHA);
+            }
+        }
     }
 
     public static void fillCpu(int N, float ALPHA, FloatArray X, int INCX) {
@@ -308,7 +321,7 @@ public abstract class Blas {
                 delta.set(i,(diff < 0) ? 1 : -1);
             }
         }
-    } //
+    }
 
     public static void l1Cpu(int n, FloatArray pred, FloatArray truth, FloatArray delta, FloatArray error) {
 
@@ -317,7 +330,7 @@ public abstract class Blas {
             error.set(i,Math.abs(diff));
             delta.set(i,(diff > 0) ? 1 : -1);
         }
-    } //
+    }
 
     public static void softmaxXEntCpu(int n, FloatArray pred, FloatArray truth, FloatArray delta, FloatArray error) {
 
@@ -328,7 +341,7 @@ public abstract class Blas {
             error.set(i,(t != 0) ? - (float)Math.log(p) : 0);
             delta.set(i,t - p);
         }
-    } //
+    }
 
     public static void logisticXEntCpu(int n, FloatArray pred, FloatArray truth, FloatArray delta, FloatArray error) {
 
@@ -341,7 +354,7 @@ public abstract class Blas {
             error.set(i,(float) val);
             delta.set(i,t - p);
         }
-    } //
+    }
 
     public static void l2Cpu(int n, FloatArray pred, FloatArray truth, FloatArray delta, FloatArray error) {
 
@@ -350,7 +363,7 @@ public abstract class Blas {
             error.set(i,diff * diff);
             delta.set(i,diff);
         }
-    } //
+    }
 
 //    public static float dotCpu(int N, FloatArray X, int INCX, FloatArray Y, int INCY) {
 //
@@ -361,7 +374,7 @@ public abstract class Blas {
 //            dot += X.get(i*INCX) * Y.get(i*INCY);
 //        }
 //        return dot;
-//    } //
+//    }
 
     public static void softmax(FloatArray input, int n, float temp, int stride, FloatArray output) {
 
@@ -383,7 +396,7 @@ public abstract class Blas {
         for(int i = 0; i < n; ++i){
             output.set(i*stride,output.get(i*stride)/sum);
         }
-    } //
+    }
 
     public static void softmaxCpu(FloatArray input, int n, int batch, int batch_offset, int groups, int group_offset, int stride, float temp, FloatArray output) {
 
@@ -396,7 +409,7 @@ public abstract class Blas {
                 softmax(fb1, n, temp, stride, fb2);
             }
         }
-    } //
+    }
 
     public static void upsampleCpu(FloatArray in, int w, int h, int c, int batch, int stride, int forward, float scale, FloatArray out) {
 

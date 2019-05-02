@@ -4,7 +4,6 @@ import Classes.Arrays.DetectionArray;
 import Classes.Arrays.FloatArray;
 import Classes.Arrays.IntArray;
 import Classes.Arrays.LongArray;
-import Tools.Blas;
 import Yolo.Enums.LayerType;
 import Yolo.Enums.LearningRatePolicy;
 import Yolo.Layers.DetectionLayer;
@@ -30,8 +29,6 @@ public class Network implements Cloneable {
             return null;
         }
     }
-
-    public long nanoTime;
 
     public int n;
     public int batch;
@@ -265,7 +262,7 @@ public class Network implements Cloneable {
             index = i;
             Layer l = layers[i];
             if(l.delta != null){
-                Blas.fillCpu(l.outputs * l.batch, 0, l.delta, 1);
+                l.delta.setAll(0,l.outputs*l.batch);
             }
 
             l.forwardLayer(this);

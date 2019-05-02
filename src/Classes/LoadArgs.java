@@ -17,20 +17,20 @@ public class LoadArgs {
 //    public int nh;
 //    public int nw;
 //    public int numBoxes;
-    public int min;
-    public int max;
+//    public int min;
+//    public int max;
     public int size;
     public int classes;
 //    public int background;
     public int scale;
-    public int center;
+//    public int center;
 //    public int coords;
 //    public float jitter;
-    public float angle;
-    public float aspect;
-    public float saturation;
-    public float exposure;
-    public float hue;
+//    public float angle;
+//    public float aspect;
+//    public float saturation;
+//    public float exposure;
+//    public float hue;
 
     public Data d;
 //    public Image im;

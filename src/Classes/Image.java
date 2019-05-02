@@ -1,7 +1,6 @@
 package Classes;
 
 import Classes.Arrays.FloatArray;
-import Tools.Blas;
 import Tools.GlobalVars;
 import Tools.Rand;
 import Yolo.Enums.ImType;
@@ -119,35 +118,38 @@ public class Image {
 
     public void addToPixel(int x, int y, int c, float val) {
 
-        float v = getPixel(x,y,c);
+        float v = getPixelExtended(x,y,c);
         setPixel(x,y,c,val + v);
     }
 
-//    public float bilinearInterpolate(float x, float y, int c) {
-//
-//        int ix = (int) Math.floor(x);
-//        int iy = (int) Math.floor(y);
-//
-//        float dx = x - ix;
-//        float dy = y - iy;
-//
-//        float val = (1-dy) * (1-dx) * getPixelExtended(ix,iy,c);
-//        val += dy * (1-dx) * getPixelExtended(ix,iy+1,c);
-//        val += (1-dy) * dx * getPixelExtended(ix+1,iy,c);
-//        val += dy * dx * getPixelExtended(ix+1,iy+1,c);
-//
-//        return val;
-//    }
+    public float bilinearInterpolate(float x, float y, int c) {
+
+        int ix = (int) Math.floor(x);
+        int iy = (int) Math.floor(y);
+
+        float dx = x - ix;
+        float dy = y - iy;
+
+        float val = (1-dy) * (1-dx) * getPixelExtended(ix,iy,c);
+        val += dy * (1-dx) * getPixelExtended(ix,iy+1,c);
+        val += (1-dy) * dx * getPixelExtended(ix+1,iy,c);
+        val += dy * dx * getPixelExtended(ix+1,iy+1,c);
+
+        return val;
+    }
 
     public void compositeImage(Image dest, int dx, int dy) {
 
-        int x,y,k;
-        for(k = 0; k < c; ++k){
-            for(y = 0; y < h; ++y){
-                for(x = 0; x < w; ++x){
-                    float val = this.getPixel(x,y,k);
-                    float val2 = dest.getPixelExtended(dx+x, dy+y, k);
-                    dest.setPixel(dx+x, dy+y, k, val * val2);
+        for(int k = 0; k < c; ++k){
+            for(int y = 0; y < h; ++y){
+                for(int x = 0; x < w; ++x){
+
+                    final int dyy = dy + y;
+                    final int dxx = dx + x;
+
+                    final float val = this.getPixel(x,y,k);
+                    final float val2 = dest.getPixelExtended(dxx, dyy, k);
+                    dest.setPixel(dxx, dyy, k, val * val2);
                 }
             }
         }
@@ -156,12 +158,16 @@ public class Image {
     public Image borderImage(int border) {
 
         Image b = new Image(w + 2*border, h + 2*border, c,false);
-        int x,y,k;
-        for(k = 0; k < b.c; ++k){
-            for(y = 0; y < b.h; ++y){
-                for(x = 0; x < b.w; ++x){
-                    float val = this.getPixelExtended(x - border, y - border, k);
-                    if((x - border) < 0 || (x - border) >= w || (y - border) < 0 || (y - border) >= h) {
+
+        for(int k = 0; k < b.c; ++k){
+            for(int y = 0; y < b.h; ++y){
+                for(int x = 0; x < b.w; ++x){
+
+                    final int xBorder = x - border;
+                    final int yBorder = y - border;
+
+                    float val = this.getPixelExtended(xBorder, yBorder, k);
+                    if(xBorder < 0 || xBorder >= w || yBorder < 0 || yBorder >= h) {
                         val = 1;
                     }
                     b.setPixel(x, y, k, val);
@@ -178,7 +184,7 @@ public class Image {
         }
         else {
             Image c = new Image(w + b.w + dx,(h > b.h) ? h : b.h, (this.c > b.c) ? this.c : b.c,false);
-            Blas.fillCpu(c.w*c.h*c.c, 1, c.data, 1);
+            c.data.setAll(1);
             this.embedImage(c, 0, 0);
             b.compositeImage(c, w + dx, 0);
             return c;
@@ -212,7 +218,7 @@ public class Image {
         }
     }
 
-    private Image copyImage() {
+    public Image copyImage() {
 
         Image copy = new Image(w,h,c,false);
 
@@ -222,7 +228,7 @@ public class Image {
         return copy;
     }
 
-    private Image resizeImage(int w, int h) {
+    public Image resizeImage(int w, int h) {
 
         Image resized = new Image(w, h, this.c,false);
         Image part = new Image(w, this.h, this.c,false);
@@ -881,23 +887,88 @@ public class Image {
 //        return rot;
 //    }
 //
-//    public Image rotate(float rad) {
-//
-//        float cx = w/2.0f;
-//        float cy = h/2.0f;
-//        Image rot = new Image(w, h, c,false);
-//        for(int z = 0; z < c; ++z){
-//            for(int y = 0; y < h; ++y){
-//                for(int x = 0; x < w; ++x){
-//                    double rx = Math.cos(rad)*(x-cx) - Math.sin(rad)*(y-cy) + cx;
-//                    double ry = Math.sin(rad)*(x-cx) + Math.cos(rad)*(y-cy) + cy;
-//                    float val = bilinearInterpolate((float)rx, (float)ry, z);
-//                    rot.setPixel(x, y, z, val);
-//                }
-//            }
-//        }
-//        return rot;
-//    }
+    public Image rotate90Cw() {
+
+        final float sinRad = (float)Math.sin(Math.PI/2);
+        final float cosRad = (float)Math.cos(Math.PI/2);
+
+        int newW = Math.round(Math.abs(sinRad*h) + Math.abs(cosRad*w));
+        int newH = Math.round(Math.abs(sinRad*w) + Math.abs(cosRad*h));
+
+        int diffH = Math.abs(newH - h);
+        int diffW = Math.abs(newW - w);
+
+        float cx = (newW + diffW)/2.0f;
+        float cy = (newH + 0*diffH)/2.0f;
+
+        Image rot = new Image(newW, newH, c,false);
+
+        for(int z = 0; z < c; ++z){
+            for(int y = 0; y < newH; y++){
+                for(int x = 0; x < newW; ++x){
+
+                    float rx = cosRad*(x-cx) - sinRad*(y-cy) + cx;
+                    float ry = sinRad*(x-cx) + cosRad*(y-cy) + cy;
+                    float val = bilinearInterpolate(rx, ry, z);
+                    rot.setPixel(x, y, z, val);
+                }
+            }
+        }
+        return rot;
+    }
+
+    public Image rotate90Ccw() {
+
+        final float sinRad = (float)Math.sin(-Math.PI/2);
+        final float cosRad = (float)Math.cos(-Math.PI/2);
+
+        int newW = Math.round(Math.abs(sinRad*h) + Math.abs(cosRad*w));
+        int newH = Math.round(Math.abs(sinRad*w) + Math.abs(cosRad*h));
+
+        int diffH = Math.abs(newH - h);
+        int diffW = Math.abs(newW - w);
+
+        float cx = newW/2.0f;
+        float cy = newH/2.0f - diffH/2;
+
+        Image rot = new Image(newW, newH, c,false);
+
+        for(int z = 0; z < c; ++z){
+            for(int y = 0; y < newH; y++){
+                for(int x = 0; x < newW; ++x){
+
+                    float rx = cosRad*(x-cx) - sinRad*(y-cy) + cx;
+                    float ry = sinRad*(x-cx) + cosRad*(y-cy) + cy;
+                    float val = bilinearInterpolate(rx, ry, z);
+                    rot.setPixel(x, y, z, val);
+                }
+            }
+        }
+        return rot;
+    }
+
+    public Image rotate(float rad) {
+
+        final float sinRad = (float)Math.sin(rad);
+        final float cosRad = (float)Math.cos(rad);
+
+        float cx = w/2.0f;
+        float cy = h/2.0f;
+        Image rot = new Image(w, h, c,false);
+
+        for(int z = 0; z < c; ++z){
+            for(int y = 0; y < h; ++y){
+                for(int x = 0; x < w; ++x){
+                    float rx = cosRad*(x-cx) - sinRad*(y-cy) + cx;
+                    float ry = sinRad*(x-cx) + cosRad*(y-cy) + cy;
+                    float val = bilinearInterpolate(rx, ry, c);
+                    rot.setPixel(x, y, z, val);
+                }
+            }
+        }
+        return rot;
+    }
+
 
     public void fill(float s) {
 
