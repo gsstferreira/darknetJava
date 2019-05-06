@@ -58,20 +58,18 @@ public abstract class Detector {
         String oldName = newNamePath[newNamePath.length - 1];
         String newName = "Predictions/" + System.currentTimeMillis() + "_" + oldName.replace(".jpg", "");
 
-        if(!GlobalVars.isJar) {
-            im.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
-            String finalNewName = newName + ".jpg";
+        im.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
+        String finalNewName = newName + ".jpg";
 
-            new Thread(() -> {
-                if(displayer != null) {
-                    displayer.updateImage(finalNewName,im.w + 20, im.h + 20);
+        new Thread(() -> {
+            if(displayer != null) {
+                displayer.updateImage(finalNewName,im.w + 20, im.h + 20);
 
-                }
-                else {
-                    displayer = new ImageDisplayer(finalNewName,im.w + 20,im.h + 20);
-                }
-            }).start();
-        }
+            }
+            else {
+                displayer = new ImageDisplayer(finalNewName,im.w + 20,im.h + 20);
+            }
+        }).start();
 
         return new DetectionResult(procTime,resultList,im.w,im.h);
     }
@@ -117,19 +115,17 @@ public abstract class Detector {
 
         String newName = "Predictions/" + System.currentTimeMillis() + "_POSTreq";
 
-        if(!GlobalVars.isJar) {
-            image.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
-            String finalNewName = newName + ".jpg";
+        image.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
+        String finalNewName = newName + ".jpg";
 
-            new Thread(() -> {
-                if(displayer != null) {
-                    displayer.updateImage(finalNewName,image.w + 20, image.h + 20);
-                }
-                else {
-                    displayer = new ImageDisplayer(finalNewName,image.w + 20,image.h + 20);
-                }
-            }).start();
-        }
+        new Thread(() -> {
+            if(displayer != null) {
+                displayer.updateImage(finalNewName,image.w + 20, image.h + 20);
+            }
+            else {
+                displayer = new ImageDisplayer(finalNewName,image.w + 20,image.h + 20);
+            }
+        }).start();
 
         return new DetectionResult(procTime,resultList,image.w,image.h);
     }

@@ -1,2 +1,7 @@
-# darknetJava
-Java implementation of pjreddie's darknet; skipping GPU mode and network training.
+# Yolo Detector Java
+
+Implementação do algoritmo YOLO de detecção de objetos para imagens, em Java.
+
+
+
+
