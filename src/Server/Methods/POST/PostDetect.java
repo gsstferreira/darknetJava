@@ -12,6 +12,7 @@ import com.google.gson.JsonParser;
 import java.io.BufferedOutputStream;
 import java.io.PrintWriter;
 import java.util.Base64;
+import java.util.concurrent.ExecutionException;
 
 public abstract class PostDetect {
 
@@ -27,7 +28,14 @@ public abstract class PostDetect {
         String b64Im = json.get("imageBytes").getAsString();
         byte[] imageBytes = Base64.getDecoder().decode(b64Im);
 
-        float thresh = 0.5f;
+        float thresh;
+
+        try {
+            thresh = json.get("threshold").getAsFloat();
+        }
+        catch (Exception e) {
+            thresh = 0.5f;
+        }
 
         Image image = Image.loadImageColorMemory(imageBytes,0,0);
 

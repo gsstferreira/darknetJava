@@ -74,7 +74,7 @@ public abstract class Detector {
             }).start();
         }
 
-        return new DetectionResult(procTime,resultList,im.w,im.h);
+        return new DetectionResult(procTime,thresh,resultList,im.w,im.h);
     }
 
     private static DetectionResult testDetectorImage(Image image, float thresh, float hier_thresh) {
@@ -133,7 +133,7 @@ public abstract class Detector {
             }).start();
         }
 
-        return new DetectionResult(procTime,resultList,image.w,image.h);
+        return new DetectionResult(procTime,thresh,resultList,image.w,image.h);
     }
 
     public static DetectionResult runDetector(String imagePath, float thresh) {
