@@ -18,6 +18,7 @@ public abstract class Setup {
 
             GlobalVars.isJar = Setup.class.getResourceAsStream("/" + networkCfgPath) != null;
             System.out.printf("Running from .JAR package: %b\n",GlobalVars.isJar);
+            System.out.printf("Displaying result image on detection run: %b\n",GlobalVars.showResultImage);
             GlobalVars.loadAlphabet();
             GlobalVars.loadNetwork(networkCfgPath,weightsPath,namesCfgPath);
 
