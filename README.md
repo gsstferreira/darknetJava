@@ -26,7 +26,8 @@ Para uso remoto ou local, não é necessário adicionar autenticação ao cabeç
 
 URL: localhost:8080/Detect
 
-Corpo da requisição: ```javascript
+Corpo da requisição:
+```javascript
 {
     "threshold":[THRESHOLD],
     "imageBytes:"[B64STRING]
