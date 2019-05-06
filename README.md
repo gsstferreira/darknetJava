@@ -17,14 +17,15 @@ Para uso local do servidor, não é necessário adicionar autenticação ao cabe
 
 `localhost:8080/Detect?path=[CAMINHO DA IMAGEM]&thresh=[THRESHOLD]`
 
-* [CAMINHO DA IMAGEM] - diretório absoluto do local da imagem a ser analisada; pode-se usar barras normais e barras invertidas;
-* [THRESHOLD] - valor opcional entre 0 e 1 (padrão = 0.5) para determinar qual o nível mínimo de confiança para aceitar uma detecção de objeto
+* **[CAMINHO DA IMAGEM]** - diretório absoluto do local da imagem a ser analisada; pode-se usar barras normais e barras invertidas;
+* **[THRESHOLD]** - valor opcional entre 0 e 1 (padrão = 0.5) para determinar qual o nível mínimo de confiança para aceitar uma detecção de objeto
 
 #### HTTP - POST
 
 Para uso remoto ou local, não é necessário adicionar autenticação ao cabeçalho; o corpo da requisição é dado no formato JSON, logo é necessário adicionar o cabeçalho 'content-type' adequado.
 
-URL: localhost:8080/Detect
+URL:
+`localhost:8080/Detect`
 
 Corpo da requisição:
 ```javascript
@@ -34,8 +35,8 @@ Corpo da requisição:
 }
 ```
 
-* [B64STRING] - representação em string (base64) dos bytes da imagem;
-* [THRESHOLD] - valor opcional entre 0 e 1 (padrão = 0.5) para determinar qual o nível mínimo de confiança para aceitar uma detecção de objeto
+* **[B64STRING]** - representação em string (base64) dos bytes da imagem;
+* **[THRESHOLD]** - valor opcional entre 0 e 1 (padrão = 0.5) para determinar qual o nível mínimo de confiança para aceitar uma detecção de objeto
 
 ### Resultado
 
