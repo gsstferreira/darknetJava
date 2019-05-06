@@ -4,13 +4,15 @@ Implementação do algoritmo YOLO de detecção de objetos para imagens, em Java
 
 Compilado para Java 9 (major version: 53)
 
-## MANUAL DE USO
+## Manual de Uso
 
 O diretório 'out/artifacts/YOLO_Java_jar' contém o arquivo .jar correspondente ao servidor com o algoritmo de detecção YOLO (acompanhado do arquivo .bat para iniciá-lo).
 
 Após o fim da inicialização do servidor, há duas maneiras de utilizar o serviço de detecção de objetos:
 
 ### HTTP - GET
+
+Tal método funciona para uso local do servidor, pois envolve passar o diretório da imagem via uma requisição HTTP (URLs não funcionam!!)
 
 ### HTTP - POST
 

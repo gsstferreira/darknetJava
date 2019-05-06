@@ -1,4 +1,5 @@
 import Server.Handlers.RequestHandler;
+import Tools.GlobalVars;
 import Yolo.Setup;
 
 import java.io.IOException;
@@ -10,6 +11,16 @@ public class Main {
     private static final int port = 8080;
 
     public static void main(String[] args) {
+
+        GlobalVars.showResultImage = false;
+
+        for (String s:args) {
+
+            if(s.equals("displayResult")) {
+                GlobalVars.showResultImage = true;
+                break;
+            }
+        }
 
         Locale.setDefault(Locale.ENGLISH);
 

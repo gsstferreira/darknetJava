@@ -59,17 +59,20 @@ public abstract class Detector {
         String newName = "Predictions/" + System.currentTimeMillis() + "_" + oldName.replace(".jpg", "");
 
         im.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
-        String finalNewName = newName + ".jpg";
 
-        new Thread(() -> {
-            if(displayer != null) {
-                displayer.updateImage(finalNewName,im.w + 20, im.h + 20);
+        if(GlobalVars.showResultImage) {
 
-            }
-            else {
-                displayer = new ImageDisplayer(finalNewName,im.w + 20,im.h + 20);
-            }
-        }).start();
+            String finalNewName = newName + ".jpg";
+            new Thread(() -> {
+                if(displayer != null) {
+                    displayer.updateImage(finalNewName,im.w + 20, im.h + 20);
+
+                }
+                else {
+                    displayer = new ImageDisplayer(finalNewName,im.w + 20,im.h + 20);
+                }
+            }).start();
+        }
 
         return new DetectionResult(procTime,resultList,im.w,im.h);
     }
@@ -116,16 +119,19 @@ public abstract class Detector {
         String newName = "Predictions/" + System.currentTimeMillis() + "_POSTreq";
 
         image.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
-        String finalNewName = newName + ".jpg";
 
-        new Thread(() -> {
-            if(displayer != null) {
-                displayer.updateImage(finalNewName,image.w + 20, image.h + 20);
-            }
-            else {
-                displayer = new ImageDisplayer(finalNewName,image.w + 20,image.h + 20);
-            }
-        }).start();
+        if(GlobalVars.showResultImage) {
+
+            String finalNewName = newName + ".jpg";
+            new Thread(() -> {
+                if(displayer != null) {
+                    displayer.updateImage(finalNewName,image.w + 20, image.h + 20);
+                }
+                else {
+                    displayer = new ImageDisplayer(finalNewName,image.w + 20,image.h + 20);
+                }
+            }).start();
+        }
 
         return new DetectionResult(procTime,resultList,image.w,image.h);
     }

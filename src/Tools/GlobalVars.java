@@ -12,6 +12,7 @@ import java.util.List;
 public abstract class GlobalVars {
 
     public static boolean isJar = false;
+    public static boolean showResultImage = false;
 
     private static Image[][] alphabet;
     private static Network network;
