@@ -99,7 +99,7 @@ public abstract class Parser {
             String[] sArr;
 
             while((s = reader.readLine()) != null) {
-                s = s.strip();
+                s = Util.strip(s);
 
                 if(!s.isEmpty()) {
                     switch (s.charAt(0)) {
@@ -254,8 +254,8 @@ public abstract class Parser {
 
             for(int i = 0; i < lArr.length; ++i){
 
-                steps[i] = Integer.parseInt(lArr[i].strip());
-                scales[i] = Float.parseFloat(pArr[i].strip());
+                steps[i] = Integer.parseInt(Util.strip(lArr[i]));
+                scales[i] = Float.parseFloat(Util.strip(pArr[i]));
             }
             net.scales = new FloatArray(scales);
             net.steps = new IntArray(steps);
@@ -438,7 +438,7 @@ public abstract class Parser {
 
         if(a != null){
 
-            String[] sp = a.strip().split(",");
+            String[] sp = Util.strip(a).split(",");
             mask = new IntArray(sp.length);
 
             for(int i = 0; i < sp.length; i++) {
@@ -482,7 +482,7 @@ public abstract class Parser {
 
         if(a != null){
             
-            String[] sp = a.strip().split(",");
+            String[] sp = Util.strip(a).split(",");
 
             for(int i = 0; i < sp.length; i++) {
                 l.biases.set(i,Float.parseFloat(sp[i]));
@@ -543,7 +543,7 @@ public abstract class Parser {
         
         if(a != null){
             
-            String[] sp = a.strip().split(",");
+            String[] sp = Util.strip(a).split(",");
             
             for(int i = 0; i < sp.length; i++) {
                 l.biases.set(i, Float.parseFloat(sp[i]));
@@ -757,13 +757,13 @@ public abstract class Parser {
             ExceptionThrower.InvalidParams("Route Layer must specify input Layers");
         }
 
-        String[] sp = l.strip().split(",");
+        String[] sp = Util.strip(l).split(",");
 
         IntArray layers = new IntArray(sp.length);
         IntArray sizes = new IntArray(sp.length);
 
         for(int i = 0; i < sp.length; i++) {
-            int index = Integer.parseInt(sp[i].strip());
+            int index = Integer.parseInt(Util.strip(sp[i]));
 
             if(index < 0) {
                 index += params.index;

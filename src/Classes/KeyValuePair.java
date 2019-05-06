@@ -1,5 +1,7 @@
 package Classes;
 
+import Tools.Util;
+
 public class KeyValuePair {
 
     public final String key;
@@ -8,8 +10,8 @@ public class KeyValuePair {
 
     public KeyValuePair(String k, String v) {
 
-        key = k.strip();
-        value = v.strip();
+        key = Util.strip(k);
+        value = Util.strip(v);
         used = false;
     }
 }

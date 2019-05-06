@@ -1,6 +1,7 @@
 package Classes;
 
 import Classes.Arrays.FloatArray;
+import Tools.Util;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -197,7 +198,7 @@ public class Tree {
             while((s = reader.readLine()) != null) {
 
                 String[] ss = s.split(" ");
-                int parent = Integer.parseInt(ss[1].strip());
+                int parent = Integer.parseInt(Util.strip(ss[1]));
                 _parent.add(parent);
                 _child.add(-1);
                 _name.add(ss[0]);

@@ -76,7 +76,7 @@ public abstract class Util {
             String s;
 
             while((s = reader.readLine()) != null) {
-                int num = Integer.parseInt(s.strip());
+                int num = Integer.parseInt(Util.strip(s));
                 list.add(num);
             }
             reader.close();
@@ -420,4 +420,27 @@ public abstract class Util {
 //        ByteArray byteBuffer = Arrays.reverse(ByteArray.wrap(bytes));
 //        return byteBuffer.getInt(0);
 //    }
+
+    public static String strip(String a) {
+
+        String s = a;
+        boolean start = true;
+        int wSpace = 0;
+
+        for(int i = 0; i < a.length(); i++) {
+
+            if(Character.isWhitespace(a.charAt(i))) {
+                wSpace++;
+            }
+            else {
+                if(start) {
+                    start = false;
+                    s = a.substring(wSpace);
+                }
+                wSpace = 0;
+            }
+
+        }
+        return s.substring(0,s.length() - wSpace);
+    }
 }
