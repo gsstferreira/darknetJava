@@ -6,7 +6,7 @@ Compilado para Java 9 (major version: 53)
 
 ## Manual de Uso
 
-O diretório 'out/artifacts/YOLO_Java_jar' contém o arquivo .jar correspondente ao servidor com o algoritmo de detecção YOLO, acompanhando de arquivos .bat para iniciá-lo.
+O diretório ***'out/artifacts/YOLO_Java_jar'*** contém o arquivo .jar correspondente ao servidor com o algoritmo de detecção YOLO, acompanhando de arquivos .bat para iniciá-lo.
 
 Após a inicialização do servidor, esse é associado à porta 8080 para o recebimento dos seguintes tipos de requisições:
 
@@ -25,6 +25,7 @@ Para uso local do servidor, não é necessário adicionar autenticação ao cabe
 Para uso remoto ou local, não é necessário adicionar autenticação ao cabeçalho; o corpo da requisição é dado no formato JSON, logo é necessário adicionar o cabeçalho 'content-type' adequado.
 
 URL:
+
 `localhost:8080/Detect`
 
 Corpo da requisição:

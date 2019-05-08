@@ -7,16 +7,16 @@ import Classes.Network;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.util.List;
 
-public abstract class GlobalVars {
+public abstract class Global {
 
     public static boolean isJar = false;
-    public static boolean showResultImage = false;
+    public static boolean saveResult = false;
+    public static boolean displayResult = false;
 
     private static Image[][] alphabet;
     private static Network network;
-    private static List<String> names;
+    private static String[] names;
 
     private static ByteArray weightBytes;
 
@@ -63,7 +63,7 @@ public abstract class GlobalVars {
         return network;
     }
 
-    public static List<String> getNames() {
+    public static String[] getNames() {
         return names;
     }
 
@@ -73,7 +73,7 @@ public abstract class GlobalVars {
 
             BufferedInputStream stream;
             if(isJar) {
-                stream = new BufferedInputStream(GlobalVars.class.getResourceAsStream("/" + weightFile));
+                stream = new BufferedInputStream(Global.class.getResourceAsStream("/" + weightFile));
             }
             else {
                 stream = new BufferedInputStream(new FileInputStream(weightFile));

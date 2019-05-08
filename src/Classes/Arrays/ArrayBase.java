@@ -17,7 +17,7 @@ public abstract class ArrayBase {
             this.offset += off;
 
             if(this.offset >= this.size) {
-                this.offset = this.size -1;
+                this.offset = this.size - 1;
             }
 
             else if(this.offset < 0) {

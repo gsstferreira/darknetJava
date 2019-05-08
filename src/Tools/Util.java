@@ -38,7 +38,7 @@ public abstract class Util {
 //        try {
 //
 //            BufferedReader reader;
-//            if(GlobalVars.isJar) {
+//            if(Global.isJar) {
 //                reader = new BufferedReader(new InputStreamReader(Util.class.getResourceAsStream("/" + fileName)));
 //            }
 //            else {
@@ -65,7 +65,7 @@ public abstract class Util {
         try {
 
             BufferedReader reader;
-            if(GlobalVars.isJar) {
+            if(Global.isJar) {
                 reader = new BufferedReader(new InputStreamReader(Util.class.getResourceAsStream("/" + fileName)));
             }
             else {

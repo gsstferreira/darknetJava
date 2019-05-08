@@ -1,7 +1,7 @@
 package Classes;
 
 import Classes.Arrays.FloatArray;
-import Tools.GlobalVars;
+import Tools.Global;
 import Tools.Rand;
 import Yolo.Enums.ImType;
 import org.lwjgl.BufferUtils;
@@ -541,7 +541,7 @@ public class Image {
 
         Image[][] alphabets = new Image[alphabetNsize][96];
 
-        if(GlobalVars.isJar) {
+        if(Global.isJar) {
             IntStream.range(0,alphabetNsize).parallel().forEach(j -> {
                 for(int i = 32; i < 127; ++i){
 
@@ -1514,7 +1514,7 @@ public class Image {
 //        constrain();
 //    }
 
-    public List<Result> drawDetections(Detection[] dets, int num, float thresh, List<String> names, Image[][] alphabet, int classes) {
+    public List<Result> drawDetections(Detection[] dets, int num, float thresh, String[] names, Image[][] alphabet, int classes) {
 
         int i,j;
         List<Result> list = new ArrayList<>();
@@ -1537,7 +1537,7 @@ public class Image {
             int _class = -1;
             for(j = 0; j < classes; ++j){
                 if (dets[i].prob[j] > thresh){
-                    currentName = names.get(j);
+                    currentName = names[j];
                     currentConfidence = dets[i].prob[j] * 100.0f;
                     if (_class < 0) {
 

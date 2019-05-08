@@ -8,7 +8,7 @@ import Classes.Lists.KeyValuePairList;
 import Classes.Lists.SectionList;
 import Tools.Buffers;
 import Tools.ExceptionThrower;
-import Tools.GlobalVars;
+import Tools.Global;
 import Tools.Util;
 import Yolo.Enums.Activation;
 import Yolo.Enums.CostType;
@@ -84,7 +84,7 @@ public abstract class Parser {
 
         try {
             BufferedReader reader;
-            if(GlobalVars.isJar){
+            if(Global.isJar){
                 reader = new BufferedReader(new InputStreamReader(Parser.class.getResourceAsStream("/" + fileName)));
             }
             else {
@@ -1263,12 +1263,12 @@ public abstract class Parser {
             float v;
 
             for(int i = 0; i < l.outputs; i++) {
-                v = GlobalVars.getFloatWeight();
+                v = Global.getFloatWeight();
                 l.biases.set(i,v);
             }
 
             for(int i = 0; i < l.outputs*l.inputs; i++) {
-                v = GlobalVars.getFloatWeight();
+                v = Global.getFloatWeight();
                 l.weights.set(i,v);
             }
 
@@ -1280,17 +1280,17 @@ public abstract class Parser {
 
 
                 for(int i = 0; i < l.outputs; i++) {
-                    v = GlobalVars.getFloatWeight();
+                    v = Global.getFloatWeight();
                     l.scales.set(i,v);
                 }
 
                 for(int i = 0; i < l.outputs; i++) {
-                    v = GlobalVars.getFloatWeight();
+                    v = Global.getFloatWeight();
                     l.rollingMean.set(i,v);
                 }
 
                 for(int i = 0; i < l.outputs; i++) {
-                    v = GlobalVars.getFloatWeight();
+                    v = Global.getFloatWeight();
                     l.rollingVariance.set(i,v);
                 }
             }
@@ -1307,17 +1307,17 @@ public abstract class Parser {
 
         try {
             for(int i = 0; i < l.c; i++) {
-                v = GlobalVars.getFloatWeight();
+                v = Global.getFloatWeight();
                 l.scales.set(i,v);
             }
 
             for(int i = 0; i < l.c; i++) {
-                v = GlobalVars.getFloatWeight();
+                v = Global.getFloatWeight();
                 l.rollingMean.set(i,v);
             }
 
             for(int i = 0; i < l.c; i++) {
-                v = GlobalVars.getFloatWeight();
+                v = Global.getFloatWeight();
                 l.rollingVariance.set(i,v);
             }
 
@@ -1397,30 +1397,30 @@ public abstract class Parser {
 
         try {
             for(int i = 0; i < l.n; i++) {
-                float v = GlobalVars.getFloatWeight();
+                float v = Global.getFloatWeight();
                 l.biases.set(i,v);
             }
 
             if (l.batchNormalize != 0 && l.dontLoadScales == 0){
 
                 for(int i = 0; i < l.n; i++) {
-                    float v = GlobalVars.getFloatWeight();
+                    float v = Global.getFloatWeight();
                     l.scales.set(i,v);
                 }
 
                 for(int i = 0; i < l.n; i++) {
-                    float v = GlobalVars.getFloatWeight();
+                    float v = Global.getFloatWeight();
                     l.rollingMean.set(i,v);
                 }
 
                 for(int i = 0; i < l.n; i++) {
-                    float v = GlobalVars.getFloatWeight();
+                    float v = Global.getFloatWeight();
                     l.rollingVariance.set(i,v);
                 }
             }
 
             for(int i = 0; i < num; i++) {
-                float v = GlobalVars.getFloatWeight();
+                float v = Global.getFloatWeight();
                 l.weights.set(i,v);
             }
 
@@ -1437,23 +1437,23 @@ public abstract class Parser {
 
         try {
 
-            GlobalVars.loadWeights(filename);
+            Global.loadWeights(filename);
 
             int major;
             int minor;
             int revision;
 
-            major = GlobalVars.getIntWeight();
-            minor = GlobalVars.getIntWeight();
-            revision = GlobalVars.getIntWeight();
+            major = Global.getIntWeight();
+            minor = Global.getIntWeight();
+            revision = Global.getIntWeight();
 
             if ((major*10 + minor) >= 2 && major < 1000 && minor < 1000){
 
-                long v = GlobalVars.getLongWeight();
+                long v = Global.getLongWeight();
                 net.seen.set(0, v);
             }
             else {
-                int v = GlobalVars.getIntWeight();
+                int v = Global.getIntWeight();
                 net.seen.set(0,v);
             }
 
@@ -1510,17 +1510,17 @@ public abstract class Parser {
                     int size = l.size*l.size*l.c*l.n*locations;
 
                     for(int z = 0; z < l.outputs; z++) {
-                        float v = GlobalVars.getFloatWeight();
+                        float v = Global.getFloatWeight();
                         l.biases.set(z,v);
                     }
 
                     for(int z = 0; z < size; z++) {
-                        float v = GlobalVars.getFloatWeight();
+                        float v = Global.getFloatWeight();
                         l.weights.set(z,v);
                     }
                 }
             }
-            GlobalVars.freeWeights();
+            Global.freeWeights();
         }
         catch (Exception e) {
             e.printStackTrace();

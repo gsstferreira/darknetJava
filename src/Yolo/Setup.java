@@ -1,35 +1,35 @@
 package Yolo;
 
-import Tools.GlobalVars;
-
+import Tools.Global;
 import java.io.File;
 
 public abstract class Setup {
 
-    public  static boolean initDone = false;
-
     private static final String networkCfgPath = "Res/network.cfg";
     private static final String namesCfgPath = "Res/names.cfg";
-    private static final String weightsPath = "Res/weight.weights";
+    private static final String weightsPath = "Res/weight.bin";
 
     public static void initYolo() {
 
-        if(!initDone) {
+        Global.isJar = Setup.class.getResourceAsStream("/" + networkCfgPath) != null;
 
-            GlobalVars.isJar = Setup.class.getResourceAsStream("/" + networkCfgPath) != null;
-            System.out.printf("Running from .JAR package: %b\n",GlobalVars.isJar);
-            System.out.printf("Displaying result image on detection run: %b\n",GlobalVars.showResultImage);
-            GlobalVars.loadAlphabet();
-            GlobalVars.loadNetwork(networkCfgPath,weightsPath,namesCfgPath);
+        if(!Global.isJar) {
+            Global.saveResult = true;
+            Global.displayResult = true;
+        }
 
-            File predictions = new File("Predictions/");
 
-            if(!predictions.exists()) {
-                //noinspection ResultOfMethodCallIgnored
-                predictions.mkdir();
-            }
+        System.out.printf("Running from .JAR package: %b\n", Global.isJar);
+        System.out.printf("Saving result image file: %b\n", Global.saveResult);
+        System.out.printf("Displaying result image: %b\n", Global.displayResult && Global.saveResult);
+        Global.loadAlphabet();
+        Global.loadNetwork(networkCfgPath,weightsPath,namesCfgPath);
 
-            initDone = true;
+        File predictions = new File("Predictions/");
+
+        if(!predictions.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            predictions.mkdir();
         }
     }
 }

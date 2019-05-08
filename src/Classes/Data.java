@@ -1,6 +1,7 @@
 package Classes;
 
-import Tools.GlobalVars;
+import Tools.Global;
+import Tools.Util;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -18,26 +19,26 @@ public class Data {
 //    public int[] numBoxes;
 //    public Box[][] boxes;
 
-    public static List<String> getPaths(String fileName) {
-
-        List<String> list = new ArrayList<>();
+    public static String[] getPaths(String fileName) {
 
         try {
             BufferedReader reader;
-            if(GlobalVars.isJar) {
+            if(Global.isJar) {
                 reader = new BufferedReader(new InputStreamReader(Data.class.getResourceAsStream("/" + fileName)));
             }
             else {
                 reader = new BufferedReader(new FileReader(fileName));
             }
+
+            StringBuilder concat = new StringBuilder();
             String s;
 
             while((s = reader.readLine()) != null) {
-                list.add(s.replace("\n",""));
+                concat.append(Util.strip(s)).append("\n\r");
             }
             reader.close();
 
-            return list;
+            return Util.strip(concat.toString()).split("\n\r");
         }
         catch (Exception e) {
             e.printStackTrace();

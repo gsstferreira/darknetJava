@@ -3,14 +3,15 @@ package Yolo;
 import Classes.*;
 import Classes.Arrays.FloatArray;
 import Classes.Arrays.IntArray;
-import Tools.GlobalVars;
+import Tools.Global;
 import Yolo.Enums.ImType;
 
 import java.util.List;
 import java.util.Objects;
 
-
 public abstract class Detector {
+
+    private static final float nms = 0.45f;
 
     private static ImageDisplayer displayer;
 
@@ -19,9 +20,7 @@ public abstract class Detector {
         long time1;
         long time2;
 
-        float nms =.45f;
-
-        Network net = GlobalVars.getNetwork();
+        Network net = Global.getNetwork();
 
         time1 = System.currentTimeMillis();
         System.out.print("Loading image...\t");
@@ -43,35 +42,36 @@ public abstract class Detector {
 
         System.out.print(String.format("%s: Predicted in %.3f seconds.\n\n", filename,procTime));
 
-        int nboxes = 0;
         IntArray b = new IntArray(1);
-        b.set(0,nboxes);
+        b.set(0,0);
 
         Detection[] dets = net.getBoxes( im.w, im.h, thresh, hier_thresh, null, 1, b);
-        nboxes = b.get(0);
 
-        Box.doNmsSort(dets,nboxes,l.classes,nms);
+        Box.doNmsSort(dets,b.get(0),l.classes,nms);
 
-        List<Result> resultList = im.drawDetections(dets, nboxes, thresh, GlobalVars.getNames(), GlobalVars.getAlphabet(), l.classes);
+        List<Result> resultList = im.drawDetections(dets, b.get(0), thresh, Global.getNames(), Global.getAlphabet(), l.classes);
 
-        String[] newNamePath = filename.split("/");
-        String oldName = newNamePath[newNamePath.length - 1];
-        String newName = "Predictions/" + System.currentTimeMillis() + "_" + oldName.replace(".jpg", "");
+        if(Global.saveResult) {
 
-        im.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
+            String[] newNamePath = filename.split("/");
+            String oldName = newNamePath[newNamePath.length - 1];
+            String newName = "Predictions/" + System.currentTimeMillis() + "_" + oldName.replace(".jpg", "");
 
-        if(GlobalVars.showResultImage) {
+            im.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
 
-            String finalNewName = newName + ".jpg";
-            new Thread(() -> {
-                if(displayer != null) {
-                    displayer.updateImage(finalNewName,im.w + 20, im.h + 20);
+            if(Global.displayResult) {
 
-                }
-                else {
-                    displayer = new ImageDisplayer(finalNewName,im.w + 20,im.h + 20);
-                }
-            }).start();
+                String finalNewName = newName + ".jpg";
+                new Thread(() -> {
+                    if(displayer != null) {
+                        displayer.updateImage(finalNewName,im.w + 20, im.h + 20);
+
+                    }
+                    else {
+                        displayer = new ImageDisplayer(finalNewName,im.w + 20,im.h + 20);
+                    }
+                }).start();
+            }
         }
 
         return new DetectionResult(procTime,thresh,resultList,im.w,im.h);
@@ -82,9 +82,7 @@ public abstract class Detector {
         long time1;
         long time2;
 
-        float nms =.45f;
-
-        Network net = GlobalVars.getNetwork();
+        Network net = Global.getNetwork();
 
         time1 = System.currentTimeMillis();
         System.out.print("Loading image...\t");
@@ -105,32 +103,33 @@ public abstract class Detector {
 
         System.out.print(String.format("Predicted in %.3f seconds.\n\n", procTime));
 
-        int nboxes = 0;
         IntArray b = new IntArray(1);
-        b.set(0,nboxes);
+        b.set(0,0);
 
         Detection[] dets = net.getBoxes( image.w, image.h, thresh, hier_thresh, null, 1, b);
-        nboxes = b.get(0);
 
-        Box.doNmsSort(dets,nboxes,l.classes,nms);
+        Box.doNmsSort(dets,b.get(0),l.classes,nms);
 
-        List<Result> resultList = image.drawDetections(dets, nboxes, thresh, GlobalVars.getNames(), GlobalVars.getAlphabet(), l.classes);
+        List<Result> resultList = image.drawDetections(dets, b.get(0), thresh, Global.getNames(), Global.getAlphabet(), l.classes);
 
-        String newName = "Predictions/" + System.currentTimeMillis() + "_POSTreq";
+        if(Global.saveResult) {
 
-        image.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
+            String newName = "Predictions/" + System.currentTimeMillis() + "_POSTreq";
 
-        if(GlobalVars.showResultImage) {
+            image.saveToDisk(Objects.requireNonNullElse(null,newName), ImType.JPG, 80);
 
-            String finalNewName = newName + ".jpg";
-            new Thread(() -> {
-                if(displayer != null) {
-                    displayer.updateImage(finalNewName,image.w + 20, image.h + 20);
-                }
-                else {
-                    displayer = new ImageDisplayer(finalNewName,image.w + 20,image.h + 20);
-                }
-            }).start();
+            if(Global.displayResult) {
+
+                String finalNewName = newName + ".jpg";
+                new Thread(() -> {
+                    if(displayer != null) {
+                        displayer.updateImage(finalNewName,image.w + 20, image.h + 20);
+                    }
+                    else {
+                        displayer = new ImageDisplayer(finalNewName,image.w + 20,image.h + 20);
+                    }
+                }).start();
+            }
         }
 
         return new DetectionResult(procTime,thresh,resultList,image.w,image.h);
