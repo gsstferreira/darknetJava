@@ -12,6 +12,7 @@ import java.util.Locale;
 public class Main {
 
     private static final int port = 8080;
+    private static boolean finish = false;
 
     public static void main(String[] args) {
 
@@ -42,11 +43,48 @@ public class Main {
             ServerSocket serverConnect = new ServerSocket(port);
             System.out.printf("Server ready, listening to port %d.\n",port);
 
-            //noinspection InfiniteLoopStatement
-            while(true) {
-                new RequestHandler(serverConnect.accept());
+            Thread consoleInput = new Thread(() -> {
+
+                BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+
+                while(!finish){
+                    try {
+                        String text = in.readLine();
+
+                        switch(text) {
+                            case "close":
+                                finish = true;
+                                break;
+                            default:
+                                System.err.println("Unknown command!");
+                                break;
+                        }
+                    }
+                    catch (IOException ignored){}
+                }
+            });
+            consoleInput.start();
+
+            Thread serverSocket = new Thread(() -> {
+                while(!finish) {
+                    try {
+                        new RequestHandler(serverConnect.accept());
+                    }
+                    catch (IOException ignored) {}
+                }
+            });
+            serverSocket.start();
+
+            while(!finish) {
+                try {
+                    Thread.sleep(50);
+                }
+                catch (InterruptedException ignored) {}
             }
 
+
+            System.out.println("Closing server...");
+            System.exit(0);
         }
         catch (IOException e) {
             System.err.println("Server setup error : " + e.getMessage());
